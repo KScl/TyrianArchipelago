@@ -7,3 +7,6 @@
 [submodule "src/submodule/valijson"]
 	path = src/submodule/valijson
 	url = git@github.com:tristanpenman/valijson
+[submodule "src/submodule/wswrap"]
+	path = src/submodule/wswrap
+	url = git@github.com:black-sliver/wswrap
