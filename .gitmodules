@@ -1,0 +1,3 @@
+[submodule "src/submodule/apclientpp"]
+	path = src/submodule/apclientpp
+	url = git@github.com:black-sliver/apclientpp
