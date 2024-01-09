@@ -4,3 +4,6 @@
 [submodule "src/submodule/json"]
 	path = src/submodule/json
 	url = git@github.com:nlohmann/json
+[submodule "src/submodule/valijson"]
+	path = src/submodule/valijson
+	url = git@github.com:tristanpenman/valijson
