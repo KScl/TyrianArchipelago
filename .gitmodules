@@ -1,3 +1,6 @@
 [submodule "src/submodule/apclientpp"]
 	path = src/submodule/apclientpp
 	url = git@github.com:black-sliver/apclientpp
+[submodule "src/submodule/json"]
+	path = src/submodule/json
+	url = git@github.com:nlohmann/json
