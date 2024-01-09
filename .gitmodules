@@ -10,3 +10,6 @@
 [submodule "src/submodule/wswrap"]
 	path = src/submodule/wswrap
 	url = git@github.com:black-sliver/wswrap
+[submodule "src/submodule/websocketpp"]
+	path = src/submodule/websocketpp
+	url = git@github.com:zaphoyd/websocketpp
