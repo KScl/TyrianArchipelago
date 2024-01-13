@@ -123,15 +123,6 @@ typedef JE_byte *JE_MapType[300][14]; /* [1..300, 1..14] */
 typedef JE_byte *JE_MapType2[600][14]; /* [1..600, 1..14] */
 typedef JE_byte *JE_MapType3[600][15]; /* [1..600, 1..15] */
 
-struct JE_EventRecType
-{
-	JE_word     eventtime;
-	JE_byte     eventtype;
-	JE_integer  eventdat, eventdat2;
-	JE_shortint eventdat3, eventdat5, eventdat6;
-	JE_byte     eventdat4;
-};
-
 struct JE_MegaDataType1
 {
 	JE_MapType mainmap;
@@ -224,7 +215,7 @@ extern const JE_byte shipCombos[14][3];
 extern JE_byte SFCurrentCode[2][21];
 extern JE_byte SFExecuted[2];
 extern JE_byte lvlFileNum;
-extern JE_word maxEvent, eventLoc;
+extern JE_word eventLoc;
 extern JE_word tempBackMove, explodeMove;
 extern JE_byte levelEnd;
 extern JE_word levelEndFxWait;
@@ -273,7 +264,6 @@ extern JE_boolean randomExplosions;
 extern JE_boolean editShip1, editShip2;
 extern JE_boolean globalFlags[10];
 extern JE_byte levelSong;
-extern JE_boolean loadDestruct;
 extern JE_word mapOrigin, mapPNum;
 extern JE_byte mapPlanet[5], mapSection[5];
 extern JE_boolean moveTyrianLogoUp;
@@ -337,7 +327,6 @@ void JE_specialComplete(JE_byte playernum, JE_byte specialType);
 void JE_doSpecialShot(JE_byte playernum, uint *armor, uint *shield);
 
 void JE_wipeShieldArmorBars(void);
-JE_byte JE_playerDamage(JE_byte temp, Player *);
 
 void JE_setupExplosion(signed int x, signed int y, signed int delta_y, unsigned int type, bool fixed_position, bool follow_player);
 void JE_setupExplosionLarge(JE_boolean enemyground, JE_byte explonum, JE_integer x, JE_integer y);

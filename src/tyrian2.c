@@ -47,6 +47,8 @@
 #include "vga256d.h"
 #include "video.h"
 
+#include "archipelago/apconnect.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <math.h>
@@ -61,7 +63,6 @@ boss_bar_t boss_bar[2];
 /* Level Event Data */
 JE_boolean quit, loadLevelOk;
 
-struct JE_EventRecType eventRec[EVENT_MAXIMUM]; /* [1..eventMaximum] */
 JE_word levelEnemyMax;
 JE_word levelEnemyFrequency;
 JE_word levelEnemy[40]; /* [1..40] */
@@ -805,6 +806,8 @@ start_level_first:
 
 	/* Setup player ship graphics */
 	JE_getShipInfo();
+
+	player_resetDeathLink();
 
 	for (uint i = 0; i < COUNTOF(player); ++i)
 	{
@@ -1831,7 +1834,7 @@ draw_player_shot_loop_end:
 
 							if (player[i].invulnerable_ticks == 0)
 							{
-								if ((temp = JE_playerDamage(temp, &player[i])) > 0)
+								if ((temp = player_takeDamage(&player[i], temp, DAMAGE_BULLET)) > 0)
 								{
 									player[i].x_velocity += (enemyShot[z].sxm * temp) / 2;
 									player[i].y_velocity += (enemyShot[z].sym * temp) / 2;
@@ -2169,7 +2172,9 @@ draw_player_shot_loop_end:
 					if (!play_demo)
 					{
 						play_song(SONG_GAMEOVER);
-						set_volume(tyrMusicVolume, fxVolume);
+						// Make the game over solo a bit louder.
+						set_volume((tyrMusicVolume/4) + (tyrMusicVolume/2), fxVolume);
+						musicFade = false;
 					}
 					firstGameOver = false;
 				}
@@ -3025,19 +3030,7 @@ new_game:
 	fread_u16_die(&levelEnemyMax, 1, level_f);
 	fread_u16_die(levelEnemy, levelEnemyMax, level_f);
 
-	fread_u16_die(&maxEvent, 1, level_f);
-	for (x = 0; x < maxEvent; x++)
-	{
-		fread_u16_die(&eventRec[x].eventtime, 1, level_f);
-		fread_u8_die( &eventRec[x].eventtype, 1, level_f);
-		fread_s16_die(&eventRec[x].eventdat,  1, level_f);
-		fread_s16_die(&eventRec[x].eventdat2, 1, level_f);
-		fread_s8_die( &eventRec[x].eventdat3, 1, level_f);
-		fread_s8_die( &eventRec[x].eventdat5, 1, level_f);
-		fread_s8_die( &eventRec[x].eventdat6, 1, level_f);
-		fread_u8_die( &eventRec[x].eventdat4, 1, level_f);
-	}
-	eventRec[x].eventtime = 65500;  /*Not needed but just in case*/
+	level_loadEvents(level_f, lvlFileNum);
 
 	/*debuginfo('Level loaded.');*/
 
@@ -3253,6 +3246,7 @@ void networkStartScreen(void)
 }
 #endif /* WITH_NETWORK */
 
+#if 0
 bool titleScreen(void)
 {
 	enum MenuItemIndex
@@ -3486,14 +3480,7 @@ bool titleScreen(void)
 
 					if (specialName[i][specialNameProgress[i]] == '\0')
 					{
-						if (i + 1 == SA_DESTRUCT)
-						{
-							fade_black(10);
-
-							loadDestruct = true;
-							return true;
-						}
-						else if (i + 1 == SA_ENGAGE)
+						if (i + 1 == SA_ENGAGE)
 						{
 							JE_playSampleNum(V_DATA_CUBE);
 
@@ -3596,6 +3583,7 @@ bool titleScreen(void)
 		}
 	}
 }
+#endif
 
 bool newGame(void)
 {
@@ -3642,6 +3630,7 @@ bool newGame(void)
 	return gameLoaded;
 }
 
+#if 0
 bool newSuperArcadeGame(unsigned int i)
 {
 	player[0].items.ship = SAShip[i];
@@ -3728,6 +3717,7 @@ void newSuperTyrianGame(void)
 
 	fade_black(10);
 }
+#endif
 
 void intro_logos(void)
 {
@@ -4247,6 +4237,10 @@ void JE_eventSystem(void)
 {
 	switch (eventRec[eventLoc-1].eventtype)
 	{
+	case 0:
+		// ignore no-op
+		break;
+
 	case 1:
 		starfield_speed = eventRec[eventLoc-1].eventdat;
 		break;
@@ -5099,6 +5093,7 @@ void JE_eventSystem(void)
 	eventLoc++;
 }
 
+#if 0
 void JE_whoa(void)
 {
 	unsigned int i, j, color, offset, timer;
@@ -5174,6 +5169,7 @@ void JE_whoa(void)
 
 	levelWarningLines = 4;
 }
+#endif
 
 static void JE_barX(JE_word x1, JE_word y1, JE_word x2, JE_word y2, JE_byte col)
 {

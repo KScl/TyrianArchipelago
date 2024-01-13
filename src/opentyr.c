@@ -19,7 +19,6 @@
 #include "opentyr.h"
 
 #include "config.h"
-#include "destruct.h"
 #include "editship.h"
 #include "episodes.h"
 #include "file.h"
@@ -49,6 +48,10 @@
 #include "xmas.h"
 
 #include "SDL.h"
+
+#include "archipelago/apconnect.h"
+#include "archipelago/patcher.h"
+#include "apmenu.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -555,8 +558,6 @@ void setupMenu(void)
 
 					fade_black(10);
 
-					JE_destructGame();
-
 					restart = true;
 					break;
 				}
@@ -771,6 +772,13 @@ int main(int argc, char *argv[])
 
 	JE_scanForEpisodes();
 
+	if (!Patcher_SystemInit())
+	{
+		printf("Couldn't initialize the patching system, aborting.\n");
+		return -1;
+	}
+	printf("Event patches initialized\n");
+
 	init_video();
 	init_keyboard();
 	init_joysticks();
@@ -797,7 +805,6 @@ int main(int argc, char *argv[])
 	/* Default Options */
 	youAreCheating = false;
 	smoothScroll = true;
-	loadDestruct = false;
 
 	if (!audio_disabled)
 	{
@@ -859,30 +866,17 @@ int main(int argc, char *argv[])
 		else
 #endif
 		{
-			if (!titleScreen())
+			if (!ap_titleScreen())
 			{
 				// Player quit from title screen.
 				break;
 			}
 		}
 
-		if (loadDestruct)
-		{
-			JE_destructGame();
-
-			loadDestruct = false;
-		}
-		else
-		{
-			JE_main();
-
-			if (trentWin)
-			{
-				// Player beat SuperTyrian.
-				break;
-			}
-		}
+		JE_main();
 	}
+
+	Archipelago_Disconnect();
 
 	JE_tyrianHalt(0);
 

@@ -624,6 +624,7 @@ ulong JE_getCost(JE_byte itemType, JE_word itemNum)
 	return cost;
 }
 
+#if 0
 bool JE_loadScreen(void)
 {
 	if (shopSpriteSheet.data == NULL)
@@ -919,6 +920,7 @@ bool JE_loadScreen(void)
 		}
 	}
 }
+#endif
 
 ulong JE_totalScore(const Player *this_player)
 {
@@ -2211,6 +2213,7 @@ void JE_highScoreCheck(void)
 	}
 }
 
+#if 0
 // increases game difficulty based on player's total score / total of players' scores
 void adjust_difficulty(void)
 {
@@ -2280,6 +2283,7 @@ void adjust_difficulty(void)
 
 	difficultyLevel = MAX((unsigned)difficultyLevel, new_difficulty);
 }
+#endif
 
 bool load_next_demo(void)
 {
@@ -2691,7 +2695,7 @@ void JE_endLevelAni(void)
 		}
 	}
 
-	adjust_difficulty();
+	//adjust_difficulty();
 
 	player[0].last_items = player[0].items;
 	strcpy(lastLevelName, levelName);
@@ -3178,6 +3182,7 @@ void JE_mainKeyboardInput(void)
 		}
 	}
 
+#if 0
 	/* {!Activate Nort Ship!} */
 	if (keysactive[SDL_SCANCODE_F2] && keysactive[SDL_SCANCODE_F4] && keysactive[SDL_SCANCODE_F6] && keysactive[SDL_SCANCODE_F7] &&
 	    keysactive[SDL_SCANCODE_F9] && keysactive[SDL_SCANCODE_BACKSLASH] && keysactive[SDL_SCANCODE_SLASH])
@@ -3195,6 +3200,10 @@ void JE_mainKeyboardInput(void)
 			shipGr = 1;
 		}
 	}
+#endif
+
+	if (keysactive[SDL_SCANCODE_F2])
+		player_debugCauseDeathLink();
 
 	/* {Cheating} */
 	if (!isNetworkGame && !twoPlayerMode && !superTyrian && superArcadeMode == SA_NONE)
@@ -3460,6 +3469,9 @@ redo:
 	bool link_gun_analog = false;
 	float link_gun_angle = 0;
 
+	if (!endLevel)
+		player_handleDeathLink(this_player);
+
 	/* Draw Player */
 	if (!this_player->is_alive)
 	{
@@ -3534,6 +3546,7 @@ redo:
 			}
 		}
 	}
+#if 0
 	else if (constantDie)
 	{
 		// finished exploding?  start dying again
@@ -3562,6 +3575,7 @@ redo:
 				++(*player[0].lives);
 		}
 	}
+#endif
 
 	if (!this_player->is_alive)
 	{
@@ -4963,7 +4977,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 					if (armorleft > damageRate)
 						armorleft = damageRate;
 
-					JE_playerDamage(armorleft, this_player);
+					player_takeDamage(this_player, armorleft, DAMAGE_CONTACT);
 
 					// player ship gets push-back from collision
 					if (enemy[z].armorleft > 0)

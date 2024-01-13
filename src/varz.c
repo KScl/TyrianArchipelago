@@ -172,7 +172,7 @@ JE_byte SFExecuted[2]; /* [1..2] */
 
 /*Special General Data*/
 JE_byte lvlFileNum;
-JE_word maxEvent, eventLoc;
+JE_word eventLoc;
 /*JE_word maxenemies;*/
 JE_word tempBackMove, explodeMove; /*Speed of background movement*/
 JE_byte levelEnd;
@@ -240,9 +240,6 @@ JE_boolean editShip1, editShip2;
 
 JE_boolean globalFlags[10]; /* [1..10] */
 JE_byte levelSong;
-
-/* DESTRUCT game */
-JE_boolean loadDestruct;
 
 /* MapView Data */
 JE_word mapOrigin, mapPNum;
@@ -1024,71 +1021,6 @@ void JE_wipeShieldArmorBars(void)
 		fill_rectangle_xy(VGAScreenSeg, 307, 60 - 44, 315, 60, 0);
 		fill_rectangle_xy(VGAScreenSeg, 307, 194 - 44, 315, 194, 0);
 	}
-}
-
-JE_byte JE_playerDamage(JE_byte temp,
-                        Player *this_player)
-{
-	int playerDamage = 0;
-	soundQueue[7] = S_SHIELD_HIT;
-
-	/* Player Damage Routines */
-	if (this_player->shield < temp)
-	{
-		playerDamage = temp;
-		temp -= this_player->shield;
-		this_player->shield = 0;
-
-		if (temp > 0)
-		{
-			/*Through Shields - Now Armor */
-
-			if (this_player->armor < temp)
-			{
-				temp -= this_player->armor;
-				this_player->armor = 0;
-
-				if (this_player->is_alive && !youAreCheating)
-				{
-					levelTimer = false;
-					this_player->is_alive = false;
-					this_player->exploding_ticks = 60;
-					levelEnd = 40;
-					tempVolume = tyrMusicVolume;
-					soundQueue[1] = S_EXPLOSION_22;
-				}
-			}
-			else
-			{
-				this_player->armor -= temp;
-				soundQueue[7] = S_HULL_HIT;
-			}
-		}
-	}
-	else
-	{
-		this_player->shield -= temp;
-
-		JE_setupExplosion(this_player->x - 17, this_player->y - 12, 0, 14, false, !twoPlayerMode);
-		JE_setupExplosion(this_player->x - 5 , this_player->y - 12, 0, 15, false, !twoPlayerMode);
-		JE_setupExplosion(this_player->x + 7 , this_player->y - 12, 0, 16, false, !twoPlayerMode);
-		JE_setupExplosion(this_player->x + 19, this_player->y - 12, 0, 17, false, !twoPlayerMode);
-
-		JE_setupExplosion(this_player->x - 17, this_player->y + 2, 0,  18, false, !twoPlayerMode);
-		JE_setupExplosion(this_player->x + 19, this_player->y + 2, 0,  19, false, !twoPlayerMode);
-
-		JE_setupExplosion(this_player->x - 17, this_player->y + 16, 0, 20, false, !twoPlayerMode);
-		JE_setupExplosion(this_player->x - 5 , this_player->y + 16, 0, 21, false, !twoPlayerMode);
-		JE_setupExplosion(this_player->x + 7 , this_player->y + 16, 0, 22, false, !twoPlayerMode);
-	}
-
-	JE_wipeShieldArmorBars();
-	VGAScreen = VGAScreenSeg; /* side-effect of game_screen */
-	JE_drawShield();
-	JE_drawArmor();
-	VGAScreen = game_screen; /* side-effect of game_screen */
-
-	return playerDamage;
 }
 
 JE_word JE_portConfigs(void)

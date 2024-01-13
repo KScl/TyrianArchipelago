@@ -25,6 +25,8 @@
 #include "video.h"
 #include "video_scale.h"
 
+#include "archipelago/apconnect.h"
+
 #include "SDL.h"
 
 #include <stdio.h>
@@ -51,6 +53,8 @@ static bool mouseRelativeEnabled;
 // Relative mouse position in window coordinates.
 static Sint32 mouseWindowXRelative;
 static Sint32 mouseWindowYRelative;
+
+bool requestReadClipboard = false;
 
 void flush_events_buffer(void)
 {
@@ -139,11 +143,14 @@ void service_SDL_events(JE_boolean clear_new)
 {
 	SDL_Event ev;
 
+	Archipelago_Poll();
+
 	if (clear_new)
 	{
 		newkey = false;
 		newmouse = false;
 		new_text = false;
+		requestReadClipboard = false;
 	}
 
 	while (SDL_PollEvent(&ev))
@@ -172,6 +179,12 @@ void service_SDL_events(JE_boolean clear_new)
 				break;
 
 			case SDL_KEYDOWN:
+				if (ev.key.keysym.mod & KMOD_CTRL && ev.key.keysym.scancode == SDL_SCANCODE_V)
+				{
+					requestReadClipboard = true;
+					break;
+				}
+
 				/* <alt><enter> toggle fullscreen */
 				if (ev.key.keysym.mod & KMOD_ALT && ev.key.keysym.scancode == SDL_SCANCODE_RETURN)
 				{

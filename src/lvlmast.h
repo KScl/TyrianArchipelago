@@ -37,4 +37,20 @@
 
 extern const JE_char shapeFile[34]; /* [1..34] */
 
+// ----------------------------------------------------------------------------
+
+struct JE_EventRecType
+{
+	JE_word     eventtime;
+	JE_byte     eventtype;
+	JE_integer  eventdat, eventdat2;
+	JE_shortint eventdat3, eventdat5, eventdat6;
+	JE_byte     eventdat4;
+};
+
+extern struct JE_EventRecType eventRec[EVENT_MAXIMUM]; /* [1..eventMaximum] */
+extern JE_word maxEvent;
+
+void level_loadEvents(FILE *level_f, JE_byte levelNum);
+
 #endif /* LVLMAST_H */

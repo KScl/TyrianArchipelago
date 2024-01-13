@@ -8,8 +8,6 @@ else
     TYRIAN_DIR = $(gamesdir)/tyrian
 endif
 
-WITH_NETWORK := true
-
 ################################################################################
 
 # see https://www.gnu.org/prep/standards/html_node/Makefile-Conventions.html
@@ -17,6 +15,7 @@ WITH_NETWORK := true
 SHELL = /bin/sh
 
 CC ?= gcc
+CXX ?= g++
 INSTALL ?= install
 PKG_CONFIG ?= pkg-config
 
@@ -46,15 +45,12 @@ gamesdir ?= $(datadir)/games
 
 TARGET := opentyrian
 
-SRCS := $(wildcard src/*.c)
-OBJS := $(SRCS:src/%.c=obj/%.o)
-DEPS := $(SRCS:src/%.c=obj/%.d)
+SRCS_CPP := $(wildcard src/archipelago/*.cpp)
+SRCS_CC := $(wildcard src/*.c)
+OBJS := $(SRCS_CC:src/%.c=obj/%.o) $(SRCS_CPP:src/archipelago/%.cpp=obj/cpp_%.o)
+DEPS := $(SRCS_CC:src/%.c=obj/%.d) $(SRCS_CPP:src/archipelago/%.cpp=obj/cpp_%.d)
 
 ###
-
-ifeq ($(WITH_NETWORK), true)
-    EXTRA_CPPFLAGS += -DWITH_NETWORK
-endif
 
 OPENTYRIAN_VERSION := $(shell $(VCS_IDREV) 2>/dev/null && \
                               touch src/opentyrian_version.h)
@@ -71,17 +67,12 @@ CFLAGS ?= -pedantic \
           -Wno-missing-field-initializers \
           -O2
 LDFLAGS ?=
-LDLIBS ?=
+LDLIBS ?= -lssl     \
+          -lcrypto  \
 
-ifeq ($(WITH_NETWORK), true)
-    SDL_CPPFLAGS := $(shell $(PKG_CONFIG) sdl2 SDL2_net --cflags)
-    SDL_LDFLAGS := $(shell $(PKG_CONFIG) sdl2 SDL2_net --libs-only-L --libs-only-other)
-    SDL_LDLIBS := $(shell $(PKG_CONFIG) sdl2 SDL2_net --libs-only-l)
-else
-    SDL_CPPFLAGS := $(shell $(PKG_CONFIG) sdl2 --cflags)
-    SDL_LDFLAGS := $(shell $(PKG_CONFIG) sdl2 --libs-only-L --libs-only-other)
-    SDL_LDLIBS := $(shell $(PKG_CONFIG) sdl2 --libs-only-l)
-endif
+SDL_CPPFLAGS := $(shell $(PKG_CONFIG) sdl2 --cflags)
+SDL_LDFLAGS := $(shell $(PKG_CONFIG) sdl2 --libs-only-L --libs-only-other)
+SDL_LDLIBS := $(shell $(PKG_CONFIG) sdl2 --libs-only-l)
 
 ALL_CPPFLAGS = -DTARGET_$(PLATFORM) \
                -DTYRIAN_DIR='"$(TYRIAN_DIR)"' \
@@ -92,9 +83,18 @@ ALL_CFLAGS = -std=iso9899:1999 \
              $(CFLAGS)
 ALL_LDFLAGS = $(SDL_LDFLAGS) \
               $(LDFLAGS)
-ALL_LDLIBS = -lm \
+ALL_LDLIBS = -lm           \
              $(SDL_LDLIBS) \
              $(LDLIBS)
+
+AP_CPPFLAGS = -Isrc/submodule/apclientpp/           \
+              -Isrc/submodule/wswrap/include        \
+              -Isrc/submodule/json/include          \
+              -Isrc/submodule/valijson/include      \
+              -Isrc/submodule/websocketpp           \
+              -Isrc/submodule/asio/include          \
+              -Wno-deprecated-declarations          \
+              -DASIO_STANDALONE
 
 ###
 
@@ -151,10 +151,15 @@ clean :
 	rm -f $(TARGET)
 
 $(TARGET) : $(OBJS)
-	$(CC) $(ALL_CFLAGS) $(ALL_LDFLAGS) -o $@ $^ $(ALL_LDLIBS)
+	$(CXX) $(ALL_CFLAGS) $(ALL_LDFLAGS) -o $@ $^ $(ALL_LDLIBS)
 
 -include $(DEPS)
+
+obj/cpp_%.o : src/archipelago/%.cpp
+	@mkdir -p "$(dir $@)"
+	$(CXX) $(SDL_CPPFLAGS) $(AP_CPPFLAGS) -c -o $@ $<
 
 obj/%.o : src/%.c
 	@mkdir -p "$(dir $@)"
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c -o $@ $<
+
