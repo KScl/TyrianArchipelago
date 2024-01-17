@@ -4,7 +4,6 @@
 #include <list>
 
 #include <nlohmann/json.hpp>
-#include <zlib.h>
 
 extern "C" {
 	// Function definitions that go out C side need to not be mangled by C++
@@ -12,38 +11,34 @@ extern "C" {
 }
 
 using nlohmann::json;
-using namespace nlohmann::literals;
 
-static json patchData;
-
-static std::string crc32str(Uint32 crc)
+std::string episodeToString(Uint8 episode)
 {
 	std::stringstream s;
-	s << std::setfill('0') << std::setw(8) << std::hex << crc;
+	s << "Episode " << std::to_string(episode);
 	return s.str();
 }
 
-bool Patcher_SystemInit(void)
+// ----------------------------------------------------------------------------
+
+static json patchData;
+
+bool Patcher_SystemInit(FILE *file)
 {
 	bool ready = false;
+	try
+	{
+		patchData = json::parse(file, nullptr, true, true);
+		ready = (patchData.contains("patchList") && patchData.contains("patches"));
 
-	FILE *patchJson = fopen("patch.jsonc", "r");
-	if (patchJson != NULL)
-	{
-		try
+		if (!ready)
 		{
-			patchData = json::parse(patchJson, nullptr, true, true);
-			ready = true;
+			std::cout << "Patch file is missing required data." << std::endl;
 		}
-		catch (const json::parse_error& e)
-		{
-			std::cout << e.what() << std::endl;
-		}
-		fclose(patchJson);
 	}
-	else
+	catch (const json::parse_error& e)
 	{
-		std::cout << "Patch file not found." << std::endl;
+		std::cout << e.what() << std::endl;
 	}
 	return ready;
 }
@@ -60,22 +55,50 @@ static std::list<int> patchEvents;
 // 
 static int eventCount = 0;
 
+static void assignFromArray(json &j, Uint16 x)
+{
+	if (!j.is_array())
+		return;
+	try
+	{
+		eventRec[x].eventdat  = j.at(0);
+		eventRec[x].eventdat2 = j.at(1);
+		eventRec[x].eventdat3 = j.at(2);
+		eventRec[x].eventdat4 = j.at(3);
+		eventRec[x].eventdat5 = j.at(4);
+		eventRec[x].eventdat6 = j.at(5);
+	}
+	catch (json::out_of_range) {} // expected, do nothing more
+}
+
 static void jsonEventToGameEvent(json &j, Uint16 x)
 {
 	eventRec[x].eventtime = j.at("time");
 	eventRec[x].eventtype = j.at("event");
 
 	// By default, since so many events use it
-	eventRec[x].eventdat4 = j.value<Uint8> ("linknum", 0);
+	eventRec[x].eventdat4 = j.value<Uint8>("linknum", 0);
 
 	// Sint16 eventdat, eventdat2;
 	// Sint8  eventdat3, eventdat5, eventdat6;
 	// Uint8  eventdat4;
 	switch (eventRec[x].eventtype)
 	{
-		case  12: // NewEnemy_Ground4X4Custom
-			eventRec[x].eventdat6 = j.value<Sint8> ("bg", 0);
-			goto groundcustom_rejoin;
+		case   1: // StarfieldSpeed
+			eventRec[x].eventdat = j.value<Sint16>("speed", 0);
+			break;
+
+		case   2: // MapBackMove
+		case   4: // MapStop
+		case  83: // T2K_MapStop
+			if (j.contains("mode"))
+				assignFromArray(j["mode"], x);
+			break;
+
+		case   5: // LoadEnemyShapeBanks
+			if (j.contains("banks"))
+				assignFromArray(j["banks"], x);
+			break;
 
 		case   6: // NewEnemy_Ground
 		case   7: // NewEnemy_Top
@@ -94,10 +117,21 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat5 = j.value<Sint8> ("ey", 0);
 			break;
 
+		case  11: // EndLevel
+			eventRec[x].eventdat = j.value<bool>("force", false) ? 1 : 0;
+			break;
+
+		case  12: // NewEnemy_Ground4X4Custom
+			eventRec[x].eventdat6 = j.value<Sint8>("bg", 0);
+			goto groundcustom_rejoin;
+
 		case  16: // VoicedCallout
-			if (j.at("output").is_number())
-				eventRec[x].eventdat = j.at("output");
-			else // assume string
+		case 116: // HardContactCallout
+			if (!j.contains("output"))
+				break;
+			if (j["output"].is_number())
+				eventRec[x].eventdat = j.value<Sint16>("output", 0);
+			else if (j["output"].is_string())
 			{
 				std::string evStr = j["output"].template get<std::string>();
 				if      (evStr == "Enemy approaching from behind.") eventRec[x].eventdat = 1;
@@ -112,6 +146,26 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			}
 			break;
 
+		case  19: // EnemyGlobal_Move
+			if (j.contains("section"))
+			{
+				if (j["section"].is_number())
+					eventRec[x].eventdat3 = j.value<Sint8>("section", 0);
+				else if (j["section"].is_string())
+				{
+					std::string evStr = j["section"].template get<std::string>();
+					if      (evStr == "ground") eventRec[x].eventdat3 = 1;
+					else if (evStr == "sky")    eventRec[x].eventdat3 = 2;
+					else if (evStr == "sky2")   eventRec[x].eventdat3 = 3;
+					else if (evStr == "all")    eventRec[x].eventdat3 = 99;
+				}
+			}
+			eventRec[x].eventdat  = j.value<Sint16>("exc", 0);
+			eventRec[x].eventdat2 = j.value<Sint16>("eyc", 0);
+			eventRec[x].eventdat5 = j.value<Sint8> ("cycle", 0);
+			eventRec[x].eventdat6 = j.value<Sint8> ("fixedmovey", 0);
+			break;
+
 		case  20: // EnemyGlobal_Accel
 			eventRec[x].eventdat  = j.value<Sint16>("excc", 0);
 			eventRec[x].eventdat2 = j.value<Sint16>("eycc", 0);
@@ -120,12 +174,68 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat6 = j.value<Sint8> ("ani", 0);
 			break;
 
-		case  33: // EnemyFromOtherEnemy
-			eventRec[x].eventdat  = j.value<Sint16>("type", 0);
+		case  24: // EnemyGlobal_Animate
+			eventRec[x].eventdat  = j.value<Sint16>("ani", 0);
+			eventRec[x].eventdat2 = j.value<Sint16>("cycle", 0);
+			eventRec[x].eventdat3 = j.value<Sint8> ("mode", 0);
 			break;
 
-		case 200: // APItemFromEnemy
-			eventRec[x].eventdat  = j.value<Sint16>("ap_id", 0);
+		case  25: // EnemyGlobal_SetHealth
+			eventRec[x].eventdat  = j.value<Sint16>("health", 0);
+			break;
+
+		case  26: // SmallEnemyAdjust
+			eventRec[x].eventdat = j.value<bool>("adjust", false) ? 1 : 0;
+			break;
+
+		case  27: // EnemyGlobal_AccelRev
+			eventRec[x].eventdat  = j.value<Sint16>("exrev", 0);
+			eventRec[x].eventdat2 = j.value<Sint16>("eyrev", 0);
+			eventRec[x].eventdat3 = j.value<Sint8> ("filter", 0);
+			break;
+
+		case  33: // EnemyFromOtherEnemy
+		case  45: // Arcade_EnemyFromOtherEnemy
+		case  85: // T2K_TimeBattle_EnemyFromOtherEnemy
+			eventRec[x].eventdat = j.value<Sint16>("type", 0);
+			break;
+
+		case  35: // MusicPlay
+			eventRec[x].eventdat = j.value<Sint16>("song", 0);
+			break;
+
+		case  38: // Jump_NoReturn
+		case  54: // Jump
+		case  57: // Jump_OnLinkNum254Kill
+			eventRec[x].eventdat = j.value<Sint16>("jump_to", 0);
+			break;
+
+		case  61: // Jump_IfFlagSet
+			eventRec[x].eventdat3 = j.value<Sint8>("skip_events", 0);
+			// fall through
+		case  60: // EnemyAssignFlag
+			eventRec[x].eventdat  = j.value<Sint16>("flag", 0);
+			eventRec[x].eventdat2 = j.value<Sint16>("value", 0);
+			break;
+
+		case  67: // SetLevelTimer
+			eventRec[x].eventdat  = j.value<bool>("enable", false) ? 1 : 0;
+			eventRec[x].eventdat2 = j.value<Sint16>("jump_to", 0);
+			eventRec[x].eventdat3 = j.value<Sint8> ("value", 0);
+			break;
+
+		case  79: // SetBossBar
+			if (!j.contains("linknum"))
+				break;
+			if (j["linknum"].is_number())
+				eventRec[x].eventdat = j.value<Sint16>("linknum", 0);
+			else if (j["linknum"].is_array())
+				assignFromArray(j["linknum"], x);
+			break;
+
+		case 200: // AP_CheckFromEnemy
+		case 210: // AP_CheckFromLastNewEnemy
+			eventRec[x].eventdat = j.value<Sint16>("ap_id", 0);
 			break;
 
 		default:
@@ -133,18 +243,21 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 	}
 }
 
-void Patcher_ReadyPatch(Uint32 crc, Uint8 levelNum)
+// ----------------------------------------------------------------------------
+
+void Patcher_ReadyPatch(const char *gameID, Uint8 episode, Uint8 levelNum)
 {
 	loadedPatch = nullptr;
 	patchEvents.clear();
 
-	std::string crcStr = crc32str(crc);
+	std::string gameIDStr = gameID;
+	std::string episodeStr = episodeToString(episode);
 	std::string levelStr = std::to_string(levelNum);
 
-	if (!patchData["levelFiles"].contains(crcStr))
-		return; // Episode not recognized
+	if (!patchData["patchList"].contains(gameIDStr) || !patchData["patchList"][gameIDStr].contains(episodeStr))
+		return; // Game (???) or episode not recognized
 
-	auto episodePatchList = patchData["levelFiles"][crcStr];
+	auto episodePatchList = patchData["patchList"][gameIDStr][episodeStr];
 	if (!episodePatchList.contains(levelStr))
 		return; // No patch for this level
 
@@ -176,9 +289,6 @@ void Patcher_ReadyPatch(Uint32 crc, Uint8 levelNum)
 
 	patchEvents.sort();
 	patchEvents.unique();
-	for(std::list<int>::iterator iter = patchEvents.begin(); iter != patchEvents.end(); iter++){
-	   std::cout<<*iter<<std::endl;
-	}
 }
 
 Uint16 Patcher_DoPatch(Uint16 *idx)
@@ -205,7 +315,6 @@ Uint16 Patcher_DoPatch(Uint16 *idx)
 	{
 		// Don't increment event count, we want it to stay as the original event number
 		// for making creating patches easier
-		std::cout << "Insert event at " << eventCount << std::endl;
 		if (loadedPatch[actionStr].is_array())
 		{
 			for (auto &elem : loadedPatch[actionStr].items())
@@ -226,7 +335,6 @@ Uint16 Patcher_DoPatch(Uint16 *idx)
 	{
 		// We need to increment event count if we're skipping more than one event,
 		// to correspond to the number of events we're skipping from the file
-		std::cout << "Replace event at " << eventCount << std::endl;
 		if (loadedPatch[actionStr].is_array())
 		{
 			for (auto &elem : loadedPatch[actionStr].items())

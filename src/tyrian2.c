@@ -19,6 +19,7 @@
 #include "tyrian2.h"
 
 #include "animlib.h"
+#include "apmenu.h"
 #include "backgrnd.h"
 #include "episodes.h"
 #include "file.h"
@@ -29,8 +30,6 @@
 #include "keyboard.h"
 #include "lds_play.h"
 #include "loudness.h"
-#include "lvllib.h"
-#include "menus.h"
 #include "mainint.h"
 #include "mouse.h"
 #include "mtrand.h"
@@ -55,6 +54,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+
+// TODO put this somewhere nicer
+void tyrian_enemyDieItem(JE_byte enemyId);
+#define ARCHIPELAGO_ITEM     900
+#define ARCHIPELAGO_ITEM_MAX 931
+Uint16 ap_location_id[32]; // Track location ID of AP item when it spawns
+Uint8  ap_level_item; // current level item spawned
 
 inline static void blit_enemy(SDL_Surface *surface, unsigned int i, signed int x_offset, signed int y_offset, signed int sprite_offset);
 
@@ -155,6 +161,60 @@ void JE_starShowVGA(void)
 	skipStarShowVGA = false;
 }
 
+static void tyrian_blitAPRadar(SDL_Surface *surface, unsigned int i)
+{
+	if (enemy[i].sprite2s == NULL)
+		return;
+
+	const int baseX = enemy[i].ex + tempMapXOfs;
+	const int baseY = enemy[i].ey;
+	const unsigned int baseIndex = enemy[i].egr[enemy[i].enemycycle - 1];
+	const int filter = 117;
+
+	if (enemy[i].size == 1) // 2x2 enemy
+	{
+		if (enemy[i].ey > -13)
+		{
+			blit_sprite2_filter(surface, baseX - 7, baseY - 7, *enemy[i].sprite2s, baseIndex,     filter);
+			blit_sprite2_filter(surface, baseX - 8, baseY - 7, *enemy[i].sprite2s, baseIndex,     filter);
+			blit_sprite2_filter(surface, baseX - 6, baseY - 8, *enemy[i].sprite2s, baseIndex,     filter);
+			blit_sprite2_filter(surface, baseX - 6, baseY - 9, *enemy[i].sprite2s, baseIndex,     filter);
+
+			blit_sprite2_filter(surface, baseX + 7, baseY - 7, *enemy[i].sprite2s, baseIndex + 1, filter);
+			blit_sprite2_filter(surface, baseX + 8, baseY - 7, *enemy[i].sprite2s, baseIndex + 1, filter);
+			blit_sprite2_filter(surface, baseX + 6, baseY - 8, *enemy[i].sprite2s, baseIndex + 1, filter);
+			blit_sprite2_filter(surface, baseX + 6, baseY - 9, *enemy[i].sprite2s, baseIndex + 1, filter);
+		}
+		if (enemy[i].ey > -26 && enemy[i].ey < 182)
+		{
+			blit_sprite2_filter(surface, baseX - 7, baseY + 7, *enemy[i].sprite2s, baseIndex + 19, filter);
+			blit_sprite2_filter(surface, baseX - 8, baseY + 7, *enemy[i].sprite2s, baseIndex + 19, filter);
+			blit_sprite2_filter(surface, baseX - 6, baseY + 8, *enemy[i].sprite2s, baseIndex + 19, filter);
+			blit_sprite2_filter(surface, baseX - 6, baseY + 9, *enemy[i].sprite2s, baseIndex + 19, filter);
+
+			blit_sprite2_filter(surface, baseX + 7, baseY + 7, *enemy[i].sprite2s, baseIndex + 20, filter);
+			blit_sprite2_filter(surface, baseX + 8, baseY + 7, *enemy[i].sprite2s, baseIndex + 20, filter);
+			blit_sprite2_filter(surface, baseX + 6, baseY + 8, *enemy[i].sprite2s, baseIndex + 20, filter);
+			blit_sprite2_filter(surface, baseX + 6, baseY + 9, *enemy[i].sprite2s, baseIndex + 20, filter);
+		}
+	}
+	else
+	{
+		if (enemy[i].ey > -13)
+		{
+			blit_sprite2_filter(surface, baseX - 1, baseY, *enemy[i].sprite2s, baseIndex, filter);
+			blit_sprite2_filter(surface, baseX - 2, baseY, *enemy[i].sprite2s, baseIndex, filter);
+			blit_sprite2_filter(surface, baseX, baseY - 1, *enemy[i].sprite2s, baseIndex, filter);
+			blit_sprite2_filter(surface, baseX, baseY - 2, *enemy[i].sprite2s, baseIndex, filter);
+
+			blit_sprite2_filter(surface, baseX + 1, baseY, *enemy[i].sprite2s, baseIndex, filter);
+			blit_sprite2_filter(surface, baseX + 2, baseY, *enemy[i].sprite2s, baseIndex, filter);
+			blit_sprite2_filter(surface, baseX, baseY + 1, *enemy[i].sprite2s, baseIndex, filter);
+			blit_sprite2_filter(surface, baseX, baseY + 2, *enemy[i].sprite2s, baseIndex, filter);
+		}
+	}
+}
+
 inline static void blit_enemy(SDL_Surface *surface, unsigned int i, signed int x_offset, signed int y_offset, signed int sprite_offset)
 {
 	if (enemy[i].sprite2s == NULL)
@@ -177,6 +237,26 @@ void JE_drawEnemy(int enemyOffset) // actually does a whole lot more than just d
 {
 	player[0].x -= 25;
 
+	// Draw AP Radar behind all enemies, to better highlight larger enemies
+	for (int i = enemyOffset - 25; i < enemyOffset; i++)
+	{
+		if (enemyAvail[i] == 1)
+			continue;
+
+		if (enemy[i].ex + tempMapXOfs > -29 && enemy[i].ex + tempMapXOfs < 300)
+		{
+			if (enemy[i].enemydie == 533
+				|| enemy[i].enemydie == 534
+				|| enemy[i].enemydie == 512
+				|| enemy[i].enemydie == 513
+				|| (enemy[i].enemydie >= ARCHIPELAGO_ITEM && enemy[i].enemydie <= ARCHIPELAGO_ITEM_MAX))
+			{
+				tyrian_blitAPRadar(VGAScreen, i);
+			}
+		}
+	}
+
+	// Regular enemy routines
 	for (int i = enemyOffset - 25; i < enemyOffset; i++)
 	{
 		if (enemyAvail[i] != 1)
@@ -723,9 +803,8 @@ start_level_first:
 	extraGame = false;
 
 	doNotSaveBackup = false;
-	JE_loadMap();
 
-	if (mainLevel == 0)  // if quit itemscreen
+	if (JE_loadMap() == 0)  // if quit itemscreen
 		return;          // back to titlescreen
 
 	if (!play_demo)
@@ -737,10 +816,10 @@ start_level_first:
 		player[i].is_alive = true;
 
 	oldDifficultyLevel = difficultyLevel;
-	if (episodeNum == EPISODE_AVAILABLE)
-		difficultyLevel--;
-	if (difficultyLevel < DIFFICULTY_EASY)
-		difficultyLevel = DIFFICULTY_EASY;
+	//if (episodeNum == EPISODE_AVAILABLE)
+	//	difficultyLevel--;
+	//if (difficultyLevel < DIFFICULTY_EASY)
+	//	difficultyLevel = DIFFICULTY_EASY;
 
 	player[0].x = 100;
 	player[0].y = 180;
@@ -891,8 +970,8 @@ start_level_first:
 		player[i].shield_max = player[i].shield * 2;
 	}
 
-	JE_drawShield();
-	JE_drawArmor();
+	player_drawShield();
+	player_drawArmor();
 
 	for (uint i = 0; i < COUNTOF(player); ++i)
 		player[i].superbombs = 0;
@@ -907,7 +986,7 @@ start_level_first:
 
 	play_song(levelSong - 1);
 
-	JE_drawPortConfigButtons();
+	player_drawPortConfigButtons();
 
 	/* --- MAIN LOOP --- */
 
@@ -1016,10 +1095,12 @@ start_level_first:
 	for (uint i = 0; i < COUNTOF(player); ++i)
 		player[i].exploding_ticks = 0;
 
+#if 0
 	if (isNetworkGame)
 	{
 		JE_loadItemDat();
 	}
+#endif
 
 	memset(enemyAvail,       1, sizeof(enemyAvail));
 	for (uint i = 0; i < COUNTOF(enemyShotAvail); i++)
@@ -1180,7 +1261,7 @@ level_loop:
 							++player[i].shield;
 					}
 
-					JE_drawShield();
+					player_drawShield();
 				}
 			}
 			else if (player[0].is_alive && player[0].shield < player[0].shield_max && power > shieldT)
@@ -1195,7 +1276,7 @@ level_loop:
 					if (player[1].shield < player[0].shield_max)
 						++player[1].shield;
 
-					JE_drawShield();
+					player_drawShield();
 				}
 			}
 		}
@@ -1645,39 +1726,8 @@ level_loop:
 											globalFlags[enemy[temp2].flagnum-1] = enemy[temp2].setto;
 										}
 
-										if ((enemy[temp2].enemydie > 0) &&
-										    !((superArcadeMode != SA_NONE) &&
-										      (enemyDat[enemy[temp2].enemydie].value == 30000)))
-										{
-											int temp_b = b;
-											tempW = enemy[temp2].enemydie;
-											int enemy_offset = temp2 - (temp2 % 25);
-											if (enemyDat[tempW].value > 30000)
-											{
-												enemy_offset = 0;
-											}
-											b = JE_newEnemy(enemy_offset, tempW, 0);
-											if (b != 0)
-											{
-												if ((superArcadeMode != SA_NONE) && (enemy[b-1].evalue > 30000))
-												{
-													superArcadePowerUp++;
-													if (superArcadePowerUp > 5)
-														superArcadePowerUp = 1;
-													enemy[b-1].egr[1-1] = 5 + superArcadePowerUp * 2;
-													enemy[b-1].evalue = 30000 + superArcadePowerUp;
-												}
-
-												if (enemy[b-1].evalue != 0)
-													enemy[b-1].scoreitem = true;
-												else
-													enemy[b-1].scoreitem = false;
-
-												enemy[b-1].ex = enemy[temp2].ex;
-												enemy[b-1].ey = enemy[temp2].ey;
-											}
-											b = temp_b;
-										}
+										if (enemy[temp2].enemydie > 0)
+											tyrian_enemyDieItem(temp2);
 
 										if ((enemy[temp2].evalue > 0) && (enemy[temp2].evalue < 10000))
 										{
@@ -1958,9 +2008,9 @@ draw_player_shot_loop_end:
 			else
 			{
 				if (explosionTransparent)
-					blit_sprite2_blend(VGAScreen, explosions[j].x, explosions[j].y, explosionSpriteSheet, explosions[j].sprite + 1);
+					blit_sprite2_blend(VGAScreen, explosions[j].x, explosions[j].y, *explosions[j].sheet, explosions[j].sprite + 1);
 				else
-					blit_sprite2(VGAScreen, explosions[j].x, explosions[j].y, explosionSpriteSheet, explosions[j].sprite + 1);
+					blit_sprite2(VGAScreen, explosions[j].x, explosions[j].y, *explosions[j].sheet, explosions[j].sprite + 1);
 
 				explosions[j].ttl--;
 			}
@@ -2149,49 +2199,46 @@ draw_player_shot_loop_end:
 	}
 
 	/*GAME OVER*/
-	if (!constantPlay && !constantDie)
+	if (allPlayersGone)
 	{
-		if (allPlayersGone)
+		if (player[0].exploding_ticks > 0 || player[1].exploding_ticks > 0)
 		{
-			if (player[0].exploding_ticks > 0 || player[1].exploding_ticks > 0)
-			{
-				if (galagaMode)
-					player[1].exploding_ticks = 0;
+			if (galagaMode)
+				player[1].exploding_ticks = 0;
 
-				musicFade = true;
-			}
+			musicFade = true;
+		}
+		else
+		{
+			if (play_demo || normalBonusLevelCurrent || bonusLevelCurrent)
+				reallyEndLevel = true;
 			else
+				JE_dString(VGAScreen, 120, 60, miscText[21], FONT_SHAPES); // game over
+
+			if (firstGameOver)
 			{
-				if (play_demo || normalBonusLevelCurrent || bonusLevelCurrent)
-					reallyEndLevel = true;
-				else
-					JE_dString(VGAScreen, 120, 60, miscText[21], FONT_SHAPES); // game over
-
-				if (firstGameOver)
-				{
-					if (!play_demo)
-					{
-						play_song(SONG_GAMEOVER);
-						// Make the game over solo a bit louder.
-						set_volume((tyrMusicVolume/4) + (tyrMusicVolume/2), fxVolume);
-						musicFade = false;
-					}
-					firstGameOver = false;
-				}
-
 				if (!play_demo)
 				{
-					push_joysticks_as_keyboard();
-					service_SDL_events(true);
-					if ((newkey || button[0] || button[1] || button[2]) || newmouse)
-					{
-						reallyEndLevel = true;
-					}
+					play_song(SONG_GAMEOVER);
+					// Make the game over solo a bit louder, but not full volume.
+					set_volume((tyrMusicVolume/4) + (tyrMusicVolume/2), fxVolume);
+					musicFade = false;
 				}
-
-				if (isNetworkGame)
-					reallyEndLevel = true;
+				firstGameOver = false;
 			}
+
+			if (!play_demo)
+			{
+				push_joysticks_as_keyboard();
+				service_SDL_events(true);
+				if ((newkey || button[0] || button[1] || button[2]) || newmouse)
+				{
+					reallyEndLevel = true;
+				}
+			}
+
+			if (isNetworkGame)
+				reallyEndLevel = true;
 		}
 	}
 
@@ -2248,7 +2295,7 @@ draw_player_shot_loop_end:
 	}
 
 	/*Network Update*/
-#ifdef WITH_NETWORK
+#if 0
 	if (isNetworkGame)
 	{
 		if (!reallyEndLevel)
@@ -2393,24 +2440,8 @@ draw_player_shot_loop_end:
 }
 
 /* --- Load Level/Map Data --- */
-void JE_loadMap(void)
+bool JE_loadMap(void)
 {
-	JE_DanCShape shape;
-
-	JE_word x, y;
-	JE_integer yy;
-	JE_word mapSh[3][128]; /* [1..3, 0..127] */
-	JE_byte *ref[3][128]; /* [1..3, 0..127] */
-	char s[256];
-
-	JE_byte mapBuf[15 * 600]; /* [1..15 * 600] */
-	JE_word bufLoc;
-
-	char buffer[256];
-	int i;
-	Uint8 pic_buffer[320*200]; /* screen buffer, 8-bit specific */
-	Uint8 *vga, *pic, *vga2; /* screen pointer, 8-bit specific */
-
 	lastCubeMax = cubeMax;
 
 	/*Defaults*/
@@ -2419,7 +2450,7 @@ void JE_loadMap(void)
 	/* Load LEVELS.DAT - Section = MAINLEVEL */
 	saveLevel = mainLevel;
 
-new_game:
+//new_game:
 	galagaMode  = false;
 	useLastBank = false;
 	extraGame   = false;
@@ -2427,6 +2458,7 @@ new_game:
 
 	gameLoaded = false;
 
+#if 0
 	if (!play_demo)
 	{
 		do
@@ -3015,26 +3047,42 @@ new_game:
 		load_next_demo();
 	else
 		fade_black(50);
+#endif
+	nextLevel = 1;
 
-	FILE *level_f = dir_fopen_die(data_dir(), levelFile, "rb");
-	fseek(level_f, lvlPos[(lvlFileNum-1) * 2], SEEK_SET);
+	Uint16 levelID = ap_itemScreen();
+	if (levelID == 0)
+		return 0;
+	printf("levelID = %d\n", levelID);
+	level_loadFromLevelID(levelID);
 
-	JE_char char_mapFile;
-	JE_char char_shapeFile;
-	fread_die(&char_mapFile,   1, 1, level_f);
-	fread_die(&char_shapeFile, 1, 1, level_f);
+	loadLevelOk = true;
+	gameJustLoaded = false;
+	bonusLevelCurrent = false;
+	normalBonusLevelCurrent = false;
+	return 1;
+}
+
+void JE_loadMapData(FILE *level_f)
+{
 	fread_u16_die(&mapX,  1, level_f);
 	fread_u16_die(&mapX2, 1, level_f);
 	fread_u16_die(&mapX3, 1, level_f);
 
 	fread_u16_die(&levelEnemyMax, 1, level_f);
 	fread_u16_die(levelEnemy, levelEnemyMax, level_f);
+}
 
-	level_loadEvents(level_f, lvlFileNum);
+void JE_loadMapShapes(FILE *level_f, JE_char char_shapeFile)
+{
+	JE_DanCShape shape;
 
-	/*debuginfo('Level loaded.');*/
-
-	/*debuginfo('Loading Map');*/
+	JE_word x, y;
+	JE_integer yy;
+	JE_word mapSh[3][128]; /* [1..3, 0..127] */
+	JE_byte *ref[3][128]; /* [1..3, 0..127] */
+	JE_byte mapBuf[15 * 600]; /* [1..15 * 600] */
+	JE_word bufLoc;
 
 	/* MAP SHAPE LOOKUP TABLE - Each map is directly after level */
 	for (temp = 0; temp < 3; temp++)
@@ -3154,8 +3202,6 @@ new_game:
 			bufLoc++;
 		}
 	}
-
-	fclose(level_f);
 
 	/* Note: The map data is automatically calculated with the correct mapsh
 	value and then the pointer is calculated using the formula (MAPSH-1)*168.
@@ -3583,7 +3629,6 @@ bool titleScreen(void)
 		}
 	}
 }
-#endif
 
 bool newGame(void)
 {
@@ -3630,7 +3675,6 @@ bool newGame(void)
 	return gameLoaded;
 }
 
-#if 0
 bool newSuperArcadeGame(unsigned int i)
 {
 	player[0].items.ship = SAShip[i];
@@ -4110,8 +4154,8 @@ uint JE_makeEnemy(struct JE_SingleEnemyType *enemy, Uint16 eDatI, Sint16 uniqueS
 	{
 		avail = 2;
 		enemy->armorleft = 255;
-		if (enemy->evalue != 0)
-			enemy->scoreitem = true;
+		// Bugfix (original game): Make sure scoreitem is always set
+		enemy->scoreitem = (enemy->evalue != 0);
 	}
 
 	if (!enemy->scoreitem)
@@ -4235,6 +4279,16 @@ bool JE_searchFor/*enemy*/(JE_byte PLType, JE_byte* out_index)
 
 void JE_eventSystem(void)
 {
+	printf("%d : %d %d (%d %d %d %d %d %d)\n",
+		eventLoc,
+		eventRec[eventLoc-1].eventtime,
+		eventRec[eventLoc-1].eventtype,
+		eventRec[eventLoc-1].eventdat,
+		eventRec[eventLoc-1].eventdat2,
+		eventRec[eventLoc-1].eventdat3,
+		eventRec[eventLoc-1].eventdat5,
+		eventRec[eventLoc-1].eventdat6,
+		eventRec[eventLoc-1].eventdat4);
 	switch (eventRec[eventLoc-1].eventtype)
 	{
 	case 0:
@@ -4400,7 +4454,11 @@ void JE_eventSystem(void)
 		JE_createNewEventEnemy(0, 0, 0);
 		break;
 
-	case 16:
+	case 116: // HardContactCallout
+		if (true)
+			break;
+		// fall through
+	case 16: // VoicedCallout
 		if (eventRec[eventLoc-1].eventdat > 9)
 		{
 			fprintf(stderr, "warning: event 16: bad event data\n");
@@ -4668,6 +4726,13 @@ void JE_eventSystem(void)
 		break;
 
 	case 33: /* Enemy From other Enemies */
+#if 1
+		for (temp = 0; temp < 100; temp++)
+		{
+			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
+				enemy[temp].enemydie = eventRec[eventLoc-1].eventdat;
+		}
+#else
 		if (!((eventRec[eventLoc-1].eventdat == 512 || eventRec[eventLoc-1].eventdat == 513) && (twoPlayerMode || onePlayerAction || superTyrian)))
 		{
 			if (superArcadeMode != SA_NONE)
@@ -4694,6 +4759,7 @@ void JE_eventSystem(void)
 					enemy[temp].enemydie = eventRec[eventLoc-1].eventdat;
 			}
 		}
+#endif
 		break;
 
 	case 34: /* Start Music Fade */
@@ -4775,6 +4841,19 @@ void JE_eventSystem(void)
 		break;
 
 	case 45: /* arcade-only enemy from other enemies */
+#if 1
+		for (temp = 0; temp < 100; temp++)
+		{
+			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
+			{
+				if (enemy[temp].enemydie != 533
+					&& enemy[temp].enemydie != 534
+					&& enemy[temp].enemydie != 512
+					&& enemy[temp].enemydie != 513)
+				enemy[temp].enemydie = eventRec[eventLoc-1].eventdat;
+			}
+		}
+#else
 		if (!superTyrian)
 		{
 			const Uint8 lives = *player[0].lives;
@@ -4792,6 +4871,7 @@ void JE_eventSystem(void)
 				}
 			}
 		}
+#endif
 		break;
 
 	case 46:  // change difficulty
@@ -5085,6 +5165,32 @@ void JE_eventSystem(void)
 		shotRepeat[SHOT_SPECIAL2] = 0;
 		break;
 
+	// AP
+	case 200: // AP_CheckFromEnemy
+		if (ARCHIPELAGO_ITEM + ap_level_item > ARCHIPELAGO_ITEM_MAX)
+			break; // ???
+
+		for (temp = 0; temp < 100; temp++)
+		{
+			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
+				enemy[temp].enemydie = ARCHIPELAGO_ITEM + ap_level_item;
+		}
+		ap_location_id[ap_level_item++] = eventRec[eventLoc-1].eventdat;
+		break;
+
+	case 210: // AP_CheckFromLastNewEnemy
+		// Used to insert a check on an enemy without a linknum.
+		// Must be appended after the NewEnemy event, with the same time.
+		if (ARCHIPELAGO_ITEM + ap_level_item > ARCHIPELAGO_ITEM_MAX)
+			break; // ???
+
+		if (b > 0)
+		{
+			enemy[b-1].enemydie = ARCHIPELAGO_ITEM + ap_level_item;
+			ap_location_id[ap_level_item++] = eventRec[eventLoc-1].eventdat;
+		}
+		break;
+
 	default:
 		fprintf(stderr, "warning: ignoring unknown event %d\n", eventRec[eventLoc-1].eventtype);
 		break;
@@ -5221,5 +5327,69 @@ void draw_boss_bar(void)
 
 		if (boss_bar[b].color > 0)
 			boss_bar[b].color--;
+	}
+}
+
+// ----------------------------------------------------------------------------
+
+void tyrian_enemyDieItem(JE_byte enemyId)
+{
+	Sint16 item;
+	int newItemId = enemy[enemyId].enemydie;
+
+	// This is to hide the AP Radar on dead ground enemies.
+	enemy[enemyId].enemydie = 0;
+
+	int enemy_offset = enemyId - (enemyId % 25);
+	if (enemyDat[newItemId].value > 30000)
+		enemy_offset = 0;
+
+	if (newItemId >= ARCHIPELAGO_ITEM && newItemId <= ARCHIPELAGO_ITEM_MAX)
+	{
+		item = JE_newEnemy(enemy_offset, 513, 0);
+		if (item != 0)
+		{
+			int apItemNum = newItemId - ARCHIPELAGO_ITEM;
+			enemy[item-1].scoreitem = true;
+			enemy[item-1].evalue = 28000 + ap_location_id[apItemNum];
+
+			int animStart = true ? 7 : 3;
+			enemy[item-1].sprite2s = &archipelagoSpriteSheet;
+			enemy[item-1].ani = 6;
+			enemy[item-1].egr[0] = enemy[item-1].egr[1] = enemy[item-1].egr[2] = animStart + 2;
+			enemy[item-1].egr[3] = enemy[item-1].egr[4] = enemy[item-1].egr[5] = animStart;
+
+			enemy[item-1].ex = enemy[enemyId].ex;
+			enemy[item-1].ey = enemy[enemyId].ey;
+		}
+		return;
+	}
+
+	// Don't spawn purple balls in Super Arcade modes
+	if (superArcadeMode != SA_NONE && enemyDat[enemy[enemyId].enemydie].value == 30000)
+		return;
+
+	item = JE_newEnemy(enemy_offset, newItemId, 0);
+	if (item != 0)
+	{
+		if ((superArcadeMode != SA_NONE) && (enemy[item-1].evalue > 30000))
+		{
+			superArcadePowerUp++;
+			if (superArcadePowerUp > 5)
+				superArcadePowerUp = 1;
+			enemy[item-1].egr[1-1] = 5 + superArcadePowerUp * 2;
+			enemy[item-1].evalue = 30000 + superArcadePowerUp;
+		}
+
+		// Bugfix (original game): Don't set scoreitem here
+		// JE_makeEnemy already does a good enough job of that
+		// All we do by setting it here is ruin it and mess up stuff
+		//if (enemy[item-1].evalue != 0)
+		//	enemy[item-1].scoreitem = true;
+		//else
+		//	enemy[item-1].scoreitem = false;
+
+		enemy[item-1].ex = enemy[enemyId].ex;
+		enemy[item-1].ey = enemy[enemyId].ey;
 	}
 }

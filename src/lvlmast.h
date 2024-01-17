@@ -51,6 +51,8 @@ struct JE_EventRecType
 extern struct JE_EventRecType eventRec[EVENT_MAXIMUM]; /* [1..eventMaximum] */
 extern JE_word maxEvent;
 
-void level_loadEvents(FILE *level_f, JE_byte levelNum);
+//void level_loadEvents(FILE *level_f, JE_byte levelNum);
+
+void level_loadFromLevelID(Uint16 levelID);
 
 #endif /* LVLMAST_H */

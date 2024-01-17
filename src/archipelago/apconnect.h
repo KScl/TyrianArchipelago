@@ -27,12 +27,15 @@ typedef struct {
 
 extern archipelago_settings_t ArchipelagoOpts;
 
-void Archipelago_Connect();
-void Archipelago_Poll();
-void Archipelago_Disconnect();
+void Archipelago_SetDefaultConnectionDetails(const char *address);
+void Archipelago_SetDefaultConnectionPassword(const char *connectionPassword);
 
-archipelago_connectionstat_t Archipelago_ConnectionStatus();
-const char* Archipelago_GetConnectionError();
+void Archipelago_Connect(void);
+void Archipelago_Poll(void);
+void Archipelago_Disconnect(void);
+
+archipelago_connectionstat_t Archipelago_ConnectionStatus(void);
+const char* Archipelago_GetConnectionError(void);
 
 // ----------------------------------------------------------------------------
 // DeathLink

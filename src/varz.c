@@ -442,7 +442,8 @@ void JE_tyrianHalt(JE_byte code)
 
 	/* TODO: NETWORK */
 
-	free_main_shape_tables();
+	sprites_freeInterfaceSprites();
+	sprites_freeMainShapeTables();
 
 	free_sprite2s(&shopSpriteSheet);
 	free_sprite2s(&explosionSpriteSheet);
@@ -475,6 +476,7 @@ void JE_tyrianHalt(JE_byte code)
 		code = 0;
 	}
 
+#if 0
 	if (trentWin)
 	{
 		printf("\n"
@@ -490,6 +492,7 @@ void JE_tyrianHalt(JE_byte code)
 		       "You'll need the 2.1 patch, though!\n"
 		       "\n");
 	}
+#endif
 
 	SDL_Quit();
 	exit(code);
@@ -734,11 +737,9 @@ void JE_doSpecialShot(JE_byte playerNum, uint *armor, uint *shield)
 
 		SFExecuted[playerNum-1] = 0;
 
-		JE_wipeShieldArmorBars();
-		VGAScreen = VGAScreenSeg; /* side-effect of game_screen */
-		JE_drawShield();
-		JE_drawArmor();
-		VGAScreen = game_screen; /* side-effect of game_screen */
+		player_wipeShieldArmorBars();
+		player_drawShield();
+		player_drawArmor();
 	}
 
 	if (playerNum == 1 && player[0].items.special > 0)
@@ -867,60 +868,62 @@ void JE_setupExplosion(signed int x, signed int y, signed int delta_y, unsigned 
 	const struct {
 		JE_word sprite;
 		JE_byte ttl;
-	} explosion_data[53] /* [1..53] */ = {
-		{ 144,  7 },
-		{ 120, 12 },
-		{ 190, 12 },
-		{ 209, 12 },
-		{ 152, 12 },
-		{ 171, 12 },
-		{ 133,  7 },   /*White Smoke*/
-		{   1, 12 },
-		{  20, 12 },
-		{  39, 12 },
-		{  58, 12 },
-		{ 110,  3 },
-		{  76,  7 },
-		{  91,  3 },
-/*15*/	{ 227,  3 },
-		{ 230,  3 },
-		{ 233,  3 },
-		{ 252,  3 },
-		{ 246,  3 },
-/*20*/	{ 249,  3 },
-		{ 265,  3 },
-		{ 268,  3 },
-		{ 271,  3 },
-		{ 236,  3 },
-/*25*/	{ 239,  3 },
-		{ 242,  3 },
-		{ 261,  3 },
-		{ 274,  3 },
-		{ 277,  3 },
-/*30*/	{ 280,  3 },
-		{ 299,  3 },
-		{ 284,  3 },
-		{ 287,  3 },
-		{ 290,  3 },
-/*35*/	{ 293,  3 },
-		{ 165,  8 },   /*Coin Values*/
-		{ 184,  8 },
-		{ 203,  8 },
-		{ 222,  8 },
-		{ 168,  8 },
-		{ 187,  8 },
-		{ 206,  8 },
-		{ 225, 10 },
-		{ 169, 10 },
-		{ 188, 10 },
-		{ 207, 20 },
-		{ 226, 14 },
-		{ 170, 14 },
-		{ 189, 14 },
-		{ 208, 14 },
-		{ 246, 14 },
-		{ 227, 14 },
-		{ 265, 14 }
+		Sprite2_array *sheet; // Added for AP
+	} explosion_data[54] /* [1..53] */ = {
+		{ 144,  7, &explosionSpriteSheet },
+		{ 120, 12, &explosionSpriteSheet },
+		{ 190, 12, &explosionSpriteSheet },
+		{ 209, 12, &explosionSpriteSheet },
+		{ 152, 12, &explosionSpriteSheet },
+		{ 171, 12, &explosionSpriteSheet },
+		{ 133,  7, &explosionSpriteSheet },   /*White Smoke*/
+		{   1, 12, &explosionSpriteSheet },
+		{  20, 12, &explosionSpriteSheet },
+		{  39, 12, &explosionSpriteSheet },
+		{  58, 12, &explosionSpriteSheet },
+		{ 110,  3, &explosionSpriteSheet },
+		{  76,  7, &explosionSpriteSheet },
+		{  91,  3, &explosionSpriteSheet },
+/*15*/	{ 227,  3, &explosionSpriteSheet },
+		{ 230,  3, &explosionSpriteSheet },
+		{ 233,  3, &explosionSpriteSheet },
+		{ 252,  3, &explosionSpriteSheet },
+		{ 246,  3, &explosionSpriteSheet },
+/*20*/	{ 249,  3, &explosionSpriteSheet },
+		{ 265,  3, &explosionSpriteSheet },
+		{ 268,  3, &explosionSpriteSheet },
+		{ 271,  3, &explosionSpriteSheet },
+		{ 236,  3, &explosionSpriteSheet },
+/*25*/	{ 239,  3, &explosionSpriteSheet },
+		{ 242,  3, &explosionSpriteSheet },
+		{ 261,  3, &explosionSpriteSheet },
+		{ 274,  3, &explosionSpriteSheet },
+		{ 277,  3, &explosionSpriteSheet },
+/*30*/	{ 280,  3, &explosionSpriteSheet },
+		{ 299,  3, &explosionSpriteSheet },
+		{ 284,  3, &explosionSpriteSheet },
+		{ 287,  3, &explosionSpriteSheet },
+		{ 290,  3, &explosionSpriteSheet },
+/*35*/	{ 293,  3, &explosionSpriteSheet },
+		{ 165,  8, &explosionSpriteSheet },   /*Coin Values*/
+		{ 184,  8, &explosionSpriteSheet },
+		{ 203,  8, &explosionSpriteSheet },
+		{ 222,  8, &explosionSpriteSheet },
+		{ 168,  8, &explosionSpriteSheet },
+		{ 187,  8, &explosionSpriteSheet },
+		{ 206,  8, &explosionSpriteSheet },
+		{ 225, 10, &explosionSpriteSheet },
+		{ 169, 10, &explosionSpriteSheet },
+		{ 188, 10, &explosionSpriteSheet },
+		{ 207, 20, &explosionSpriteSheet },
+		{ 226, 14, &explosionSpriteSheet },
+		{ 170, 14, &explosionSpriteSheet },
+		{ 189, 14, &explosionSpriteSheet },
+		{ 208, 14, &explosionSpriteSheet },
+		{ 246, 14, &explosionSpriteSheet },
+		{ 227, 14, &explosionSpriteSheet },
+		{ 265, 14, &explosionSpriteSheet },
+		{  10, 14, &archipelagoSpriteSheet }   /* AP Item */
 	};
 
 	if (y > -16 && y < 190)
@@ -940,6 +943,7 @@ void JE_setupExplosion(signed int x, signed int y, signed int delta_y, unsigned 
 				{
 					type = 6;
 				}
+				explosions[i].sheet = explosion_data[type].sheet;
 				explosions[i].sprite = explosion_data[type].sprite;
 				explosions[i].ttl = explosion_data[type].ttl;
 				explosions[i].follow_player = follow_player;
@@ -998,69 +1002,6 @@ void JE_setupExplosionLarge(JE_boolean enemyGround, JE_byte exploNum, JE_integer
 				}
 			}
 		}
-	}
-}
-
-void JE_wipeShieldArmorBars(void)
-{
-	if (!twoPlayerMode || galagaMode)
-	{
-		fill_rectangle_xy(VGAScreenSeg, 270, 137, 278, 194 - player[0].shield * 2, 0);
-	}
-	else
-	{
-		fill_rectangle_xy(VGAScreenSeg, 270, 60 - 44, 278, 60, 0);
-		fill_rectangle_xy(VGAScreenSeg, 270, 194 - 44, 278, 194, 0);
-	}
-	if (!twoPlayerMode || galagaMode)
-	{
-		fill_rectangle_xy(VGAScreenSeg, 307, 137, 315, 194 - player[0].armor * 2, 0);
-	}
-	else
-	{
-		fill_rectangle_xy(VGAScreenSeg, 307, 60 - 44, 315, 60, 0);
-		fill_rectangle_xy(VGAScreenSeg, 307, 194 - 44, 315, 194, 0);
-	}
-}
-
-JE_word JE_portConfigs(void)
-{
-	const uint player_index = twoPlayerMode ? 1 : 0;
-	return tempW = weaponPort[player[player_index].items.weapon[REAR_WEAPON].id].opnum;
-}
-
-void JE_drawShield(void)
-{
-	if (twoPlayerMode && !galagaMode)
-	{
-		for (uint i = 0; i < COUNTOF(player); ++i)
-			JE_dBar3(VGAScreen, 270, 60 + 134 * i, roundf(player[i].shield * 0.8f), 144);
-	}
-	else
-	{
-		JE_dBar3(VGAScreen, 270, 194, player[0].shield, 144);
-		if (player[0].shield != player[0].shield_max)
-		{
-			const uint y = 193 - (player[0].shield_max * 2);
-			JE_rectangle(VGAScreen, 270, y, 278, y, 68); /* <MXD> SEGa000 */
-		}
-	}
-}
-
-void JE_drawArmor(void)
-{
-	for (uint i = 0; i < COUNTOF(player); ++i)
-		if (player[i].armor > 28)
-			player[i].armor = 28;
-
-	if (twoPlayerMode && !galagaMode)
-	{
-		for (uint i = 0; i < COUNTOF(player); ++i)
-			JE_dBar3(VGAScreen, 307, 60 + 134 * i, roundf(player[i].armor * 0.8f), 224);
-	}
-	else
-	{
-		JE_dBar3(VGAScreen, 307, 194, player[0].armor, 224);
 	}
 }
 

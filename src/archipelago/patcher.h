@@ -1,6 +1,8 @@
 
 #include "SDL_types.h"
 
+#include <stdio.h>
+
 #ifndef LVLMAST_H // redefinitions
 struct JE_EventRecType
 {
@@ -15,9 +17,9 @@ extern struct JE_EventRecType eventRec[2500]; /* [1..eventMaximum] */
 extern Uint16 maxEvent;
 #endif
 
-bool Patcher_SystemInit(void);
+bool Patcher_SystemInit(FILE *file);
 
-void Patcher_ReadyPatch(Uint32 crc, Uint8 levelNum);
+void Patcher_ReadyPatch(const char *gameID, Uint8 episode, Uint8 levelNum);
 
 // Returns number of events to be suppressed (seek 11*retval)
 Uint16 Patcher_DoPatch(Uint16 *idx);

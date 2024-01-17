@@ -112,19 +112,17 @@ void wait_delayorinput(void)
 	}
 }
 
-void loadSndFile(bool xmas)
+static void loadSndFile(const char *file, size_t start, bool trimData)
 {
-	FILE *f;
-
-	f = dir_fopen_die(data_dir(), "tyrian.snd", "rb");
+	FILE *f = dir_fopen_die(data_dir(), file, "rb");
 
 	Uint16 sfxCount;
 	Uint32 sfxPositions[SFX_COUNT + 1];
 
 	// Read number of sounds.
 	fread_u16_die(&sfxCount, 1, f);
-	if (sfxCount != SFX_COUNT)
-		goto die;
+	if (sfxCount > SFX_COUNT)
+		goto die; // Allow handling less samples (voices)
 
 	// Read positions of sounds.
 	fread_u32_die(sfxPositions, sfxCount, f);
@@ -134,63 +132,43 @@ void loadSndFile(bool xmas)
 	sfxPositions[sfxCount] = ftell(f);
 
 	// Read samples.
-	for (size_t i = 0; i < sfxCount; ++i)
+	for (size_t global_i = start - 1, i = 0; i < sfxCount; ++global_i, ++i)
 	{
-		soundSampleCount[i] = sfxPositions[i + 1] - sfxPositions[i];
+		soundSampleCount[global_i] = sfxPositions[i + 1] - sfxPositions[i];
+
+		if (trimData)
+		{
+			// Voice sounds have some bad data at the end.
+			soundSampleCount[global_i] = soundSampleCount[global_i] >= 100
+				? soundSampleCount[global_i] - 100
+				: 0;			
+		}
 
 		// Sound size cannot exceed 64 KiB.
-		if (soundSampleCount[i] > UINT16_MAX)
+		if (soundSampleCount[global_i] > UINT16_MAX)
 			goto die;
 
-		free(soundSamples[i]);
-		soundSamples[i] = malloc(soundSampleCount[i]);
+		free(soundSamples[global_i]);
+		soundSamples[global_i] = malloc(soundSampleCount[global_i]);
 
 		fseek(f, sfxPositions[i], SEEK_SET);
-		fread_u8_die((Uint8 *)soundSamples[i], soundSampleCount[i], f);
+		fread_u8_die((Uint8 *)soundSamples[global_i], soundSampleCount[global_i], f);
 	}
 
 	fclose(f);
+	return;
 
-	f = dir_fopen_die(data_dir(), xmas ? "voicesc.snd" : "voices.snd", "rb");
+die:
+	fprintf(stderr, "error: Unexpected data was read from a file.\n");
+	SDL_Quit();
+	exit(EXIT_FAILURE);
+}
 
-	Uint16 voiceCount;
-	Uint32 voicePositions[VOICE_COUNT + 1];
-
-	// Read number of sounds.
-	fread_u16_die(&voiceCount, 1, f);
-	if (voiceCount != VOICE_COUNT)
-		goto die;
-
-	// Read positions of sounds.
-	fread_u32_die(voicePositions, voiceCount, f);
-
-	// Determine end of last sound.
-	fseek(f, 0, SEEK_END);
-	voicePositions[voiceCount] = ftell(f);
-
-	for (size_t vi = 0; vi < voiceCount; ++vi)
-	{
-		size_t i = SFX_COUNT + vi;
-
-		soundSampleCount[i] = voicePositions[vi + 1] - voicePositions[vi];
-
-		// Voice sounds have some bad data at the end.
-		soundSampleCount[i] = soundSampleCount[i] >= 100
-			? soundSampleCount[i] - 100
-			: 0;
-
-		// Sound size cannot exceed 64 KiB.
-		if (soundSampleCount[i] > UINT16_MAX)
-			goto die;
-
-		free(soundSamples[i]);
-		soundSamples[i] = malloc(soundSampleCount[i]);
-
-		fseek(f, voicePositions[vi], SEEK_SET);
-		fread_u8_die((Uint8 *)soundSamples[i], soundSampleCount[i], f);
-	}
-
-	fclose(f);
+void nortsong_loadSoundFiles()
+{
+	loadSndFile("tyrian.snd", S_WEAPON_1, false);
+	loadSndFile("voices.snd", V_CLEARED_PLATFORM, true);
+	loadSndFile("voicesc.snd", V_XMASVOICE1, true);
 
 	// Convert samples to output sample format and rate.
 
@@ -236,10 +214,7 @@ void loadSndFile(bool xmas)
 
 	return;
 
-die:
-	fprintf(stderr, "error: Unexpected data was read from a file.\n");
-	SDL_Quit();
-	exit(EXIT_FAILURE);
+
 }
 
 void JE_playSampleNum(JE_byte samplenum)

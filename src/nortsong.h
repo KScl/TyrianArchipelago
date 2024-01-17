@@ -48,7 +48,7 @@ void setDelaySpeed(Uint16 speed);
 
 void JE_changeVolume(JE_word *music, int music_delta, JE_word *sample, int sample_delta);
 
-void loadSndFile(bool xmas);
+void nortsong_loadSoundFiles(void);
 void JE_playSampleNum(JE_byte samplenum);
 
 #endif /* NORTSONG_H */

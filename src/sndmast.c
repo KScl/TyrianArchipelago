@@ -59,7 +59,16 @@ const char soundTitle[SOUND_COUNT][9] = /* [1..soundnum + 9] of string [8] */
 	"VOICE6",
 	"VOICE7",
 	"VOICE8",
-	"VOICE9"
+	"VOICE9",
+	"VOICE1C",
+	"VOICE2C",
+	"VOICE3C",
+	"VOICE4C",
+	"VOICE5C",
+	"VOICE6C",
+	"VOICE7C",
+	"VOICE8C",
+	"VOICE9C",
 };
 
 const JE_byte windowTextSamples[9] = /* [1..9] */

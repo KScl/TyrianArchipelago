@@ -112,6 +112,9 @@ extern Sprite2_array spriteSheet9;  // fka shapes9
 extern Sprite2_array spriteSheet10;  // fka eShapes6
 extern Sprite2_array spriteSheet11;  // fka eShapes5
 extern Sprite2_array spriteSheet12;  // fka shapesW2
+extern Sprite2_array spriteSheet13;  // "shapesT2K" (unofficially)
+
+extern Sprite2_array archipelagoSpriteSheet;
 
 void JE_loadCompShapes(Sprite2_array *, char s);
 void JE_loadCompShapesB(Sprite2_array *, FILE *f);
@@ -131,7 +134,12 @@ void blit_sprite2x2_darken(SDL_Surface *, int x, int y, Sprite2_array, unsigned 
 void blit_sprite2x2_filter(SDL_Surface *, int x, int y, Sprite2_array, unsigned int index, Uint8 filter);
 void blit_sprite2x2_filter_clip(SDL_Surface *, int x, int y, Sprite2_array, unsigned int index, Uint8 filter);
 
-void JE_loadMainShapeTables(const char *shpfile);
-void free_main_shape_tables(void);
+// ----------------------------------------------------------------------------
+
+void sprites_loadInterfaceSprites(void);
+void sprites_loadMainShapeTables(bool xmas);
+
+void sprites_freeInterfaceSprites(void);
+void sprites_freeMainShapeTables(void);
 
 #endif // SPRITE_H

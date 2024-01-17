@@ -789,12 +789,14 @@ void JE_itemScreen(void)
 		/* SYN: Let's start by getting fresh events from SDL */
 		service_SDL_events(true);
 
+#if 0
 		if (constantPlay)
 		{
 			mainLevel = mapSection[mapPNum-1];
 			jumpSection = true;
 		}
 		else
+#endif
 		{
 			do
 			{

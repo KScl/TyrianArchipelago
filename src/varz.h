@@ -180,6 +180,7 @@ typedef struct {
 	bool fixed_position;
 	bool follow_player;
 	unsigned int sprite;
+	Sprite2_array *sheet;
 } explosion_type;
 
 typedef struct {
@@ -326,15 +327,8 @@ void JE_tyrianHalt(JE_byte code); /* This ends the game */
 void JE_specialComplete(JE_byte playernum, JE_byte specialType);
 void JE_doSpecialShot(JE_byte playernum, uint *armor, uint *shield);
 
-void JE_wipeShieldArmorBars(void);
-
 void JE_setupExplosion(signed int x, signed int y, signed int delta_y, unsigned int type, bool fixed_position, bool follow_player);
 void JE_setupExplosionLarge(JE_boolean enemyground, JE_byte explonum, JE_integer x, JE_integer y);
-
-void JE_drawShield(void);
-void JE_drawArmor(void);
-
-JE_word JE_portConfigs(void);
 
 /*SuperPixels*/
 void JE_doSP(JE_word x, JE_word y, JE_word num, JE_byte explowidth, JE_byte color);

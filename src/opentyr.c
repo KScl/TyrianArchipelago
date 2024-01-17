@@ -45,7 +45,6 @@
 #include "vga256d.h"
 #include "video.h"
 #include "video_scale.h"
-#include "xmas.h"
 
 #include "SDL.h"
 
@@ -58,6 +57,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+bool tyrian2000detected = false;
 
 const char *opentyrian_str = "OpenTyrian";
 const char *opentyrian_version = OPENTYRIAN_VERSION;
@@ -146,7 +147,7 @@ void setupMenu(void)
 			.items = {
 				{ MENU_ITEM_GRAPHICS, "Graphics...", "Change the graphics settings." },
 				{ MENU_ITEM_SOUND, "Sound...", "Change the sound settings." },
-				{ MENU_ITEM_JUKEBOX, "Jukebox", "Listen to the music of Tyrian." },
+				// { MENU_ITEM_JUKEBOX, "Jukebox", "Listen to the music of Tyrian." },
 				// { MENU_ITEM_DESTRUCT, "Destruct", "Play a bonus mini-game." },
 				{ MENU_ITEM_DONE, "Done", "Return to the main menu." },
 				{ -1 }
@@ -750,9 +751,10 @@ int main(int argc, char *argv[])
 {
 	mt_srand(time(NULL));
 
-	printf("\nWelcome to... >> %s %s <<\n\n", opentyrian_str, opentyrian_version);
+	printf("Welcome to... >> %s %s <<\n\n", opentyrian_str, opentyrian_version);
 
-	printf("Copyright (C) 2022 The OpenTyrian Development Team\n\n");
+	printf("Copyright (C) 2022 The OpenTyrian Development Team\n");
+	printf("Copyright (C) 2024 Kaito Sinclaire\n\n");
 
 	printf("This program comes with ABSOLUTELY NO WARRANTY.\n");
 	printf("This is free software, and you are welcome to redistribute it\n");
@@ -766,17 +768,17 @@ int main(int argc, char *argv[])
 
 	JE_loadConfiguration();
 
-	xmas = xmas_time();  // arg handler may override
-
 	JE_paramCheck(argc, argv);
 
 	JE_scanForEpisodes();
 
-	if (!Patcher_SystemInit())
+	FILE *patch_f = dir_fopen_die("archipelago", "patch.jsonc", "r");
+	if (!Patcher_SystemInit(patch_f))
 	{
 		printf("Couldn't initialize the patching system, aborting.\n");
 		return -1;
 	}
+	fclose(patch_f);
 	printf("Event patches initialized\n");
 
 	init_video();
@@ -784,23 +786,11 @@ int main(int argc, char *argv[])
 	init_joysticks();
 	printf("assuming mouse detected\n"); // SDL can't tell us if there isn't one
 
-	if (xmas && (!dir_file_exists(data_dir(), "tyrianc.shp") || !dir_file_exists(data_dir(), "voicesc.snd")))
-	{
-		xmas = false;
-
-		fprintf(stderr, "warning: Christmas is missing.\n");
-	}
-
 	JE_loadPals();
-	JE_loadMainShapeTables(xmas ? "tyrianc.shp" : "tyrian.shp");
+	sprites_loadInterfaceSprites();
 
-	if (xmas && !xmas_prompt())
-	{
-		xmas = false;
-
-		free_main_shape_tables();
-		JE_loadMainShapeTables("tyrian.shp");
-	}
+	if (tyrian2000detected)
+		printf("Tyrian 2000 data files detected.");
 
 	/* Default Options */
 	youAreCheating = false;
@@ -814,7 +804,7 @@ int main(int argc, char *argv[])
 
 		load_music();
 
-		loadSndFile(xmas);
+		nortsong_loadSoundFiles();
 	}
 	else
 	{

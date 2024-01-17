@@ -21,6 +21,7 @@
 #include "file.h"
 #include "opentyr.h"
 #include "video.h"
+#include "varz.h"
 
 #include <assert.h>
 #include <ctype.h>
@@ -42,6 +43,9 @@ Sprite2_array spriteSheet9;
 Sprite2_array spriteSheet10;
 Sprite2_array spriteSheet11;
 Sprite2_array spriteSheet12;
+Sprite2_array spriteSheet13; // Used for T2K only
+
+Sprite2_array archipelagoSpriteSheet;
 
 void load_sprites_file(unsigned int table, const char *filename)
 {
@@ -791,6 +795,7 @@ void blit_sprite2x2_filter_clip(SDL_Surface *surface, int x, int y, Sprite2_arra
 	blit_sprite2_filter_clip(surface, x + 12, y + 14, sprite2s, index + 20, filter);
 }
 
+#if 0
 void JE_loadMainShapeTables(const char *shpfile)
 {
 	enum { SHP_NUM = 12 };
@@ -843,15 +848,122 @@ void JE_loadMainShapeTables(const char *shpfile)
 	
 	fclose(f);
 }
+#endif
 
-void free_main_shape_tables(void)
+// ----------------------------------------------------------------------------
+
+// Always uses tyrian.shp
+void sprites_loadInterfaceSprites(void)
+{
+	FILE *f = dir_fopen_die(data_dir(), "tyrian.shp", "rb");
+
+	uint i;
+	JE_word shpNumb;
+	JE_longint shpPos[14]; // +1 maximum possible
+
+	// Detect T2000 by number of shapes / sprite banks, vanilla has 12, T2000 has 13
+	fread_u16_die(&shpNumb, 1, f);
+	tyrian2000detected = (shpNumb != 12);
+
+	// Get pointers to the beginning of each sprite / shape table
+	fread_s32_die(shpPos, shpNumb, f);
+	fseek(f, 0, SEEK_END);
+	for (i = shpNumb; i < COUNTOF(shpPos); ++i)
+		shpPos[i] = ftell(f);
+
+	// Load only the interface sprites for now
+	for (i = 0; i < 7; ++i)
+	{
+		fseek(f, shpPos[i], SEEK_SET);
+		load_sprites(i, f);
+	}
+	fclose(f);
+
+	// Load Archipelago images too, since they're global
+	f = dir_fopen_die("archipelago", "apitem.shp", "r");
+	archipelagoSpriteSheet.size = ftell_eof(f);
+	JE_loadCompShapesB(&archipelagoSpriteSheet, f);
+	fclose(f);
+}
+
+void sprites_loadMainShapeTables(bool xmas)
+{
+	FILE *f = dir_fopen_die(data_dir(), xmas ? "tyrianc.shp" : "tyrian.shp", "rb");
+
+	uint i;
+	JE_word shpNumb;
+	JE_longint shpPos[14]; // +1 maximum possible
+
+	// Detect T2000 by number of shapes / sprite banks, vanilla has 12, T2000 has 13
+	fread_u16_die(&shpNumb, 1, f);
+	if (tyrian2000detected != (shpNumb != 12))
+	{
+		fprintf(stderr, "Data file version mismatch detected.");
+		JE_tyrianHalt(1);
+	}
+
+	// Get pointers to the beginning of each sprite / shape table
+	fread_s32_die(shpPos, shpNumb, f);
+	fseek(f, 0, SEEK_END);
+	for (uint i = shpNumb; i < COUNTOF(shpPos); ++i)
+		shpPos[i] = ftell(f);
+
+	i = 7;
+
+	// player shot sprites
+	fseek(f, shpPos[i], SEEK_SET);
+	spriteSheet8.size = shpPos[i + 1] - shpPos[i];
+	JE_loadCompShapesB(&spriteSheet8, f);
+	++i;
+	
+	// player ship sprites
+	fseek(f, shpPos[i], SEEK_SET);
+	spriteSheet9.size = shpPos[i + 1] - shpPos[i];
+	JE_loadCompShapesB(&spriteSheet9 , f);
+	++i;
+	
+	// power-up sprites
+	fseek(f, shpPos[i], SEEK_SET);
+	spriteSheet10.size = shpPos[i + 1] - shpPos[i];
+	JE_loadCompShapesB(&spriteSheet10, f);
+	++i;
+	
+	// coins, datacubes, etc sprites
+	fseek(f, shpPos[i], SEEK_SET);
+	spriteSheet11.size = shpPos[i + 1] - shpPos[i];
+	JE_loadCompShapesB(&spriteSheet11, f);
+	++i;
+	
+	// more player shot sprites
+	fseek(f, shpPos[i], SEEK_SET);
+	spriteSheet12.size = shpPos[i + 1] - shpPos[i];
+	JE_loadCompShapesB(&spriteSheet12, f);
+	++i;
+
+	if (tyrian2000detected)
+	{
+		fseek(f, shpPos[i], SEEK_SET);
+		spriteSheet13.size = shpPos[i + 1] - shpPos[i];
+		JE_loadCompShapesB(&spriteSheet13, f);
+	}
+
+	fclose(f);
+}
+
+void sprites_freeInterfaceSprites(void)
 {
 	for (uint i = 0; i < COUNTOF(sprite_table); ++i)
 		free_sprites(i);
-	
+}
+
+void sprites_freeMainShapeTables(void)
+{
 	free_sprite2s(&spriteSheet8);
 	free_sprite2s(&spriteSheet9);
 	free_sprite2s(&spriteSheet10);
 	free_sprite2s(&spriteSheet11);
 	free_sprite2s(&spriteSheet12);
+
+	if (tyrian2000detected)
+		free_sprite2s(&spriteSheet13);
 }

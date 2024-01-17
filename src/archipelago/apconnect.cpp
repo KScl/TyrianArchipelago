@@ -11,7 +11,8 @@ using nlohmann::json;
 // Settings package received from server.
 archipelago_settings_t ArchipelagoOpts;
 
-std::string slot_name = "";
+std::string connection_slot_name = "";
+std::string connection_server_address = "";
 std::string connection_password = "";
 
 // ----------------------------------------------------------------------------
@@ -40,7 +41,7 @@ static void APSocketRoomInfo()
 
 	std::list<std::string> tags;
 	tags.push_back("DeathLink");
-	ap->ConnectSlot(slot_name, connection_password, 0b111, tags, {0,4,4});
+	ap->ConnectSlot(connection_slot_name, connection_password, 0b111, tags, {0,4,4});
 }
 
 static void APSocketSlotRefused(const std::list<std::string>& reasons)
@@ -55,9 +56,9 @@ static void APSocketSlotRefused(const std::list<std::string>& reasons)
 			connection_error_desc += " ";
 
 		if (reason == "InvalidSlot")
-			connection_error_desc += "Slot '" + slot_name + "' does not exist.";
+			connection_error_desc += "Slot '" + connection_slot_name + "' does not exist.";
 		else if (reason == "InvalidGame")
-			connection_error_desc += "Slot '" + slot_name + "' is not playing Tyrian.";
+			connection_error_desc += "Slot '" + connection_slot_name + "' is not playing Tyrian.";
 		else if (reason == "IncompatibleVersion")
 			connection_error_desc += "Server version incompatible with this client.";
 		else if (reason == "InvalidPassword")
@@ -80,9 +81,29 @@ static void APSocketSlotConnected(const json& slot_data)
 
 // ----------------------------------------------------------------------------
 
-void Archipelago_Connect()
+void Archipelago_SetDefaultConnectionDetails(const char *address)
 {
-	printf("Connecting to Archipelago server.\n");
+	std::string cppAddress = address;
+	std::string::size_type at_sign = cppAddress.find("@");
+
+	connection_slot_name = cppAddress.substr(0, at_sign);
+	connection_server_address = cppAddress.substr(at_sign + 1);
+
+	std::cout << "Will connect to Archipelago server ("
+	          << connection_slot_name      << "@"
+	          << connection_server_address << ")" << std::endl;
+}
+
+void Archipelago_SetDefaultConnectionPassword(const char *connectionPassword)
+{
+	connection_password = connectionPassword;
+}
+
+void Archipelago_Connect(void)
+{
+	std::cout << "Connecting to Archipelago server ("
+	          << connection_slot_name      << "@"
+	          << connection_server_address << ")" << std::endl;
 	ap.reset();
 	std::string uuid = ap_get_uuid("test.uuid");
 	std::cout << uuid << std::endl;
@@ -92,9 +113,7 @@ void Archipelago_Connect()
 	connection_error_desc = "";
 	connection_ever_made = false;
 
-	slot_name = "KS";
-	connection_password = "";
-	ap.reset(new APClient(uuid, "Tyrian", "ws://0.0.0.0:38281"));
+	ap.reset(new APClient(uuid, "Tyrian", connection_server_address));
 
     ap->set_socket_disconnected_handler(APSocketDisconnect);
     ap->set_socket_error_handler(APSocketError);
@@ -102,7 +121,7 @@ void Archipelago_Connect()
 	ap->set_slot_refused_handler(APSocketSlotRefused);
 }
 
-void Archipelago_Poll()
+void Archipelago_Poll(void)
 {
 	if (!ap)
 		return;
@@ -122,7 +141,7 @@ void Archipelago_Poll()
 	}
 }
 
-void Archipelago_Disconnect()
+void Archipelago_Disconnect(void)
 {
 	if (!ap)
 		return;
@@ -132,14 +151,14 @@ void Archipelago_Disconnect()
 	ap.reset();
 }
 
-archipelago_connectionstat_t Archipelago_ConnectionStatus()
+archipelago_connectionstat_t Archipelago_ConnectionStatus(void)
 {
 	if (!ap)
 		return APCONN_NOT_CONNECTED;
 	return connection_stat;
 }
 
-const char* Archipelago_GetConnectionError()
+const char* Archipelago_GetConnectionError(void)
 {
 	return connection_error_desc.c_str();
 }
@@ -173,7 +192,7 @@ void Archipelago_SendDeathLink(damagetype_t source)
 		return; // Prevent chained deathlinks
 
 	int entry = rand() % death_messages[source].size();
-	std::string cause = slot_name + death_messages[source][entry];
+	std::string cause = connection_slot_name + death_messages[source][entry];
 
 	std::cout << "Death sent: " << cause << std::endl;
 }

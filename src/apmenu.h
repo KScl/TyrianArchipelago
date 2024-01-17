@@ -2,4 +2,4 @@
 bool ap_titleScreen(void);
 bool ap_connectScreen(void);
 
-void ap_itemScreeen(void);
+Uint16 ap_itemScreen(void);

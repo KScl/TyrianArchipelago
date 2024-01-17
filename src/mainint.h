@@ -46,7 +46,7 @@ void JE_gammaCorrect_func(JE_byte *col, JE_real r);
 void JE_gammaCorrect(Palette *colorBuffer, JE_byte gamma);
 JE_boolean JE_gammaCheck(void);
 /* void JE_textMenuWait(JE_word *waitTime, JE_boolean doGamma); /!\ In setup.h */
-void JE_nextEpisode(void);
+//void JE_nextEpisode(void);
 void JE_helpSystem(JE_byte startTopic);
 void JE_doInGameSetup(void);
 JE_boolean JE_inGameSetup(void);
@@ -66,7 +66,6 @@ ulong JE_getCost(JE_byte itemType, JE_word itemNum);
 JE_longint JE_getValue(JE_byte itemType, JE_word itemNum);
 ulong JE_totalScore(const Player *);
 
-void JE_drawPortConfigButtons(void);
 void JE_outCharGlow(JE_word x, JE_word y, const char *s);
 
 void JE_playCredits(void);

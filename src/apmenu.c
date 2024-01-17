@@ -84,12 +84,18 @@ bool ap_connectScreen(void)
 					fade_black(15);
 					return false;
 				}
-				else if (newkey && lastkey_scan == SDL_SCANCODE_F)
+				else if (newkey && lastkey_scan == SDL_SCANCODE_F3)
 				{
 					// Force
 					JE_playSampleNum(S_SELECT);
 					fade_black(15);
-					return newGame();
+					onePlayerAction = false;
+					twoPlayerMode = false;
+					difficultyLevel = initialDifficulty = DIFFICULTY_HARD;
+					player[0].cash = 0;
+					sprites_loadMainShapeTables(false);
+
+					return true;
 				}
 				break;
 
@@ -355,26 +361,64 @@ bool ap_titleScreen(void)
 
 // ----------------------------------------------------------------------------
 
-void ap_itemScreen(void)
+Uint16 ap_itemScreen(void)
 {
 	if (shopSpriteSheet.data == NULL)
 		JE_loadCompShapes(&shopSpriteSheet, '1');
 
-	JE_loadPic(VGAScreen2, 13, false);
+	JE_loadPic(VGAScreen2, 1, false);
 	play_song(DEFAULT_SONG_BUY);
 
 	VGAScreen = VGAScreenSeg;
+
+	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
+	set_palette(colors, 0, 255);
+	JE_showVGA();
+
+	Uint8 levelID = 1;
 
 	while (true)
 	{
 		service_SDL_events(true);
 		push_joysticks_as_keyboard();
 
+		if (newkey && lastkey_scan == SDL_SCANCODE_UP)
+		{
+			JE_playSampleNum(S_CURSOR);
+			if (player[0].items.weapon[0].power < 11)
+				printf("power: %d\n", ++player[0].items.weapon[0].power);
+		}
+		if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
+		{
+			JE_playSampleNum(S_CURSOR);
+			if (player[0].items.weapon[0].power > 1)
+				printf("power: %d\n", --player[0].items.weapon[0].power);
+		}
+		if (newkey && lastkey_scan == SDL_SCANCODE_LEFT)
+		{
+			JE_playSampleNum(S_CURSOR);
+			if (levelID > 1)
+				printf("level: %d\n", --levelID);
+		}
+		if (newkey && lastkey_scan == SDL_SCANCODE_RIGHT)
+		{
+			JE_playSampleNum(S_CURSOR);
+			if (levelID < 66)
+				printf("level: %d\n", ++levelID);
+		}
+
+		if (newkey && lastkey_scan == SDL_SCANCODE_RETURN)
+		{
+			JE_playSampleNum(S_SELECT);
+			fade_black(15);
+
+			return levelID;
+		}
 		if (newkey && lastkey_scan == SDL_SCANCODE_ESCAPE)
 		{
 			JE_playSampleNum(S_SPRING);
 			fade_black(15);
-			return;
+			return 0;
 		}
 
 		JE_showVGA();

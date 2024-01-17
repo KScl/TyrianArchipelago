@@ -56,6 +56,8 @@ typedef float  JE_real;
 extern const char *opentyrian_str;
 extern const char *opentyrian_version;
 
+extern bool tyrian2000detected;
+
 void setupMenu(void);
 
 #endif /* OPENTYR_H */

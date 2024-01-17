@@ -76,4 +76,11 @@ void JE_helpBox(SDL_Surface *screen, int x, int y, const char *message, unsigned
 void JE_HBox(SDL_Surface *screen, int x, int y, unsigned int  messagenum, unsigned int boxwidth);
 void JE_loadHelpText(void);
 
+// ----------------------------------------------------------------------------
+
+// Formerly menus.h, moved here
+extern char episode_name[6][31];
+extern char difficulty_name[7][21];
+extern char gameplay_name[5][26];
+
 #endif /* HELPTEXT_H */

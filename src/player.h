@@ -132,6 +132,15 @@ void handle_got_purple_ball(Player *);
 
 // ----------------------------------------------------------------------------
 
+Uint16 player_getPortConfigCount(void);
+void player_drawPortConfigButtons(void);
+
+void player_wipeShieldArmorBars(void);
+void player_drawShield(void);
+void player_drawArmor(void);
+
+// ----------------------------------------------------------------------------
+
 typedef enum {
 	DAMAGE_DEATHLINK = 0,
 	DAMAGE_BULLET,
@@ -140,7 +149,6 @@ typedef enum {
 } damagetype_t;
 
 Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t damageType );
-
 void player_handleDeathLink(Player *this_player);
 void player_debugCauseDeathLink();
 void player_resetDeathLink();

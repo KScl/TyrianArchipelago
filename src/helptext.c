@@ -22,7 +22,6 @@
 #include "episodes.h"
 #include "file.h"
 #include "fonthand.h"
-#include "menus.h"
 #include "opentyr.h"
 #include "video.h"
 
@@ -75,6 +74,11 @@ char weaponNames[17][17];                                                /* [1..
 char destructModeName[DESTRUCT_MODES][13];                               /* [1..destructmodes] of string [12] */
 char shipInfo[HELPTEXT_SHIPINFO_COUNT][2][256];                          /* [1..13, 1..2] of string */
 char menuInt[MENU_MAX+1][11][18];                                        /* [0..14, 1..11] of string [17] */
+
+// Formerly menus.c, moved out here
+char episode_name[6][31];
+char difficulty_name[7][21];
+char gameplay_name[5][26];
 
 static void decrypt_string(char *s, size_t len)
 {
@@ -186,7 +190,7 @@ void JE_loadHelpText(void)
 	const unsigned int menuInt_entries[MENU_MAX + 1] = { -1, 7, 9, 8, -1, -1, 11, -1, -1, -1, 6, 4, 6, 7, 5 };
 	
 	FILE *f = dir_fopen_die(data_dir(), "tyrian.hdt", "rb");
-	fread_s32_die(&episode1DataLoc, 1, f);
+	fseek(f, sizeof(Sint32), SEEK_CUR); // skip unused episode1DataLoc
 
 	/*Online Help*/
 	skip_pascal_string(f);

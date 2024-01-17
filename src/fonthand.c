@@ -289,10 +289,8 @@ void JE_outTextGlow(SDL_Surface * screen, int x, int y, const char *s)
 	JE_integer z;
 	JE_byte c = 15;
 
-	if (warningRed)
-	{
-		c = 7;
-	}
+	//if (warningRed)
+	//	c = 7;
 
 	JE_outTextAdjust(screen, x - 1, y,     s, 0, -12, textGlowFont, false);
 	JE_outTextAdjust(screen, x,     y - 1, s, 0, -12, textGlowFont, false);

@@ -54,12 +54,14 @@ void JE_drawEnemy(int enemyOffset);
 void JE_starShowVGA(void);
 
 void JE_main(void);
-void JE_loadMap(void);
+bool JE_loadMap(void);
+void JE_loadMapData(FILE *level_f);
+void JE_loadMapShapes(FILE *level_f, JE_char char_shapeFile);
 #ifdef WITH_NETWORK
 void networkStartScreen(void);
 #endif
 //bool titleScreen(void);
-bool newGame(void);
+//bool newGame(void);
 //bool newSuperArcadeGame(unsigned int i);
 //void newSuperTyrianGame(void);
 void JE_readTextSync(void);

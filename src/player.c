@@ -18,8 +18,10 @@
  */
 
 #include "nortsong.h"
+#include "nortvars.h"
 #include "player.h"
 #include "varz.h"
+#include "vga256d.h"
 #include "video.h"
 
 #include "archipelago/apconnect.h"
@@ -60,6 +62,96 @@ void handle_got_purple_ball(Player *this_player)
 		power_up_weapon(this_player, this_player->is_dragonwing ? REAR_WEAPON : FRONT_WEAPON);
 }
 
+// ---------------------------------------------------------------------------
+
+Uint16 player_getPortConfigCount(void) // JE_portConfigs
+{
+	const uint player_index = twoPlayerMode ? 1 : 0;
+	return weaponPort[player[player_index].items.weapon[REAR_WEAPON].id].opnum;
+}
+
+void player_drawPortConfigButtons(void) // JE_drawPortConfigButtons
+{
+	if (twoPlayerMode)
+		return;
+
+	if (player[0].weapon_mode == 1)
+	{
+		blit_sprite(VGAScreenSeg, 285, 44, OPTION_SHAPES, 18);  // lit
+		blit_sprite(VGAScreenSeg, 302, 44, OPTION_SHAPES, 19);  // unlit
+	}
+	else // == 2
+	{
+		blit_sprite(VGAScreenSeg, 285, 44, OPTION_SHAPES, 19);  // unlit
+		blit_sprite(VGAScreenSeg, 302, 44, OPTION_SHAPES, 18);  // lit
+	}
+}
+
+// ---------------------------------------------------------------------------
+
+void player_wipeShieldArmorBars(void)
+{
+	if (!twoPlayerMode || galagaMode)
+	{
+		fill_rectangle_xy(VGAScreenSeg, 270, 137, 278, 194 - player[0].shield * 2, 0);
+	}
+	else
+	{
+		fill_rectangle_xy(VGAScreenSeg, 270, 60 - 44, 278, 60, 0);
+		fill_rectangle_xy(VGAScreenSeg, 270, 194 - 44, 278, 194, 0);
+	}
+	if (!twoPlayerMode || galagaMode)
+	{
+		fill_rectangle_xy(VGAScreenSeg, 307, 137, 315, 194 - player[0].armor * 2, 0);
+	}
+	else
+	{
+		fill_rectangle_xy(VGAScreenSeg, 307, 60 - 44, 315, 60, 0);
+		fill_rectangle_xy(VGAScreenSeg, 307, 194 - 44, 315, 194, 0);
+	}
+}
+
+void player_drawShield(void)
+{
+	if (twoPlayerMode && !galagaMode)
+	{
+		for (uint i = 0; i < COUNTOF(player); ++i)
+			JE_dBar3(VGAScreenSeg, 270, 60 + 134 * i, roundf(player[i].shield * 0.8f), 144);
+	}
+	else
+	{
+		JE_dBar3(VGAScreenSeg, 270, 194, player[0].shield, 144);
+		if (player[0].shield != player[0].shield_max)
+		{
+			const uint y = 193 - (player[0].shield_max * 2);
+			JE_rectangle(VGAScreenSeg, 270, y, 278, y, 68); /* <MXD> SEGa000 */
+		}
+	}
+}
+
+void player_drawArmor(void)
+{
+	// This is a very silly place to have this cap but it was here originally, so...
+	for (uint i = 0; i < COUNTOF(player); ++i)
+		if (player[i].armor > 28)
+			player[i].armor = 28;
+
+	if (twoPlayerMode && !galagaMode)
+	{
+		for (uint i = 0; i < COUNTOF(player); ++i)
+			JE_dBar3(VGAScreenSeg, 307, 60 + 134 * i, roundf(player[i].armor * 0.8f), 224);
+	}
+	else
+	{
+		JE_dBar3(VGAScreenSeg, 307, 194, player[0].armor, 224);
+		if (player[0].armor < player[0].initial_armor)
+		{
+			const uint y = 193 - (player[0].initial_armor * 2);
+			JE_rectangle(VGAScreenSeg, 307, y, 315, y, 68); /* <MXD> SEGa000 */
+		}
+	}
+}
+
 // ----------------------------------------------------------------------------
 
 Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t damageType )
@@ -68,10 +160,15 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 	// a hit to their armor in certain situations
 	int takenArmorDamage = 0;
 
-	if (!this_player->is_alive)
-		return 0; // shouldn't happen, but just making sure
+	if (!this_player->is_alive || youAreCheating)
+		return 0;
 
 	soundQueue[7] = S_SHIELD_HIT;
+	//if (damageType == DAMAGE_CONTACT)
+	//{
+	//	this_player->shield = 0;
+	//	damageAmount = 1;
+	//}
 
 	if (damageAmount <= this_player->shield)
 	{
@@ -117,11 +214,9 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 		}
 	}
 
-	JE_wipeShieldArmorBars();
-	VGAScreen = VGAScreenSeg; /* side-effect of game_screen */
-	JE_drawShield();
-	JE_drawArmor();
-	VGAScreen = game_screen; /* side-effect of game_screen */
+	player_wipeShieldArmorBars();
+	player_drawShield();
+	player_drawArmor();
 
 	return takenArmorDamage;
 }

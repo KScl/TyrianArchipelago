@@ -244,6 +244,44 @@ JE_word editorLevel;   /*Initial value 800*/
 
 Config opentyrian_config;  // implicitly initialized
 
+const char *get_user_directory(void)
+{
+#if   defined(TARGET_WIN32)
+	mkdir(".\\save");
+	return ".\\save";
+#elif !defined(USE_HOME_DIR)
+	mkdir("./save", 0744);
+	return "./save";
+#else
+	// If requested, use home directory
+	static char user_dir[500] = "";
+
+	if (strlen(user_dir) == 0)
+	{
+		char *xdg_config_home = getenv("XDG_CONFIG_HOME");
+		if (xdg_config_home != NULL)
+		{
+			snprintf(user_dir, sizeof(user_dir), "%s/aptyrian", xdg_config_home);
+		}
+		else
+		{
+			char *home = getenv("HOME");
+			if (home != NULL)
+			{
+				snprintf(user_dir, sizeof(user_dir), "%s/.config/aptyrian", home);
+			}
+			else
+			{
+				strcpy(user_dir, "./save");
+			}
+		}
+	}
+
+	mkdir(user_dir, 0744);
+	return user_dir;
+#endif
+}
+
 bool load_opentyrian_config(void)
 {
 	// defaults
@@ -741,38 +779,6 @@ void JE_decryptSaveTemp(void)
 
 	/* Keep decrypted version plz */
 	memcpy(&saveTemp, &s2, sizeof(s2));
-}
-
-const char *get_user_directory(void)
-{
-	static char user_dir[500] = "";
-	
-	if (strlen(user_dir) == 0)
-	{
-#ifndef TARGET_WIN32
-		char *xdg_config_home = getenv("XDG_CONFIG_HOME");
-		if (xdg_config_home != NULL)
-		{
-			snprintf(user_dir, sizeof(user_dir), "%s/opentyrian", xdg_config_home);
-		}
-		else
-		{
-			char *home = getenv("HOME");
-			if (home != NULL)
-			{
-				snprintf(user_dir, sizeof(user_dir), "%s/.config/opentyrian", home);
-			}
-			else
-			{
-				strcpy(user_dir, ".");
-			}
-		}
-#else
-		strcpy(user_dir, ".");
-#endif
-	}
-	
-	return user_dir;
 }
 
 // for compatibility

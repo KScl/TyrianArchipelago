@@ -20,7 +20,6 @@
 
 #include "config.h"
 #include "file.h"
-#include "lvllib.h"
 #include "lvlmast.h"
 #include "opentyr.h"
 
@@ -43,16 +42,15 @@ JE_byte    initial_episode_num, episodeNum = 0;
 JE_boolean episodeAvail[EPISODE_MAX]; /* [1..episodemax] */
 char       episode_file[13], cube_file[13];
 
-JE_longint episode1DataLoc;
-
 /* Tells the game whether the level currently loaded is a bonus level. */
 JE_boolean bonusLevel;
 
 /* Tells if the game jumped back to Episode 1 */
 JE_boolean jumpBackToEpisode1;
 
-void JE_loadItemDat(void)
+void JE_loadItemDat(FILE *f)
 {
+#if 0
 	FILE *f = NULL;
 	
 	if (episodeNum <= 3)
@@ -65,8 +63,10 @@ void JE_loadItemDat(void)
 	{
 		// episode 4 stores item data in the level file
 		f = dir_fopen_die(data_dir(), levelFile, "rb");
+
 		fseek(f, lvlPos[lvlNum-1], SEEK_SET);
 	}
+#endif
 
 	JE_word itemNum[7]; /* [1..7] */
 	fread_u16_die(itemNum, 7, f);
@@ -213,8 +213,6 @@ void JE_loadItemDat(void)
 		fread_s16_die(&enemyDat[i].value,         1, f);
 		fread_u16_die(&enemyDat[i].eenemydie,     1, f);
 	}
-	
-	fclose(f);
 }
 
 void JE_initEpisode(JE_byte newEpisode)
@@ -224,12 +222,17 @@ void JE_initEpisode(JE_byte newEpisode)
 	
 	episodeNum = newEpisode;
 	
-	snprintf(levelFile,    sizeof(levelFile),    "tyrian%d.lvl",  episodeNum);
+	//snprintf(levelFile,    sizeof(levelFile),    "tyrian%d.lvl",  episodeNum);
 	snprintf(cube_file,    sizeof(cube_file),    "cubetxt%d.dat", episodeNum);
 	snprintf(episode_file, sizeof(episode_file), "levels%d.dat",  episodeNum);
-	
-	JE_analyzeLevel();
-	JE_loadItemDat();
+
+	// Temporary: We need to load items at least once
+	Sint32 filePosition;
+	FILE *f = dir_fopen_die(data_dir(), "tyrian.hdt", "rb");
+	fread_s32_die(&filePosition, 1, f);
+	fseek(f, filePosition, SEEK_SET);
+	JE_loadItemDat(f);
+	fclose(f);
 }
 
 void JE_scanForEpisodes(void)

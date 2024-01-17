@@ -23,7 +23,7 @@
 
 #define SFX_COUNT 29
 #define VOICE_COUNT 9
-#define SOUND_COUNT (SFX_COUNT + VOICE_COUNT)
+#define SOUND_COUNT (SFX_COUNT + VOICE_COUNT*2) // We load both regular and xmas voices simultaneously
 
 enum
 {
@@ -67,6 +67,15 @@ enum
 	V_SPIKES           = 36,  // "Warning: spikes ahead."
 	V_DATA_CUBE        = 37,  // "Data acquired."
 	V_ACCELERATE       = 38,  // "Unexplained speed increase."
+	V_XMASVOICE1       = 39,
+	V_XMASVOICE2       = 40,
+	V_XMASVOICE3       = 41,
+	V_XMASVOICE4       = 42,
+	V_XMASVOICE5       = 43,
+	V_XMASVOICE6       = 44,
+	V_XMASVOICE7       = 45,
+	V_XMASVOICE8       = 46,
+	V_XMASVOICE9       = 47,
 };
 
 extern const char soundTitle[SOUND_COUNT][9];
