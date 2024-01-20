@@ -1,4 +1,5 @@
 /data/
+/data2000/
 
 opentyrian.cfg
 tyrian.cfg
@@ -34,3 +35,6 @@ tyrian.sav
 
 # Doxygen output
 /doc/doxygen/
+
+# Save data
+/save/
