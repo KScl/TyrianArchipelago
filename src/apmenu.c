@@ -94,6 +94,7 @@ bool ap_connectScreen(void)
 					difficultyLevel = initialDifficulty = DIFFICULTY_HARD;
 					player[0].cash = 0;
 					sprites_loadMainShapeTables(false);
+					JE_initEpisode(1); // Temporary: We need to init items before first menu
 
 					return true;
 				}
@@ -108,9 +109,22 @@ bool ap_connectScreen(void)
 				break;
 
 			case APCONN_READY:
+				// Slot wants T2K but we don't have it
+				if (ArchipelagoOpts.tyrian_2000_support_wanted && !tyrian2000detected)
+				{
+					Archipelago_DisconnectWithError("You need to use Tyrian 2000 data for this slot.");
+					break;
+				}
 				// Ready to start the game
 				JE_playSampleNum(S_SELECT);
 				fade_black(15);
+				onePlayerAction = false;
+				twoPlayerMode = false;
+				difficultyLevel = initialDifficulty = ArchipelagoOpts.game_difficulty;
+				player[0].cash = 0;
+				sprites_loadMainShapeTables(ArchipelagoOpts.christmas);
+				JE_initEpisode(1); // Temporary: We need to init items before first menu
+
 				return true;
 		}
 
@@ -361,8 +375,15 @@ bool ap_titleScreen(void)
 
 // ----------------------------------------------------------------------------
 
+static void ap_drawItem(Sint16 graphic, Sint16 x, Sint16 y)
+{
+	blit_sprite2x2(VGAScreen, x, y, shopSpriteSheet, graphic);
+}
+
 Uint16 ap_itemScreen(void)
 {
+	char buf[256];
+
 	if (shopSpriteSheet.data == NULL)
 		JE_loadCompShapes(&shopSpriteSheet, '1');
 
@@ -370,6 +391,7 @@ Uint16 ap_itemScreen(void)
 	play_song(DEFAULT_SONG_BUY);
 
 	VGAScreen = VGAScreenSeg;
+//void JE_barDrawShadow(SDL_Surface *surface, JE_word x, JE_word y, JE_word res, JE_word col, JE_word amt, JE_word xsize, JE_word ysize)
 
 	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 	set_palette(colors, 0, 255);
@@ -377,8 +399,33 @@ Uint16 ap_itemScreen(void)
 
 	Uint8 levelID = 1;
 
+	if (shopSpriteSheet.data == NULL)
+		JE_loadCompShapes(&shopSpriteSheet, '1');
+
 	while (true)
 	{
+		draw_font_hv_shadow(VGAScreen, 234, 10, "Archipelago", FONT_SHAPES, centered, 15, -3, false, 2);
+
+		// We must actually redraw these every frame, because an AP Item can arrive that upgrades them.
+		JE_barDrawShadow(VGAScreen,  42, 152, 1, 14, 1 + 0, 2, 13); // Armor
+		JE_barDrawShadow(VGAScreen, 104, 152, 1, 14, 1 + 0, 2, 13); // Shield
+
+		snprintf(buf, sizeof buf, "%lu", player[0].cash);
+		JE_textShade(VGAScreen, 65, 173, buf, 1, 6, DARKEN);
+
+		// Draw player ship
+		blit_sprite2x2(VGAScreen, 66, 84, spriteSheet9, ships[1].shipgraphic);
+
+		blit_sprite2x2(VGAScreen,  28,  26, shopSpriteSheet, weaponPort[5].itemgraphic);
+		blit_sprite2x2(VGAScreen,  28,  54, shopSpriteSheet, weaponPort[1].itemgraphic);
+		blit_sprite2x2(VGAScreen,  28, 120, shopSpriteSheet, powerSys[6].itemgraphic);
+		blit_sprite2x2(VGAScreen,   3,  84, shopSpriteSheet, options[1].itemgraphic);
+		blit_sprite2x2(VGAScreen, 129,  84, shopSpriteSheet, options[1].itemgraphic);
+
+		JE_textShade(VGAScreen, 28, 26, "Zica Laser", 1, 6, DARKEN);
+		JE_textShade(VGAScreen, 28, 54, "Rear Heavy Missile Launcher", 1, 6, DARKEN);
+		JE_textShade(VGAScreen, 52, 120, "Gravitron Pulse-Wave", 1, 6, DARKEN);
+
 		service_SDL_events(true);
 		push_joysticks_as_keyboard();
 

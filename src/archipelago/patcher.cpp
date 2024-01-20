@@ -233,9 +233,25 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 				assignFromArray(j["linknum"], x);
 			break;
 
-		case 200: // AP_CheckFromEnemy
-		case 210: // AP_CheckFromLastNewEnemy
-			eventRec[x].eventdat = j.value<Sint16>("ap_id", 0);
+		case 200: // AP_CheckFreestanding
+			eventRec[x].eventdat2 = j.value<Sint16>("ex", 0);
+			goto apfreestanding_rejoin;
+
+		case 201: // AP_CheckFromEnemy
+		case 202: // AP_CheckFromLastNewEnemy
+			eventRec[x].eventdat2 = j.value<Sint16>("backup", 0);
+		apfreestanding_rejoin:
+			eventRec[x].eventdat  = j.value<Sint16>("ap_id", 0);
+
+			if (j.contains("movement") && j["movement"].is_string())
+			{
+				std::string evStr = j["movement"].template get<std::string>();
+				if      (evStr == "static")      eventRec[x].eventdat5 = 0;
+				else if (evStr == "falling")     eventRec[x].eventdat5 = 1;
+				else if (evStr == "swaying")     eventRec[x].eventdat5 = 2;
+				else if (evStr == "sky_static")  eventRec[x].eventdat5 = 3;
+				else if (evStr == "sky_falling") eventRec[x].eventdat5 = 4;
+			}
 			break;
 
 		default:

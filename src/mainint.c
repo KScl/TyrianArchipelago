@@ -49,6 +49,8 @@
 #include "vga256d.h"
 #include "video.h"
 
+#include "archipelago/apconnect.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <string.h>
@@ -1063,7 +1065,7 @@ void JE_initPlayerData(void)
 	/* JE: New Game Items/Data */
 
 	player[0].items.ship = 1;                     // USP Talon
-	player[0].items.weapon[FRONT_WEAPON].id = 5;  // Pulse Cannon
+	player[0].items.weapon[FRONT_WEAPON].id = 1;  // Pulse Cannon
 	player[0].items.weapon[REAR_WEAPON].id = 0;   // None
 	player[0].items.shield = 4;                   // Gencore High Energy Shield
 	player[0].items.generator = 2;                // Advanced MR-12
@@ -4910,6 +4912,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 				{
 					enemyAvail[z] = 1;
 					soundQueue[7] = S_POWERUP;
+					Archipelago_SendCheck(evalue-28000);
 					snprintf(tempStr, sizeof(tempStr)-1, "Location %d checked", evalue-28000);
 					JE_drawTextWindow(tempStr);
 					JE_setupExplosion(enemy_screen_x, enemy[z].ey, 0, 53, true, false);

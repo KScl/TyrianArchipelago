@@ -86,8 +86,8 @@ static struct {
 	/* 07 */ {      1,    3,    0,    2, "ASTEROID?"},
 	/* 08 */ {      1,    6,    0,   23, "MINEMAZE "},
 	/* 09 */ {      1,   14,    0,   26, "WINDY    "},
-	/* 10 */ {      1,   12,    0,   33, "SAVARA II"},
 	/* 11 */ {      1,    8,    0,   33, "SAVARA   "},
+	/* 10 */ {      1,   12,    0,   33, "SAVARA II"},
 	/* 12 */ {      1,   10,    0,   18, "BONUS    "},
 	/* 13 */ {      1,    7,    0,   17, "MINES    "},
 	/* 14 */ {      1,    5,    0,   14, "DELIANI  "},
@@ -168,7 +168,6 @@ void level_loadFromLevelID(Uint16 levelID)
 
 	if (levelData[levelID].episodeNum <= 3) // Stored "globally" in tyrian.hdt
 	{
-		printf("Initting globally\n");
 		FILE *global_f = dir_fopen_die(data_dir(), "tyrian.hdt", "rb");
 		fread_s32_die(&filePosition, 1, global_f);
 		fseek(global_f, filePosition, SEEK_SET);
@@ -178,7 +177,6 @@ void level_loadFromLevelID(Uint16 levelID)
 	}
 	else // Stored as the last "level" in the level file
 	{
-		printf("Initting locally\n");
 		fseek(f, (totalLevelCount - 1) * sizeof(Sint32), SEEK_CUR);
 		fread_s32_die(&filePosition, 1, f);
 		fseek(f, filePosition, SEEK_SET);
@@ -206,8 +204,7 @@ void level_loadFromLevelID(Uint16 levelID)
 	fread_die(&char_shapeFile, 1, 1, f);
 
 	Patcher_ReadyPatch(tyrian2000detected ? "Tyrian 2000" : "Tyrian 2.1",
-	                   levelData[levelID].episodeNum,
-	                   levelData[levelID].levelNum);
+	                   levelData[levelID].episodeNum, baseLevelNum);
 
 	JE_loadMapData(f);
 	level_loadEvents(f);

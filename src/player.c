@@ -144,7 +144,7 @@ void player_drawArmor(void)
 	else
 	{
 		JE_dBar3(VGAScreenSeg, 307, 194, player[0].armor, 224);
-		if (player[0].armor < player[0].initial_armor)
+		if (!ArchipelagoOpts.excess_armor && player[0].armor < player[0].initial_armor)
 		{
 			const uint y = 193 - (player[0].initial_armor * 2);
 			JE_rectangle(VGAScreenSeg, 307, y, 315, y, 68); /* <MXD> SEGa000 */
@@ -164,11 +164,11 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 		return 0;
 
 	soundQueue[7] = S_SHIELD_HIT;
-	//if (damageType == DAMAGE_CONTACT)
-	//{
-	//	this_player->shield = 0;
-	//	damageAmount = 1;
-	//}
+	if (ArchipelagoOpts.hard_contact && damageType == DAMAGE_CONTACT)
+	{
+		this_player->shield = 0;
+		damageAmount = 1;
+	}
 
 	if (damageAmount <= this_player->shield)
 	{

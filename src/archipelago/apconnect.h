@@ -8,18 +8,17 @@ typedef enum {
 	APCONN_READY
 } archipelago_connectionstat_t;
 
-
 typedef struct {
-	// We don't need to know shop_mode, price_scale, money_pool_scale, or base_weapon_costs.
+	bool tyrian_2000_support_wanted;
+	int goal;
+	bool shops_exist;
 
-	// We only need to know if specials are item pickups or not.
-	bool specials_are_items;
-
+	int game_difficulty;
+	bool hard_contact;
+	bool excess_armor;
 	bool show_twiddle_inputs;
-	Uint8 difficulty;
-	bool contact_bypasses_shields;
-	bool allow_excess_armor;
 
+	bool archipelago_radar;
 	bool christmas;
 
 	bool deathlink;
@@ -33,9 +32,17 @@ void Archipelago_SetDefaultConnectionPassword(const char *connectionPassword);
 void Archipelago_Connect(void);
 void Archipelago_Poll(void);
 void Archipelago_Disconnect(void);
+void Archipelago_DisconnectWithError(const char *errorMsg);
 
 archipelago_connectionstat_t Archipelago_ConnectionStatus(void);
 const char* Archipelago_GetConnectionError(void);
+
+// ----------------------------------------------------------------------------
+// Checks
+// ----------------------------------------------------------------------------
+
+void Archipelago_SendCheck(int checkID);
+bool Archipelago_WasChecked(int checkID);
 
 // ----------------------------------------------------------------------------
 // DeathLink

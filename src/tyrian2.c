@@ -57,10 +57,17 @@
 
 // TODO put this somewhere nicer
 void tyrian_enemyDieItem(JE_byte enemyId);
+void tyrian_setupAPItemSpawn(Sint16 item, Sint16 apItemNum);
 #define ARCHIPELAGO_ITEM     900
 #define ARCHIPELAGO_ITEM_MAX 931
-Uint16 ap_location_id[32]; // Track location ID of AP item when it spawns
-Uint8  ap_level_item; // current level item spawned
+static const Sint16 apBehaviorList[] = {512, 513, 628, 512, 513};
+static const Sint16 apEnemySection[] = { 25,  25,   0,   0,   0};
+
+struct {
+	Uint16 location;
+	Sint16 behavesAs;
+} apCheckData[32]; // Data for each check that's been spawned
+Uint8 apCheckCount; // Current number of checks spawned in level
 
 inline static void blit_enemy(SDL_Surface *surface, unsigned int i, signed int x_offset, signed int y_offset, signed int sprite_offset);
 
@@ -3052,7 +3059,10 @@ bool JE_loadMap(void)
 
 	Uint16 levelID = ap_itemScreen();
 	if (levelID == 0)
+	{
+		Archipelago_Disconnect();
 		return 0;
+	}
 	printf("levelID = %d\n", levelID);
 	level_loadFromLevelID(levelID);
 
@@ -4455,7 +4465,7 @@ void JE_eventSystem(void)
 		break;
 
 	case 116: // HardContactCallout
-		if (true)
+		if (!ArchipelagoOpts.hard_contact)
 			break;
 		// fall through
 	case 16: // VoicedCallout
@@ -4849,7 +4859,8 @@ void JE_eventSystem(void)
 				if (enemy[temp].enemydie != 533
 					&& enemy[temp].enemydie != 534
 					&& enemy[temp].enemydie != 512
-					&& enemy[temp].enemydie != 513)
+					&& enemy[temp].enemydie != 513
+					&& (enemy[temp].enemydie < ARCHIPELAGO_ITEM || enemy[temp].enemydie > ARCHIPELAGO_ITEM_MAX))
 				enemy[temp].enemydie = eventRec[eventLoc-1].eventdat;
 			}
 		}
@@ -5166,30 +5177,97 @@ void JE_eventSystem(void)
 		break;
 
 	// AP
-	case 200: // AP_CheckFromEnemy
-		if (ARCHIPELAGO_ITEM + ap_level_item > ARCHIPELAGO_ITEM_MAX)
+	case 200: // AP_CheckFreestanding
+		if (Archipelago_WasChecked(eventRec[eventLoc-1].eventdat))
+			break; // Location already checked, don't spawn
+
+		temp = JE_newEnemy(
+			apEnemySection[eventRec[eventLoc-1].eventdat5],
+			apBehaviorList[eventRec[eventLoc-1].eventdat5],
+			0);
+
+		if (temp != 0)
+		{
+			switch (apEnemySection[eventRec[eventLoc-1].eventdat5])
+			{
+				default:
+				case 0:
+					enemy[temp-1].ex = eventRec[eventLoc-1].eventdat2 - (mapX - 1) * 24;
+					enemy[temp-1].ey -= backMove2;
+					break;
+				case 25:
+				case 75:
+					enemy[temp-1].ex = eventRec[eventLoc-1].eventdat2 - (mapX - 1) * 24 - 12;
+					enemy[temp-1].ey -= backMove;
+					break;
+				case 50:
+					enemy[temp-1].ex = eventRec[eventLoc-1].eventdat2 - mapX3 * 24 - 24 * 2 + 6;
+					enemy[temp-1].ey -= backMove3;
+					break;
+			}
+			enemy[temp-1].ey = -28;
+
+			apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
+			apCheckData[apCheckCount].behavesAs = 0; // Already handled
+			tyrian_setupAPItemSpawn(temp, apCheckCount++);
+		}
+		break;
+
+	case 201: // AP_CheckFromEnemy
+		if (Archipelago_WasChecked(eventRec[eventLoc-1].eventdat))
+		{
+			// Check for backup item spawn
+			if (!eventRec[eventLoc-1].eventdat2)
+				break;
+
+			// We have a backup item, so spawn it instead
+			for (temp = 0; temp < 100; temp++)
+			{
+				if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
+					enemy[temp].enemydie = eventRec[eventLoc-1].eventdat2;
+			}
+			break;
+		}
+
+		if (ARCHIPELAGO_ITEM + apCheckCount > ARCHIPELAGO_ITEM_MAX)
 			break; // ???
 
 		for (temp = 0; temp < 100; temp++)
 		{
 			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
-				enemy[temp].enemydie = ARCHIPELAGO_ITEM + ap_level_item;
+				enemy[temp].enemydie = ARCHIPELAGO_ITEM + apCheckCount;
 		}
-		ap_location_id[ap_level_item++] = eventRec[eventLoc-1].eventdat;
+		apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
+		apCheckData[apCheckCount].behavesAs = apBehaviorList[eventRec[eventLoc-1].eventdat5];
+		++apCheckCount;
 		break;
 
-	case 210: // AP_CheckFromLastNewEnemy
+	case 202: // AP_CheckFromLastNewEnemy
 		// Used to insert a check on an enemy without a linknum.
 		// Must be appended after the NewEnemy event, with the same time.
-		if (ARCHIPELAGO_ITEM + ap_level_item > ARCHIPELAGO_ITEM_MAX)
+		if (ARCHIPELAGO_ITEM + apCheckCount > ARCHIPELAGO_ITEM_MAX)
 			break; // ???
 
 		if (b > 0)
 		{
-			enemy[b-1].enemydie = ARCHIPELAGO_ITEM + ap_level_item;
-			ap_location_id[ap_level_item++] = eventRec[eventLoc-1].eventdat;
+			if (Archipelago_WasChecked(eventRec[eventLoc-1].eventdat))
+			{
+				// Check for backup item spawn
+				if (!eventRec[eventLoc-1].eventdat2)
+					break;
+
+				// We have a backup item, so spawn it instead
+				enemy[b-1].enemydie = eventRec[eventLoc-1].eventdat2;
+				break;
+			}
+
+			enemy[b-1].enemydie = ARCHIPELAGO_ITEM + apCheckCount;
+			apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
+			apCheckData[apCheckCount].behavesAs = apBehaviorList[eventRec[eventLoc-1].eventdat5];
+			++apCheckCount;
 		}
 		break;
+
 
 	default:
 		fprintf(stderr, "warning: ignoring unknown event %d\n", eventRec[eventLoc-1].eventtype);
@@ -5332,6 +5410,27 @@ void draw_boss_bar(void)
 
 // ----------------------------------------------------------------------------
 
+void tyrian_setupAPItemSpawn(Sint16 item, Sint16 apItemNum)
+{
+	// This is unlikely to happen, but _can_ because of other players on the same seed, collects, etc.
+	// If we've spawned an AP Item and as we're setting it up, we notice it's already been collected,
+	// we just immediately despawn it.
+	if (Archipelago_WasChecked(apCheckData[apItemNum].location))
+	{
+		enemyAvail[item-1] = 1;
+		return;
+	}
+
+	enemy[item-1].scoreitem = true;
+	enemy[item-1].evalue = 28000 + apCheckData[apItemNum].location;
+
+	int animStart = true ? 7 : 3;
+	enemy[item-1].sprite2s = &archipelagoSpriteSheet;
+	enemy[item-1].ani = 6;
+	enemy[item-1].egr[0] = enemy[item-1].egr[1] = enemy[item-1].egr[2] = animStart + 2;
+	enemy[item-1].egr[3] = enemy[item-1].egr[4] = enemy[item-1].egr[5] = animStart;
+}
+
 void tyrian_enemyDieItem(JE_byte enemyId)
 {
 	Sint16 item;
@@ -5346,19 +5445,10 @@ void tyrian_enemyDieItem(JE_byte enemyId)
 
 	if (newItemId >= ARCHIPELAGO_ITEM && newItemId <= ARCHIPELAGO_ITEM_MAX)
 	{
-		item = JE_newEnemy(enemy_offset, 513, 0);
+		item = JE_newEnemy(enemy_offset, apCheckData[newItemId - ARCHIPELAGO_ITEM].behavesAs, 0);
 		if (item != 0)
 		{
-			int apItemNum = newItemId - ARCHIPELAGO_ITEM;
-			enemy[item-1].scoreitem = true;
-			enemy[item-1].evalue = 28000 + ap_location_id[apItemNum];
-
-			int animStart = true ? 7 : 3;
-			enemy[item-1].sprite2s = &archipelagoSpriteSheet;
-			enemy[item-1].ani = 6;
-			enemy[item-1].egr[0] = enemy[item-1].egr[1] = enemy[item-1].egr[2] = animStart + 2;
-			enemy[item-1].egr[3] = enemy[item-1].egr[4] = enemy[item-1].egr[5] = animStart;
-
+			tyrian_setupAPItemSpawn(item, newItemId - ARCHIPELAGO_ITEM);
 			enemy[item-1].ex = enemy[enemyId].ex;
 			enemy[item-1].ey = enemy[enemyId].ey;
 		}
