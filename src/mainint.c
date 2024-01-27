@@ -1844,7 +1844,11 @@ JE_boolean JE_inGameSetup(void)
 			{
 				JE_playSampleNum(S_CURSOR);
 
+#ifdef UNBOUNDED_SPEED
+				gameSpeed = gameSpeed > 1 ? gameSpeed - 1 : 6;
+#else
 				gameSpeed = gameSpeed > 1 ? gameSpeed - 1 : 5;
+#endif
 				JE_initProcessorType();
 				JE_setNewGameSpeed();
 				break;
@@ -1884,7 +1888,11 @@ JE_boolean JE_inGameSetup(void)
 			{
 				JE_playSampleNum(S_CURSOR);
 
+#ifdef UNBOUNDED_SPEED
+				gameSpeed = gameSpeed < 6 ? gameSpeed + 1 : 1;
+#else
 				gameSpeed = gameSpeed < 5 ? gameSpeed + 1 : 1;
+#endif
 				JE_initProcessorType();
 				JE_setNewGameSpeed();
 				break;
@@ -4908,13 +4916,15 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 
 					}
 				}
-				else if (evalue > 28000) // AP
+				else if (evalue >= 28000) // AP
 				{
 					enemyAvail[z] = 1;
-					soundQueue[7] = S_POWERUP;
-					Archipelago_SendCheck(evalue-28000);
+					soundQueue[3] = V_DATA_CUBE;
+					//soundQueue[7] = S_POWERUP;
 					snprintf(tempStr, sizeof(tempStr)-1, "Location %d checked", evalue-28000);
 					JE_drawTextWindow(tempStr);
+
+					Archipelago_SendCheck(evalue-28000);
 					JE_setupExplosion(enemy_screen_x, enemy[z].ey, 0, 53, true, false);
 				}
 				else if (evalue > 20000)

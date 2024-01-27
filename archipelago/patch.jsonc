@@ -7,9 +7,10 @@
 	 *	       { <JE_EventRecType> }, <- Replaces the 101st event
 	 *	       { <JE_EventRecType> }, <- Replaces the 102nd event
 	 *     ],
-	 *     "150:PREPEND": { <JE_EventRecType> }, <- Inserted before the 150th event (1-indexed)
-	 *     "150:APPEND": { <JE_EventRecType> }, <- Inserted after the 150th event (1-indexed)
+	 *     "150:PREPEND": { <JE_EventRecType> }, <- Inserted before the 150th event
+	 *     "150:APPEND": { <JE_EventRecType> }, <- Inserted after the 150th event
 	 * }
+	 * All events are 1-indexed. If viewing them line by line, use the line number.
 	 * You don't need to increment every later index after an insert. That's done automatically.
 	 * You DO, however, need to keep track of times yourself. Tyrian is expecting everything to come in with pre-sorted times.
 	 */
@@ -18,14 +19,14 @@
 	// Episode 1 - Escape
 	// -------------------------------------------------------------------------------------------
 
-	"2.1-Episode1 TYRIAN Hard": {
+	"Episode1 TYRIAN Hard": {
 		// Addition of Archipelago Items
-		"18:REPLACE":   { "time": 160, "event":201, /* AP_CheckFromEnemy */ "ap_id":1, "linknum": 1, "movement":"falling" }, 
-		"154:REPLACE":  { "time": 650, "event":201, /* AP_CheckFromEnemy */ "ap_id":2, "linknum":16, "movement":"falling" },
-		"432:REPLACE":  { "time":1927, "event":201, /* AP_CheckFromEnemy */ "ap_id":3, "linknum":62, "movement":"falling" },
-		"528:REPLACE":  { "time":2432, "event":201, /* AP_CheckFromEnemy */ "ap_id":5, "linknum": 5, "movement":"falling", "backup":397 },
-		"746:REPLACE":  { "time":2992, "event":201, /* AP_CheckFromEnemy */ "ap_id":6, "linknum":14, "movement":"falling" },
-		"1032:REPLACE": { "time":4516, "event":201, /* AP_CheckFromEnemy */ "ap_id":7, "linknum":11, "movement":"falling", "backup":397 },
+		"18:REPLACE":   { "time": 160, "event":201, /* AP_CheckFromEnemy */ "ap_id":0, "linknum": 1, "movement":"falling" }, 
+		"154:REPLACE":  { "time": 650, "event":201, /* AP_CheckFromEnemy */ "ap_id":1, "linknum":16, "movement":"falling" },
+		"432:REPLACE":  { "time":1927, "event":201, /* AP_CheckFromEnemy */ "ap_id":2, "linknum":62, "movement":"falling" },
+		"528:REPLACE":  { "time":2432, "event":201, /* AP_CheckFromEnemy */ "ap_id":4, "linknum": 5, "movement":"falling", "backup":397 },
+		"746:REPLACE":  { "time":2992, "event":201, /* AP_CheckFromEnemy */ "ap_id":5, "linknum":14, "movement":"falling" },
+		"1032:REPLACE": { "time":4516, "event":201, /* AP_CheckFromEnemy */ "ap_id":6, "linknum":11, "movement":"falling", "backup":397 },
 
 		// Replace the special rock with a regular one, and put an AP Check inside it
 		"413:REPLACE": [
@@ -36,34 +37,49 @@
 			{ "time":1868, "event":6, /* NewEnemy_Ground */ "linknum":30, "type":517, "ex":282, "ey":-28 },
 			{ "time":1868, "event":6, /* NewEnemy_Ground */ "linknum":30, "type":516, "ex":258, "ey":-28 }
 		],
-		"419:PREPEND": { "time":1868, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":4, "movement":"static" }
+		"419:PREPEND": { "time":1868, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":3, "movement":"static", "align_x":6, "align_y":7 }
 	},
 
-	"2.1-Episode1 HOLES": {
+	"Episode1 BUBBLES": {
+		// Addition of Archipelago Items
+		"11:REPLACE":  { "time":  50, "event":201, /* AP_CheckFromEnemy */ "ap_id": 10, "linknum":125, "movement":"static", "backup":476 },
+		"108:REPLACE": { "time": 710, "event":201, /* AP_CheckFromEnemy */ "ap_id": 11, "linknum": 45, "movement":"static", "backup":474 },
+		"153:REPLACE": { "time":1902, "event":201, /* AP_CheckFromEnemy */ "ap_id": 12, "linknum": 62, "movement":"static" },
+		"169:REPLACE": { "time":2702, "event":201, /* AP_CheckFromEnemy */ "ap_id": 13, "linknum": 62, "movement":"static" },
+		"180:REPLACE": { "time":3502, "event":201, /* AP_CheckFromEnemy */ "ap_id": 14, "linknum": 62, "movement":"static" },
+		"223:REPLACE": { "time":5820, "event":201, /* AP_CheckFromEnemy */ "ap_id": 15, "linknum": 42, "movement":"static", "backup":474 },
+		"230:REPLACE": { "time":9902, "event": 33, /* EnemyFromOtherEnemy */ "linknum": 62, "type":399 } // It's a secret to everyone
+	},
+
+	"Episode1 HOLES ver2.1": {
 		// Addition of Archipelago Items
 		"13:REPLACE": [
 			// So, the first enemy in the second formation contains a data cube.
 			// However, due to an error in the level's design, it links with the last enemy of the first formation.
 			// This results in both ships being destroyed when you attack either, and makes them both drop data cubes.
-			// ... However, because most people are used to the check coming from the last ship in the first formation,
+			// ... However, because most people are used to the cube coming from the last ship in the first formation,
 			// the check remains there.
 
 			{ "time": 90, "event":7, /* NewEnemy_Top */ "linknum":20, "type":12, "ex":270, "eyc":1, "fixedmovey":-3 },
-			{ "time": 90, "event":201, /* AP_CheckFromEnemy */ "ap_id": 21, "linknum":20, "movement":"falling" },
+			{ "time": 90, "event":201, /* AP_CheckFromEnemy */ "ap_id": 20, "linknum":20, "movement":"falling" },
 			{ "time":100, "event":7, /* NewEnemy_Top */ "linknum": 1, "type":12, "ex": 40, "eyc":1, "fixedmovey":-3 },
 			{ "time":100, "event":33, /* EnemyFromOtherEnemy */ "linknum": 1, "type": 393 },
 			{ "time":100, "event":0 /* NoOp */ }
 		],
+		"55:REPLACE":   { "time": 250, "event":201, /* AP_CheckFromEnemy */ "ap_id": 21, "linknum":16, "movement":"falling" },
+		"449:REPLACE":  { "time":1757, "event":201, /* AP_CheckFromEnemy */ "ap_id": 22, "linknum":62, "movement":"falling" },
+		"735:REPLACE":  { "time":2750, "event":201, /* AP_CheckFromEnemy */ "ap_id": 23, "linknum": 6, "movement":"falling" },
+		"1056:REPLACE": { "time":4070, "event":201, /* AP_CheckFromEnemy */ "ap_id": 24, "linknum": 9, "movement":"falling" },
 
 		// Additional callouts for contact_bypasses_shields
 		"757:APPEND": { "time":2850, "event":116, /* HardContactCallout */ "output":"Enemy approaching from behind." },
 
-		// Bug fix: Point the Accel event for the above change to the right linknum
+		// Bug fix: Point the Accel event for the formation change above to the right linknum
 		"28:REPLACE": { "time":150, "event":20, /* EnemyGlobal_Accel */ "linknum":20, "excc":-12, "eycc":-6 },
 
 		// For whatever reason, Holes in 2.1 has a ton of random events with types that are either unknown,
 		// or would later go on to be used in Tyrian 2000.
-		// T2000 changed all of these to level enemy frequency changes, but that results in so much enemy spam.
+		// Tyrian 2000 changed all of these to level enemy frequency changes, but that results in so much enemy spam.
 		// Instead, we no-op all of the errant events. (We can't just leave them alone, because we DO support T2K events.)
 		"502:REPLACE": [
 			{ "time":1900, "event":0 /* NoOp */ },
@@ -91,31 +107,135 @@
 		"684:REPLACE": { "time":2400, "event":0 /* NoOp */ }
 	},
 
+	"Episode1 SOH JIN": {
+		// Addition of Archipelago Items
+		"36:REPLACE":  { "time": 300, "event":201, /* AP_CheckFromEnemy */ "ap_id": 30, "linknum": 6, "movement":"static" },
+		"70:REPLACE":  { "time": 580, "event":201, /* AP_CheckFromEnemy */ "ap_id": 31, "linknum": 9, "movement":"static" },
+		"130:REPLACE": { "time":1252, "event":201, /* AP_CheckFromEnemy */ "ap_id": 32, "linknum": 4, "movement":"static" },
+		"188:REPLACE": { "time":2176, "event":201, /* AP_CheckFromEnemy */ "ap_id": 33, "linknum": 1, "movement":"static" },
+		"216:REPLACE": { "time":2428, "event":201, /* AP_CheckFromEnemy */ "ap_id": 34, "linknum": 3, "movement":"static" },
+		"250:REPLACE": { "time":2792, "event":201, /* AP_CheckFromEnemy */ "ap_id": 35, "linknum": 6, "movement":"static" },
+		"282:REPLACE": { "time":3156, "event":201, /* AP_CheckFromEnemy */ "ap_id": 36, "linknum": 8, "movement":"static" }
+	},
+
+	"Episode1 ASTEROID1": {
+		// Addition of Archipelago Items
+		"44:REPLACE":  { "time": 500, "event":201, /* AP_CheckFromEnemy */ "ap_id": 40, "linknum":40, "movement":"sky_falling", "backup":535 },
+		"151:REPLACE": { "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id": 41, "linknum": 1, "movement":"static" },
+		"234:REPLACE": { "time":4000, "event":201, /* AP_CheckFromEnemy */ "ap_id": 42, "linknum": 1, "movement":"static" },
+		"317:REPLACE": { "time":5000, "event":201, /* AP_CheckFromEnemy */ "ap_id": 43, "linknum": 1, "movement":"static" },
+		"371:REPLACE": [
+			{ "time":6068, "event": 12, /* NewEnemy_Ground4x4Custom */ "linknum":99, "type":573, "ex":174, "bg":4 },
+			{ "time":6068, "event":201, /* AP_CheckFromEnemy */ "ap_id": 44, "linknum":99, "movement":"static" }
+		],
+		"394:APPEND": { "time":7160, "event":201, /* AP_CheckFromEnemy */ "ap_id":45, "linknum":2, "movement":"falling", "backup":392 }
+	},
+
+	"Episode1 ASTEROID2": {
+		// Addition of Archipelago Items
+		"31:REPLACE":  { "time": 400, "event":201, /* AP_CheckFromEnemy */ "ap_id":50, "linknum": 1, "movement":"static" },
+		"40:REPLACE":  { "time": 412, "event":201, /* AP_CheckFromEnemy */ "ap_id":51, "linknum": 5, "movement":"static" },
+		"179:REPLACE": { "time":1364, "event":201, /* AP_CheckFromEnemy */ "ap_id":53, "linknum": 6, "movement":"static" },
+		"198:REPLACE": { "time":1422, "event":201, /* AP_CheckFromEnemy */ "ap_id":52, "linknum": 5, "movement":"static" },
+		"458:REPLACE": { "time":4528, "event":201, /* AP_CheckFromEnemy */ "ap_id":54, "linknum": 3, "movement":"static" },
+		"624:APPEND":  { "time":6277, "event":201, /* AP_CheckFromEnemy */ "ap_id":55, "linknum":11, "movement":"static" },
+		"709:REPLACE": [
+			{ "time":6824, "event": 12, /* NewEnemy_Ground4x4Custom */ "linknum":16, "type":573, "ex":186, "bg":4 },
+			{ "time":6824, "event":201, /* AP_CheckFromEnemy */ "ap_id": 56, "linknum":16, "movement":"static" }
+		],
+		"725:REPLACE": { "time":7482, "event":201, /* AP_CheckFromEnemy */ "ap_id":57, "linknum":45, "movement":"swaying", "is_boss":true },
+
+		// We actually move one of the secret events a little bit back so there's slightly more time to get the relevant check,
+		// so we should no-op the old powerup drop event, too
+		"633:REPLACE": { "time":6290, "event":0 /* NoOp */ }
+	},
+
+	"Episode1 MINEMAZE": {
+
+	},
+
+	"Episode1 ASTEROID?": {
+		// Addition of Archipelago Items
+		"41:REPLACE": [
+			{ "time":160, "event":201, /* AP_CheckFromEnemy */ "linknum": 2, "ap_id": 70, "movement":"falling"},
+			{ "time":160, "event":201, /* AP_CheckFromEnemy */ "linknum": 4, "ap_id": 71, "movement":"falling"}
+		],
+		"88:REPLACE":  { "time":1056, "event":201, /* AP_CheckFromEnemy */ "linknum": 3, "ap_id": 72, "movement":"falling", "backup":394 },
+		"101:REPLACE": { "time":1169, "event":201, /* AP_CheckFromEnemy */ "linknum": 1, "ap_id": 73, "movement":"static", "backup":397 },
+		"103:REPLACE": { "time":1200, "event":201, /* AP_CheckFromEnemy */ "linknum":19, "ap_id": 74, "movement":"sky_falling"},
+		"110:REPLACE": { "time":1310, "event":201, /* AP_CheckFromEnemy */ "linknum":18, "ap_id": 75, "movement":"sky_falling"},
+
+		// Move the event that removes the item from the second ship slightly later, to match the timing of the first
+		// 30 ticks (0.9 seconds) -> 50 ticks (1.4 seconds) : It's otherwise unfairly difficult
+		"115:REPLACE": { "time":1340, "event": 0  /* NoOp */ },
+		"119:APPEND":  { "time":1360, "event":33, /* EnemyFromOtherEnemy */ "linknum":18, "type":394}
+	},
+
+	"Episode1 WINDY": {
+		// Addition of Archipelago Item(s...?)
+		"273:APPEND": { "time":850, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":80, "movement":"static" }
+	},
+
+	"Episode1 SAVARA Easy": {
+
+	},
+
+	"Episode1 SAVARA Hard": {
+
+	},
+
+	"Episode1 BONUS": {
+
+	},
+
+	"Episode1 MINES": {
+		// Addition of Archipelago Items
+		"43:REPLACE":  { "time": 832, "event":201, /* AP_CheckFromEnemy */ "ap_id":120, "linknum":50, "movement":"falling" },
+		"59:REPLACE":  { "time":1056, "event":201, /* AP_CheckFromEnemy */ "ap_id":121, "linknum": 3, "movement":"falling" },
+		"169:REPLACE": { "time":2260, "event":201, /* AP_CheckFromEnemy */ "ap_id":122, "linknum":50, "movement":"falling" },
+		"458:REPLACE": [
+			{ "time":4800, "event":200, /* AP_CheckFreestanding */ "ap_id":123, "movement":"falling", "ex":150 /*, "backup":397 */ },
+			{ "time":4820, "event":200, /* AP_CheckFreestanding */ "ap_id":124, "movement":"falling", "ex":150 /*, "backup":397 */ }
+		]
+	},
+
+	"Episode1 DELIANI": {
+
+	},
+
+	"Episode1 SAVARA V": {
+
+	},
+
+	"Episode1 ASSASSIN": {
+
+	},
+
 	// -------------------------------------------------------------------------------------------
 	// Episode 2 - Treachery
 	// -------------------------------------------------------------------------------------------
 
-	"2.1-Episode2 BOTANY B": {
+	"Episode2 BOTANY B": {
 		// Addition of Archipelago Items
-		"10:APPEND":  { "time": 133, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":261, "movement":"falling" },
-		"93:APPEND":  { "time":1225, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":262, "movement":"falling" },
-		"205:APPEND": { "time":1981, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":263, "movement":"falling" },
-		"255:APPEND": { "time":2681, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":264, "movement":"falling" },
-		"272:APPEND": { "time":3044, "event":201, /* AP_CheckFromEnemy */ "linknum": 11, "ap_id":265, "movement":"falling" }
+		"10:APPEND":  { "time": 133, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":260, "movement":"falling" },
+		"93:APPEND":  { "time":1225, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":261, "movement":"falling" },
+		"205:APPEND": { "time":1981, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":262, "movement":"falling" },
+		"255:APPEND": { "time":2681, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":263, "movement":"falling" },
+		"272:APPEND": { "time":3044, "event":201, /* AP_CheckFromEnemy */ "linknum": 11, "ap_id":264, "movement":"falling" }
 	},
 
 	// -------------------------------------------------------------------------------------------
 	// Episode 3 - Mission: Suicide
 	// -------------------------------------------------------------------------------------------
 
-	"2.1-Episode3 MACES": {
+	"Episode3 MACES": {
 		// Addition of Archipelago Items
-		"61:REPLACE":  { "time": 272, "event":200, /* AP_CheckFreestanding */ "ap_id":351, "movement":"sky_falling", "ex": 42 },
-		"169:REPLACE": { "time": 664, "event":200, /* AP_CheckFreestanding */ "ap_id":352, "movement":"sky_falling", "ex":258 },
+		"61:REPLACE":  { "time": 272, "event":200, /* AP_CheckFreestanding */ "ap_id":350, "movement":"sky_falling", "ex": 42 },
+		"169:REPLACE": { "time": 664, "event":200, /* AP_CheckFreestanding */ "ap_id":351, "movement":"sky_falling", "ex":258 },
 		"465:REPLACE": [
-			{ "time":1840, "event":200, /* AP_CheckFreestanding */ "ap_id":353, "movement":"sky_falling", "ex": 42 },
-			{ "time":1896, "event":200, /* AP_CheckFreestanding */ "ap_id":354, "movement":"sky_falling", "ex": 66 },
-			{ "time":1924, "event":200, /* AP_CheckFreestanding */ "ap_id":355, "movement":"sky_falling", "ex":186 }
+			{ "time":1840, "event":200, /* AP_CheckFreestanding */ "ap_id":352, "movement":"sky_falling", "ex": 42 },
+			{ "time":1896, "event":200, /* AP_CheckFreestanding */ "ap_id":353, "movement":"sky_falling", "ex": 66 },
+			{ "time":1924, "event":200, /* AP_CheckFreestanding */ "ap_id":354, "movement":"sky_falling", "ex":186 }
 		]
 	},
 
@@ -123,15 +243,15 @@
 	// Episode 4 - An End To Fate
 	// -------------------------------------------------------------------------------------------
 
-	"2.1-Episode4 SURFACE": {
+	"Episode4 SURFACE": {
 
 	},
 
-	"2.1-Episode4 LAVA RUN": {
+	"Episode4 LAVA RUN": {
 
 	},
 
-	"2.1-Episode4 ?TUNNEL?": {
+	"Episode4 ?TUNNEL?": {
 		// Replace a raw "Danger!" sample with the proper "Danger!" callout event.
 		"716:REPLACE": { "time":4300, "event":16, /* VoicedCallout */ "output":"** Danger! **" },
 
@@ -156,17 +276,31 @@
 "patchList": {
 	"Tyrian 2.1": {
 		"Episode 1": {
-			"11": "2.1-Episode1 HOLES",
-			"15": "2.1-Episode1 TYRIAN Hard"
+			"1":  "Episode1 ASTEROID1",
+			"2":  "Episode1 ASTEROID2",
+			"3":  "Episode1 ASTEROID?",
+			"4":  "Episode1 BUBBLES",
+			"5":  "Episode1 DELIANI",
+			"6":  "Episode1 MINEMAZE",
+			"7":  "Episode1 MINES",
+			"8":  "Episode1 SAVARA Easy",
+			"9":  "Episode1 TYRIAN Easy",
+			"10": "Episode1 BONUS",
+			"11": "Episode1 HOLES ver2.1",
+			"12": "Episode1 SAVARA Hard",
+			"13": "Episode1 SOH JIN",
+			"14": "Episode1 WINDY",
+			"15": "Episode1 TYRIAN Hard",
+			"16": "Episode1 ASSASSIN"
 		},
 		"Episode 2": {
-			"11": "2.1-Episode2 BOTANY B"
+			"11": "Episode2 BOTANY B"
 		},
 		"Episode 3": {
-			"12": "2.1-Episode3 MACES"
+			"12": "Episode3 MACES"
 		},
 		"Episode 4": {
-			"11": "2.1-Episode4 ?TUNNEL?"
+			"11": "Episode4 ?TUNNEL?"
 		}
 	},
 	"Tyrian 2000": {

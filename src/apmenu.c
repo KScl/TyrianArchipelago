@@ -18,6 +18,150 @@
 
 #include "archipelago/apconnect.h"
 
+typedef struct { 
+	int count;
+	struct { Sint16 x, y, w, h; } items[32];
+} mousetargets_t;
+
+static int apmenu_mouseInTarget(const mousetargets_t *targets, int x, int y)
+{
+	if (!has_mouse || mouseInactive)
+		return -1;
+
+	for (int i = 0; i < targets->count; ++i)
+	{
+		const Sint16 xmin = targets->items[i].x;
+		const Sint16 xmax = xmin + targets->items[i].w;
+		const Sint16 ymin = targets->items[i].y;
+		const Sint16 ymax = ymin + targets->items[i].h;
+
+		if (x >= xmin && x <= xmax && y >= ymin && y <= ymax)
+			return i;
+	}
+	return -1;
+}
+
+bool apmenu_quitRequest(void)
+{
+	bool quit_selected = true;
+	bool done = false;
+
+	int mouseTarget = -1, lastMouseTarget = -1;
+	const mousetargets_t popupTargets = {2, {
+		{ 57, 124, 84, 24}, // OK
+		{152, 124, 84, 24} // CANCEL
+	}};
+
+	Uint8 col = 8;
+	int colC = 1;
+	int updateColTime = 3;
+
+	JE_clearKeyboard();
+
+	JE_barShade(VGAScreen, 65, 55, 255, 155);
+	blit_sprite(VGAScreen, 50, 50, OPTION_SHAPES, 35);  // message box
+	JE_textShade(VGAScreen, 70, 60, "Are you sure you want to quit?", 0, 5, FULL_SHADE);
+	JE_helpBox(VGAScreen, 70, 90, "You will be disconnected from the Archipelago server.", 30);
+	draw_font_hv_shadow(VGAScreen,  54+45, 128, "OK",     FONT_SHAPES, centered, 15, -5, false, 2);
+	draw_font_hv_shadow(VGAScreen, 149+45, 128, "CANCEL", FONT_SHAPES, centered, 15, -5, false, 2);
+
+	JE_mouseStart();
+	JE_showVGA();
+	JE_mouseReplace();
+	wait_noinput(true, true, true);
+
+	while (true)
+	{
+		push_joysticks_as_keyboard();
+		service_SDL_events(true);
+		lastMouseTarget = mouseTarget;
+		mouseTarget = apmenu_mouseInTarget(&popupTargets, mouse_x, mouse_y);
+
+		if (newmouse && lastmouse_but == SDL_BUTTON_LEFT)
+		{
+			mouseTarget = apmenu_mouseInTarget(&popupTargets, lastmouse_x, lastmouse_y);
+			if (mouseTarget >= 0)
+			{
+				quit_selected = (mouseTarget == 0);
+				done = true;
+			}
+		}
+		else if (mouseTarget != lastMouseTarget && mouseTarget >= 0)
+		{
+			quit_selected = (mouseTarget == 0);
+			JE_playSampleNum(S_CURSOR);
+
+			// Reset animation
+			col = 8;
+			colC = 1;
+			updateColTime = 3;
+		}
+
+		if (newkey)
+		{
+			switch (lastkey_scan)
+			{
+				case SDL_SCANCODE_ESCAPE:
+					JE_playSampleNum(S_SPRING);
+					return false;
+
+				case SDL_SCANCODE_LEFT:
+				case SDL_SCANCODE_RIGHT:
+				case SDL_SCANCODE_TAB:
+					quit_selected = !quit_selected;
+					JE_playSampleNum(S_CURSOR);
+
+					// Reset animation
+					col = 8;
+					colC = 1;
+					updateColTime = 3;
+					break;
+
+				case SDL_SCANCODE_RETURN:
+				case SDL_SCANCODE_SPACE:
+					done = true;
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		if (done)
+			break;
+
+		// We run at full speed now, but this pulsating effect doesn't; only run it every third frame
+		if (!(--updateColTime))
+		{
+			col += colC;
+			if (col > 8 || col < 2)
+				colC = -colC;
+			updateColTime = 3;
+		}
+
+		draw_font_hv(VGAScreen,  54+45, 128, "OK",     FONT_SHAPES, centered, 15,  quit_selected ? col - 12 : -5);
+		draw_font_hv(VGAScreen, 149+45, 128, "CANCEL", FONT_SHAPES, centered, 15, !quit_selected ? col - 12 : -5);
+
+		JE_mouseStart();
+		JE_showVGA();
+		JE_mouseReplace();
+
+		SDL_Delay(16);
+	}
+
+	if (quit_selected)
+	{
+		JE_playSampleNum(S_SELECT);
+		return true;
+	}
+
+	JE_playSampleNum(S_CLICK);
+	return false;
+}
+
+
+// ----------------------------------------------------------------------------
+
 bool ap_connectScreen(void)
 {
 	JE_loadPic(VGAScreen2, 2, false);
@@ -86,14 +230,22 @@ bool ap_connectScreen(void)
 				}
 				else if (newkey && lastkey_scan == SDL_SCANCODE_F3)
 				{
+					FILE *f = fopen("local.aptyrian", "r");
+					if (!f)
+						break;
+					bool result = Archipelago_StartLocalGame(f);
+					fclose(f);
+					if (!result)
+						break;
+
 					// Force
 					JE_playSampleNum(S_SELECT);
 					fade_black(15);
 					onePlayerAction = false;
 					twoPlayerMode = false;
-					difficultyLevel = initialDifficulty = DIFFICULTY_HARD;
+					difficultyLevel = initialDifficulty = ArchipelagoOpts.game_difficulty;
 					player[0].cash = 0;
-					sprites_loadMainShapeTables(false);
+					sprites_loadMainShapeTables(ArchipelagoOpts.christmas);
 					JE_initEpisode(1); // Temporary: We need to init items before first menu
 
 					return true;
@@ -109,12 +261,6 @@ bool ap_connectScreen(void)
 				break;
 
 			case APCONN_READY:
-				// Slot wants T2K but we don't have it
-				if (ArchipelagoOpts.tyrian_2000_support_wanted && !tyrian2000detected)
-				{
-					Archipelago_DisconnectWithError("You need to use Tyrian 2000 data for this slot.");
-					break;
-				}
 				// Ready to start the game
 				JE_playSampleNum(S_SELECT);
 				fade_black(15);
@@ -134,106 +280,118 @@ bool ap_connectScreen(void)
 	}
 }
 
+// ----------------------------------------------------------------------------
+
+const char *APMenuTexts[] =
+{
+	"Start Game",
+	"Options",
+	"Jukebox",
+	"Quit"
+};
+enum MenuItemIndex
+{
+	MENU_ITEM_START_GAME = 0,
+	MENU_ITEM_OPTIONS,
+	MENU_ITEM_JUKEBOX,
+	MENU_ITEM_QUIT,
+	COUNT_MENU_ITEMS
+};
+
+static void titleScreenBackground(bool moveTyrianLogoUp)
+{
+	const int xCenter = VGAScreen->w / 2;
+	const int yMenuItems = 140;
+	const int hMenuItem = 13;
+
+	play_song(SONG_TITLE);
+
+	JE_loadPic(VGAScreen, 4, false);
+	draw_font_hv_shadow(VGAScreen, 2, 192, opentyrian_version, small_font, left_aligned, 15, 0, false, 1);
+
+	if (moveTyrianLogoUp)
+	{
+		memcpy(VGAScreen2->pixels, VGAScreen->pixels, VGAScreen2->pitch * VGAScreen2->h);
+
+		blit_sprite(VGAScreenSeg, 11, 62, PLANET_SHAPES, 146); // tyrian logo
+		fade_palette(colors, 10, 0, 255 - 16);
+
+		for (int y = 60; y >= 4; y -= 2)
+		{
+			setDelay(2);
+
+			memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
+			blit_sprite(VGAScreenSeg, 11, y, PLANET_SHAPES, 146); // tyrian logo
+			JE_showVGA();
+
+			service_wait_delay();
+		}
+	}
+	else
+	{
+		blit_sprite(VGAScreenSeg, 11, 4, PLANET_SHAPES, 146); // tyrian logo
+		fade_palette(colors, 10, 0, 255 - 16);
+	}
+
+	// Draw menu items.
+	for (size_t i = 0; i < COUNT_MENU_ITEMS; ++i)
+	{
+		const int y = yMenuItems + hMenuItem * i;
+
+		draw_font_hv(VGAScreen, xCenter - 1, y - 1, APMenuTexts[i], normal_font, centered, 15, -10);
+		draw_font_hv(VGAScreen, xCenter + 1, y + 1, APMenuTexts[i], normal_font, centered, 15, -10);
+		draw_font_hv(VGAScreen, xCenter + 1, y - 1, APMenuTexts[i], normal_font, centered, 15, -10);
+		draw_font_hv(VGAScreen, xCenter - 1, y + 1, APMenuTexts[i], normal_font, centered, 15, -10);
+		draw_font_hv(VGAScreen, xCenter,     y,     APMenuTexts[i], normal_font, centered, 15, -3);
+	}
+
+	memcpy(VGAScreen2->pixels, VGAScreen->pixels, VGAScreen2->pitch * VGAScreen2->h);
+
+	mouseCursor = MOUSE_POINTER_NORMAL;
+
+	// Fade in menu items.
+	fade_palette(colors, 20, 255 - 16 + 1, 255);
+}
+
 bool ap_titleScreen(void)
 {
-	const char *APMenuTexts[] =
-	{
-		"Start Game",
-		"Options",
-		"Jukebox",
-		"Quit"
-	};
-	enum MenuItemIndex
-	{
-		MENU_ITEM_START_GAME = 0,
-		MENU_ITEM_OPTIONS,
-		MENU_ITEM_JUKEBOX,
-		MENU_ITEM_QUIT,
-		COUNT_MENU_ITEMS
-	};
-
 	if (shopSpriteSheet.data == NULL)
 		JE_loadCompShapes(&shopSpriteSheet, '1');  // need mouse pointer sprites
 
-	bool restart = true;
+	bool first_load = true; // On startup or after quit game
+	bool reload = true;
 
 	size_t selectedIndex = MENU_ITEM_START_GAME;
 
 	const int xCenter = VGAScreen->w / 2;
 	const int yMenuItems = 140;
 	const int hMenuItem = 13;
-	int wMenuItem[COUNT_MENU_ITEMS] = { 0 };
 
-	for (; ; )
+	mousetargets_t menuTargets = {COUNT_MENU_ITEMS};
+
+	for (int i = 0; i < COUNT_MENU_ITEMS; ++i)
 	{
-		if (restart)
+		int wMenuItem = JE_textWidth(APMenuTexts[i], normal_font);
+
+		menuTargets.items[i].x = xCenter - wMenuItem / 2;
+		menuTargets.items[i].y = yMenuItems + hMenuItem * i;
+		menuTargets.items[i].w = wMenuItem;
+		menuTargets.items[i].h = hMenuItem;
+	}
+
+	while (true)
+	{
+		if (reload)
 		{
-			play_song(SONG_TITLE);
-
-			JE_loadPic(VGAScreen, 4, false);
-
-			draw_font_hv_shadow(VGAScreen, 2, 192, opentyrian_version, small_font, left_aligned, 15, 0, false, 1);
-
-			if (moveTyrianLogoUp)
-			{
-				memcpy(VGAScreen2->pixels, VGAScreen->pixels, VGAScreen2->pitch * VGAScreen2->h);
-
-				blit_sprite(VGAScreenSeg, 11, 62, PLANET_SHAPES, 146); // tyrian logo
-
-				fade_palette(colors, 10, 0, 255 - 16);
-
-				for (int y = 60; y >= 4; y -= 2)
-				{
-					setDelay(2);
-
-					memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
-
-					blit_sprite(VGAScreenSeg, 11, y, PLANET_SHAPES, 146); // tyrian logo
-
-					JE_showVGA();
-
-					service_wait_delay();
-				}
-
-				moveTyrianLogoUp = false;
-			}
-			else
-			{
-				blit_sprite(VGAScreenSeg, 11, 4, PLANET_SHAPES, 146); // tyrian logo
-
-				fade_palette(colors, 10, 0, 255 - 16);
-			}
-
-			// Draw menu items.
-			for (size_t i = 0; i < COUNT_MENU_ITEMS; ++i)
-			{
-				const char *const text = APMenuTexts[i];
-
-				wMenuItem[i] = JE_textWidth(text, normal_font);
-				const int x = xCenter - wMenuItem[i] / 2;
-				const int y = yMenuItems + hMenuItem * i;
-
-				draw_font_hv(VGAScreen, x - 1, y - 1, APMenuTexts[i], normal_font, left_aligned, 15, -10);
-				draw_font_hv(VGAScreen, x + 1, y + 1, APMenuTexts[i], normal_font, left_aligned, 15, -10);
-				draw_font_hv(VGAScreen, x + 1, y - 1, APMenuTexts[i], normal_font, left_aligned, 15, -10);
-				draw_font_hv(VGAScreen, x - 1, y + 1, APMenuTexts[i], normal_font, left_aligned, 15, -10);
-				draw_font_hv(VGAScreen, x,     y,     APMenuTexts[i], normal_font, left_aligned, 15, -3);
-			}
-
-			memcpy(VGAScreen2->pixels, VGAScreen->pixels, VGAScreen2->pitch * VGAScreen2->h);
-
-			mouseCursor = MOUSE_POINTER_NORMAL;
-
-			// Fade in menu items.
-			fade_palette(colors, 20, 255 - 16 + 1, 255);
-
-			restart = false;
+			titleScreenBackground(first_load);
+			reload = first_load = false;
 		}
 
 		memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 
 		// Highlight selected menu item.
-		draw_font_hv(VGAScreen, VGAScreen->w / 2, yMenuItems + hMenuItem * selectedIndex, APMenuTexts[selectedIndex], normal_font, centered, 15, -1);
+		draw_font_hv(VGAScreen, xCenter, yMenuItems + hMenuItem * selectedIndex, APMenuTexts[selectedIndex],
+			normal_font, centered, 15, -1);
 
 		service_SDL_events(true);
 
@@ -258,82 +416,47 @@ bool ap_titleScreen(void)
 		// Handle interaction.
 
 		bool action = false;
-		bool done = false;
 
 		if (mouseMoved || newmouse)
 		{
-			// Find menu item that was hovered or clicked.
-			for (size_t i = 0; i < COUNT_MENU_ITEMS; ++i)
+			int target = apmenu_mouseInTarget(&menuTargets, mouse_x, mouse_y);
+			if (target != -1 && selectedIndex != (unsigned)target)
 			{
-				const int xMenuItem = xCenter - wMenuItem[i] / 2;
-				if (mouse_x >= xMenuItem && mouse_x < xMenuItem + wMenuItem[i])
-				{
-					const int yMenuItem = yMenuItems + hMenuItem * i;
-					if (mouse_y >= yMenuItem && mouse_y < yMenuItem + hMenuItem)
-					{
-						if (selectedIndex != i)
-						{
-							JE_playSampleNum(S_CURSOR);
+				JE_playSampleNum(S_CURSOR);
+				selectedIndex = (unsigned)target;
+			}
 
-							selectedIndex = i;
-						}
-
-						if (newmouse && lastmouse_but == SDL_BUTTON_LEFT &&
-						    lastmouse_x >= xMenuItem && lastmouse_x < xMenuItem + wMenuItem[i] &&
-						    lastmouse_y >= yMenuItem && lastmouse_y < yMenuItem + hMenuItem)
-						{
-							action = true;
-						}
-
-						break;
-					}
-				}
+			if (newmouse && lastmouse_but == SDL_BUTTON_LEFT
+				&& target == apmenu_mouseInTarget(&menuTargets, lastmouse_x, lastmouse_y))
+			{
+				action = true;
 			}
 		}
 
-		if (newmouse)
-		{
-			if (lastmouse_but == SDL_BUTTON_RIGHT)
-			{
-				JE_playSampleNum(S_SPRING);
-
-				done = true;
-			}
-		}
-		else if (newkey)
+		if (newkey)
 		{
 			switch (lastkey_scan)
 			{
 			case SDL_SCANCODE_UP:
-			{
 				JE_playSampleNum(S_CURSOR);
-
-				selectedIndex = selectedIndex == 0
-					? COUNT_MENU_ITEMS - 1
-					: selectedIndex - 1;
+				selectedIndex = selectedIndex == 0 ? COUNT_MENU_ITEMS - 1 : selectedIndex - 1;
 				break;
-			}
+
 			case SDL_SCANCODE_DOWN:
-			{
 				JE_playSampleNum(S_CURSOR);
-
-				selectedIndex = selectedIndex == COUNT_MENU_ITEMS - 1
-					? 0
-					: selectedIndex + 1;
+				selectedIndex = selectedIndex == COUNT_MENU_ITEMS - 1 ? 0 : selectedIndex + 1;
 				break;
-			}
+
 			case SDL_SCANCODE_SPACE:
 			case SDL_SCANCODE_RETURN:
-			{
 				action = true;
 				break;
-			}
-			case SDL_SCANCODE_ESCAPE:
-			{
-				JE_playSampleNum(S_SPRING);
 
-				done = true;
-			}
+			case SDL_SCANCODE_ESCAPE:
+				JE_playSampleNum(S_SPRING);
+				fade_black(15);
+				return false;
+
 			default:
 				break;
 			}
@@ -349,26 +472,19 @@ bool ap_titleScreen(void)
 				case MENU_ITEM_START_GAME:
 					if (ap_connectScreen())
 						return true;
-					restart = true;
+					reload = true;
 					break;
 				case MENU_ITEM_OPTIONS:
 					setupMenu();
-					restart = true;
+					reload = true;
 					break;
 				case MENU_ITEM_JUKEBOX:
 					jukebox();
-					restart = true;
+					reload = true;
 					break;
 				case MENU_ITEM_QUIT:
 					return false;
 			}
-		}
-
-		if (done)
-		{
-			fade_black(15);
-
-			return false;
 		}
 	}
 }
@@ -464,8 +580,11 @@ Uint16 ap_itemScreen(void)
 		if (newkey && lastkey_scan == SDL_SCANCODE_ESCAPE)
 		{
 			JE_playSampleNum(S_SPRING);
-			fade_black(15);
-			return 0;
+			if (apmenu_quitRequest())
+			{
+				fade_black(15);
+				return 0;				
+			}
 		}
 
 		JE_showVGA();

@@ -60,4 +60,6 @@ extern bool tyrian2000detected;
 
 void setupMenu(void);
 
+#define UNBOUNDED_SPEED
+
 #endif /* OPENTYR_H */

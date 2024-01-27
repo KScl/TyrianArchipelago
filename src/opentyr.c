@@ -60,7 +60,7 @@
 
 bool tyrian2000detected = false;
 
-const char *opentyrian_str = "OpenTyrian";
+const char *opentyrian_str = "APTyrian";
 const char *opentyrian_version = OPENTYRIAN_VERSION;
 
 static size_t getDisplayPickerItemsCount(void)
@@ -864,8 +864,12 @@ int main(int argc, char *argv[])
 		}
 
 		JE_main();
+
+		// Broke out of main, disconnect AP
+		Archipelago_Disconnect();
 	}
 
+	// Shouldn't be possible, but just to make sure
 	Archipelago_Disconnect();
 
 	JE_tyrianHalt(0);

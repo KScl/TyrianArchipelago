@@ -93,8 +93,10 @@ AP_CPPFLAGS = -Isrc/submodule/apclientpp/           \
               -Isrc/submodule/valijson/include      \
               -Isrc/submodule/websocketpp           \
               -Isrc/submodule/asio/include          \
-              -Wno-deprecated-declarations          \
-              -DASIO_STANDALONE
+              -DASIO_STANDALONE                     \
+              $(CPPFLAGS)                           \
+              $(CFLAGS)                             \
+              -Wno-deprecated-declarations
 
 ###
 

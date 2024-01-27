@@ -62,7 +62,7 @@ char topicName[6][21];                                                   /* [1..
 char mainMenuHelp[HELPTEXT_MAINMENUHELP_COUNT][66];                      /* [1..34] of string [65] */
 char inGameText[6][21];                                                  /* [1..6] of string [20] */
 char detailLevel[6][13];                                                 /* [1..6] of string [12] */
-char gameSpeedText[5][13];                                               /* [1..5] of string [12] */
+char gameSpeedText[6][13];                                               /* [1..6] of string [12] */
 char inputDevices[3][13];                                                /* [1..3] of string [12] */
 char networkText[HELPTEXT_NETWORKTEXT_COUNT][HELPTEXT_NETWORKTEXT_SIZE]; /* [1..4] of string [20] */
 char difficultyNameB[11][21];                                            /* [0..9] of string [20] */
@@ -280,6 +280,7 @@ void JE_loadHelpText(void)
 	skip_pascal_string(f);
 	for (unsigned int i = 0; i < COUNTOF(gameSpeedText); ++i)
 		read_encrypted_pascal_string(gameSpeedText[i], sizeof(gameSpeedText[i]), f);
+	strncpy(gameSpeedText[5], "Unbounded", sizeof(gameSpeedText[5]));
 	skip_pascal_string(f);
 
 	// episode names

@@ -66,6 +66,8 @@ static const Sint16 apEnemySection[] = { 25,  25,   0,   0,   0};
 struct {
 	Uint16 location;
 	Sint16 behavesAs;
+	Sint16 alignX;
+	Sint16 alignY;
 } apCheckData[32]; // Data for each check that's been spawned
 Uint8 apCheckCount; // Current number of checks spawned in level
 
@@ -178,6 +180,9 @@ static void tyrian_blitAPRadar(SDL_Surface *surface, unsigned int i)
 	const unsigned int baseIndex = enemy[i].egr[enemy[i].enemycycle - 1];
 	const int filter = 117;
 
+	if (baseIndex == 999 || !baseIndex)
+		return;
+
 	if (enemy[i].size == 1) // 2x2 enemy
 	{
 		if (enemy[i].ey > -13)
@@ -244,6 +249,7 @@ void JE_drawEnemy(int enemyOffset) // actually does a whole lot more than just d
 {
 	player[0].x -= 25;
 
+	// ------------------------------------------------------------------------
 	// Draw AP Radar behind all enemies, to better highlight larger enemies
 	for (int i = enemyOffset - 25; i < enemyOffset; i++)
 	{
@@ -262,6 +268,8 @@ void JE_drawEnemy(int enemyOffset) // actually does a whole lot more than just d
 			}
 		}
 	}
+
+	// ------------------------------------------------------------------------
 
 	// Regular enemy routines
 	for (int i = enemyOffset - 25; i < enemyOffset; i++)
@@ -1108,6 +1116,12 @@ start_level_first:
 		JE_loadItemDat();
 	}
 #endif
+
+	// ------------------------------------------------------------------------
+	// Archipelago Data Init
+	apCheckCount = 0;
+	memset(apCheckData, 0, sizeof(apCheckData));
+	// ------------------------------------------------------------------------
 
 	memset(enemyAvail,       1, sizeof(enemyAvail));
 	for (uint i = 0; i < COUNTOF(enemyShotAvail); i++)
@@ -4289,6 +4303,7 @@ bool JE_searchFor/*enemy*/(JE_byte PLType, JE_byte* out_index)
 
 void JE_eventSystem(void)
 {
+#ifdef PRINT_EVENTS
 	printf("%d : %d %d (%d %d %d %d %d %d)\n",
 		eventLoc,
 		eventRec[eventLoc-1].eventtime,
@@ -4299,6 +4314,7 @@ void JE_eventSystem(void)
 		eventRec[eventLoc-1].eventdat5,
 		eventRec[eventLoc-1].eventdat6,
 		eventRec[eventLoc-1].eventdat4);
+#endif
 	switch (eventRec[eventLoc-1].eventtype)
 	{
 	case 0:
@@ -5178,17 +5194,20 @@ void JE_eventSystem(void)
 
 	// AP
 	case 200: // AP_CheckFreestanding
+		if (ARCHIPELAGO_ITEM + apCheckCount > ARCHIPELAGO_ITEM_MAX)
+			break; // ???
+
 		if (Archipelago_WasChecked(eventRec[eventLoc-1].eventdat))
 			break; // Location already checked, don't spawn
 
 		temp = JE_newEnemy(
-			apEnemySection[eventRec[eventLoc-1].eventdat5],
-			apBehaviorList[eventRec[eventLoc-1].eventdat5],
+			apEnemySection[eventRec[eventLoc-1].eventdat3],
+			apBehaviorList[eventRec[eventLoc-1].eventdat3],
 			0);
 
 		if (temp != 0)
 		{
-			switch (apEnemySection[eventRec[eventLoc-1].eventdat5])
+			switch (apEnemySection[eventRec[eventLoc-1].eventdat3])
 			{
 				default:
 				case 0:
@@ -5229,17 +5248,45 @@ void JE_eventSystem(void)
 			break;
 		}
 
-		if (ARCHIPELAGO_ITEM + apCheckCount > ARCHIPELAGO_ITEM_MAX)
-			break; // ???
-
-		for (temp = 0; temp < 100; temp++)
+		if (ARCHIPELAGO_ITEM + apCheckCount <= ARCHIPELAGO_ITEM_MAX)
 		{
-			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
-				enemy[temp].enemydie = ARCHIPELAGO_ITEM + apCheckCount;
+			// Get the average position of every enemy with the given linknum
+			Sint16 xmin = INT16_MAX, ymin = INT16_MAX;
+			Sint16 xmax = INT16_MIN, ymax = INT16_MIN;
+			Uint8 assigned = 0xFF;
+
+			for (temp = 0; temp < 100; temp++)
+			{
+				if (enemyAvail[temp])
+					continue;
+
+				if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
+				{
+					if (assigned == 0xFF)
+					{
+						enemy[temp].enemydie = ARCHIPELAGO_ITEM + apCheckCount;
+						assigned = temp;
+					}
+
+					printf("enemy%3d: %d, %d\n", temp, enemy[temp].ex, enemy[temp].ey);
+					xmin = MIN(xmin, enemy[temp].ex);
+					xmax = MAX(xmax, enemy[temp].ex);
+					ymin = MIN(ymin, enemy[temp].ey);
+					ymax = MAX(ymax, enemy[temp].ey);
+				}
+			}
+			if (assigned == 0xFF) // If still unset, no enemies had that linknum, so ignore
+				break;
+
+			apCheckData[apCheckCount].alignX = ((xmax + xmin) / 2) - enemy[assigned].ex;
+			apCheckData[apCheckCount].alignY = ((ymax + ymin) / 2) - enemy[assigned].ey;
+			printf("x: %d, %d\n", xmin, xmax);
+			printf("y: %d, %d\n", ymin, ymax);
+			printf("align: %d, %d\n", apCheckData[apCheckCount].alignX, apCheckData[apCheckCount].alignY);
+			apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
+			apCheckData[apCheckCount].behavesAs = apBehaviorList[eventRec[eventLoc-1].eventdat3];
+			++apCheckCount;
 		}
-		apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
-		apCheckData[apCheckCount].behavesAs = apBehaviorList[eventRec[eventLoc-1].eventdat5];
-		++apCheckCount;
 		break;
 
 	case 202: // AP_CheckFromLastNewEnemy
@@ -5263,7 +5310,9 @@ void JE_eventSystem(void)
 
 			enemy[b-1].enemydie = ARCHIPELAGO_ITEM + apCheckCount;
 			apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
-			apCheckData[apCheckCount].behavesAs = apBehaviorList[eventRec[eventLoc-1].eventdat5];
+			apCheckData[apCheckCount].behavesAs = apBehaviorList[eventRec[eventLoc-1].eventdat3];
+			apCheckData[apCheckCount].alignX = eventRec[eventLoc-1].eventdat5;
+			apCheckData[apCheckCount].alignY = eventRec[eventLoc-1].eventdat6;
 			++apCheckCount;
 		}
 		break;
@@ -5424,7 +5473,7 @@ void tyrian_setupAPItemSpawn(Sint16 item, Sint16 apItemNum)
 	enemy[item-1].scoreitem = true;
 	enemy[item-1].evalue = 28000 + apCheckData[apItemNum].location;
 
-	int animStart = true ? 7 : 3;
+	int animStart = Archipelago_CheckHasProgression(apCheckData[apItemNum].location) ? 7 : 3;
 	enemy[item-1].sprite2s = &archipelagoSpriteSheet;
 	enemy[item-1].ani = 6;
 	enemy[item-1].egr[0] = enemy[item-1].egr[1] = enemy[item-1].egr[2] = animStart + 2;
@@ -5445,12 +5494,13 @@ void tyrian_enemyDieItem(JE_byte enemyId)
 
 	if (newItemId >= ARCHIPELAGO_ITEM && newItemId <= ARCHIPELAGO_ITEM_MAX)
 	{
-		item = JE_newEnemy(enemy_offset, apCheckData[newItemId - ARCHIPELAGO_ITEM].behavesAs, 0);
+		int item_num = newItemId - ARCHIPELAGO_ITEM;
+		item = JE_newEnemy(enemy_offset, apCheckData[item_num].behavesAs, 0);
 		if (item != 0)
 		{
 			tyrian_setupAPItemSpawn(item, newItemId - ARCHIPELAGO_ITEM);
-			enemy[item-1].ex = enemy[enemyId].ex;
-			enemy[item-1].ey = enemy[enemyId].ey;
+			enemy[item-1].ex = enemy[enemyId].ex + apCheckData[item_num].alignX;
+			enemy[item-1].ey = enemy[enemyId].ey + apCheckData[item_num].alignY;
 		}
 		return;
 	}

@@ -56,7 +56,7 @@ extern char topicName[6][21];
 extern char mainMenuHelp[HELPTEXT_MAINMENUHELP_COUNT][66];
 extern char inGameText[6][21];
 extern char detailLevel[6][13];
-extern char gameSpeedText[5][13];
+extern char gameSpeedText[6][13];
 extern char inputDevices[3][13];
 extern char networkText[HELPTEXT_NETWORKTEXT_COUNT][HELPTEXT_NETWORKTEXT_SIZE];
 extern char difficultyNameB[11][21];

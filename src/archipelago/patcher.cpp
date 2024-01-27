@@ -3,6 +3,7 @@
 #include <iostream>
 #include <list>
 
+#define JSON_USE_IMPLICIT_CONVERSIONS 0
 #include <nlohmann/json.hpp>
 
 extern "C" {
@@ -61,20 +62,20 @@ static void assignFromArray(json &j, Uint16 x)
 		return;
 	try
 	{
-		eventRec[x].eventdat  = j.at(0);
-		eventRec[x].eventdat2 = j.at(1);
-		eventRec[x].eventdat3 = j.at(2);
-		eventRec[x].eventdat4 = j.at(3);
-		eventRec[x].eventdat5 = j.at(4);
-		eventRec[x].eventdat6 = j.at(5);
+		eventRec[x].eventdat  = j.at(0).template get<Sint16>();
+		eventRec[x].eventdat2 = j.at(1).template get<Sint16>();
+		eventRec[x].eventdat3 = j.at(2).template get<Sint8>();
+		eventRec[x].eventdat4 = j.at(3).template get<Uint8>();
+		eventRec[x].eventdat5 = j.at(4).template get<Sint8>();
+		eventRec[x].eventdat6 = j.at(5).template get<Sint8>();
 	}
-	catch (json::out_of_range) {} // expected, do nothing more
+	catch (json::out_of_range&) {} // expected, do nothing more
 }
 
 static void jsonEventToGameEvent(json &j, Uint16 x)
 {
-	eventRec[x].eventtime = j.at("time");
-	eventRec[x].eventtype = j.at("event");
+	eventRec[x].eventtime = j.at("time").template get<Uint16>();
+	eventRec[x].eventtype = j.at("event").template get<Uint8>();
 
 	// By default, since so many events use it
 	eventRec[x].eventdat4 = j.value<Uint8>("linknum", 0);
@@ -194,6 +195,12 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat3 = j.value<Sint8> ("filter", 0);
 			break;
 
+		case  31: // EnemyGlobal_FireOverride
+			if (j.contains("shot_freq"))
+				assignFromArray(j["shot_freq"], x);
+			eventRec[x].eventdat5 = j.value<Sint8> ("launch_freq", 0);
+			break;
+
 		case  33: // EnemyFromOtherEnemy
 		case  45: // Arcade_EnemyFromOtherEnemy
 		case  85: // T2K_TimeBattle_EnemyFromOtherEnemy
@@ -238,7 +245,7 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			goto apfreestanding_rejoin;
 
 		case 201: // AP_CheckFromEnemy
-		case 202: // AP_CheckFromLastNewEnemy
+		aplast_rejoin:
 			eventRec[x].eventdat2 = j.value<Sint16>("backup", 0);
 		apfreestanding_rejoin:
 			eventRec[x].eventdat  = j.value<Sint16>("ap_id", 0);
@@ -246,14 +253,18 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			if (j.contains("movement") && j["movement"].is_string())
 			{
 				std::string evStr = j["movement"].template get<std::string>();
-				if      (evStr == "static")      eventRec[x].eventdat5 = 0;
-				else if (evStr == "falling")     eventRec[x].eventdat5 = 1;
-				else if (evStr == "swaying")     eventRec[x].eventdat5 = 2;
-				else if (evStr == "sky_static")  eventRec[x].eventdat5 = 3;
-				else if (evStr == "sky_falling") eventRec[x].eventdat5 = 4;
+				if      (evStr == "static")      eventRec[x].eventdat3 = 0;
+				else if (evStr == "falling")     eventRec[x].eventdat3 = 1;
+				else if (evStr == "swaying")     eventRec[x].eventdat3 = 2;
+				else if (evStr == "sky_static")  eventRec[x].eventdat3 = 3;
+				else if (evStr == "sky_falling") eventRec[x].eventdat3 = 4;
 			}
 			break;
 
+		case 202: // AP_CheckFromLastNewEnemy
+			eventRec[x].eventdat5 = j.value<Sint8>("align_x", 0);
+			eventRec[x].eventdat6 = j.value<Sint8>("align_y", 0);
+			goto aplast_rejoin;
 		default:
 			break;
 	}

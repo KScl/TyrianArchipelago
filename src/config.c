@@ -608,6 +608,11 @@ void JE_initProcessorType(void)
 		case 5: /* Pentium Hyper */
 			fastPlay = 1;
 			break;
+#ifdef UNBOUNDED_SPEED
+		case 6: /* Unbounded */
+			fastPlay = 6;
+			break;
+#endif
 	}
 
 }
@@ -615,6 +620,14 @@ void JE_initProcessorType(void)
 void JE_setNewGameSpeed(void)
 {
 	pentiumMode = false;
+
+#ifndef UNBOUNDED_SPEED
+	if (gameSpeed == 6)
+	{
+		gameSpeed = 4;
+		fastPlay = 0;
+	}
+#endif
 
 	Uint16 speed;
 	switch (fastPlay)
@@ -653,6 +666,12 @@ void JE_setNewGameSpeed(void)
 		frameCountMax = 2;
 		pentiumMode = true;
 		break;
+#ifdef UNBOUNDED_SPEED
+	case 6:  // Unbounded
+		speed = 0x4300;
+		frameCountMax = 0;
+		break;
+#endif
 	}
 
 	setDelaySpeed(speed);
