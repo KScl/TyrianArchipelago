@@ -58,7 +58,10 @@ void level_loadFromLevelID(int levelID);
 #define LEVELDATA_COUNT 65
 
 typedef struct {
-	Uint16 episodeNum;
+	Uint16 episodeNum; // Which episode?
+	Uint16 episodeLevelID; // Which level in said episode?
+	// level_getByEpisode(data[idx].episodeNum, data[idx].episodeLevelID) == idx
+
 	Uint16 levelNum;
 	Uint16 levelNumHard;
 	Uint8 planetNum;
@@ -77,7 +80,6 @@ typedef struct {
 extern int currentLevelID;
 
 extern leveldata_t allLevelData[LEVELDATA_COUNT];
-extern bool allCompletions[LEVELDATA_COUNT];
 
 int level_getByEpisode(Uint8 episode, Uint8 levelID);
 

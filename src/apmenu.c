@@ -814,7 +814,7 @@ static void levelselect_attemptSelect(void)
 		return;
 
 	bool hasLevel = APItems.Levels[navEpisode - 1] & (1 << navLevel);
-	bool hasClear = allCompletions[globalID];
+	bool hasClear = APStats.Clears[navEpisode - 1] & (1 << navLevel);
 
 	if (!hasLevel || (currentSubMenu == SUBMENU_SELECT_SHOP && !hasClear))
 	{
@@ -927,7 +927,7 @@ static void submenuLevelSelect_Run(void)
 		if (currentSubMenu == SUBMENU_SELECT_SHOP)
 		{
 			canShow = canSelect;
-			canSelect = allCompletions[levelID];
+			canSelect = APStats.Clears[navEpisode - 1] & (1<<(navScroll + i));
 		}
 
 		if (canSelect)
@@ -936,6 +936,18 @@ static void submenuLevelSelect_Run(void)
 			defaultMenuOptionDraw(allLevelData[levelID].prettyName, 38 + i*16, true, highlighted);
 		else
 			defaultMenuOptionDraw("???", 38 + i*16, true, highlighted);
+
+		// Show check list next to level name
+		const int region = currentSubMenu == SUBMENU_SELECT_SHOP
+			? allLevelData[levelID].shopStart : allLevelData[levelID].locStart;
+
+		const int checksAvail = Archipelago_GetRegionCheckCount(region);
+		const Uint32 checksObtained = Archipelago_GetRegionWasCheckedList(region);
+		for (int j = checksAvail; j > 0; --j)
+		{
+			blit_sprite2(VGAScreen, 245 + j*5, 37 + i*16, archipelagoSpriteSheet,
+				(checksObtained & (1 << (j-1))) ? 38 : 37);
+		}
 	}
 	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Back", SMALL_FONT_SHAPES,
 		right_aligned, 15, -3 + (navBack ? 2 : 0), false, 2);
@@ -1274,6 +1286,7 @@ int ap_itemScreen(void)
 	itemSubMenus[SUBMENU_MAIN].initFunc();
 
 	service_SDL_events(true); // Flush events before starting
+	Archipelago_Save();
 
 	while (true)
 	{

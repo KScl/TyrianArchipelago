@@ -2711,7 +2711,9 @@ void JE_endLevelAni(void)
 	JE_outTextGlow(VGAScreenSeg, 20, 20, tempStr);
 
 	// Mark completion
-	allCompletions[currentLevelID] = true;
+	const Uint16 episode = allLevelData[currentLevelID].episodeNum - 1;
+	const Uint16 levelID = allLevelData[currentLevelID].episodeLevelID;
+	APStats.Clears[episode] |= (1 << levelID);
 
 	// Scout for new shop checks that just opened
 	Archipelago_ScoutShopItems(allLevelData[currentLevelID].shopStart);

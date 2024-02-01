@@ -39,6 +39,8 @@ typedef struct {
 
 extern archipelago_options_t APOptions;
 
+void Archipelago_Save(void);
+
 // ----------------------------------------------------------------------------
 // Local Game
 // ----------------------------------------------------------------------------
@@ -72,6 +74,8 @@ typedef struct {
 } apitem_t;
 
 typedef struct {
+	Uint32 Clears[5]; // One bit per level, per episode
+
 	Uint8  PowerMaxLevel; // 0 - 10; +1 per "Maximum Power Up"
 	Uint8  GeneratorLevel; // 1 - 6; +1 per "Progressive Generator"
 
@@ -90,11 +94,15 @@ typedef struct {
 
 extern apitem_t APItems;
 extern apstat_t APStats;
+
 extern apupdatereq_t APUpdateRequest;
 
 void Archipelago_SendCheck(int checkID);
 bool Archipelago_WasChecked(int checkID);
 bool Archipelago_CheckHasProgression(int checkID);
+
+int Archipelago_GetRegionCheckCount(int firstCheckID);
+Uint32 Archipelago_GetRegionWasCheckedList(int firstCheckID);
 
 // ----------------------------------------------------------------------------
 // Shops

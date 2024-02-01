@@ -32,6 +32,9 @@ extern "C" {
 	void apmsg_enqueue(const char *);
 	void apmsg_playSFX(archipelago_sound_t);
 	void apmsg_setSpeed(Uint8 speed);
+
+	// These functions are needed for savegame support.
+	const char *get_user_directory(void); // config.h
 }
 
 using nlohmann::json;
@@ -56,6 +59,183 @@ std::string connection_password = "";
 #define APTYRIAN_NET_VERSION 1
 
 static std::unique_ptr<APClient> ap;
+
+// ----------------------------------------------------------------------------
+// Data -- Always Reloaded From Server / File
+// ----------------------------------------------------------------------------
+
+apupdatereq_t APUpdateRequest; // When C++ side thinks C needs to redraw something
+
+// ------------------------------------------------------------------
+
+// Name of the seed. Used for loading/saving
+static std::string multiworldSeedName;
+
+// Local location number (first in region): Number of locations in region.
+static std::unordered_map<uint16_t, uint16_t> locationsPerRegion;
+
+// Set of local location IDs.
+// Locations in our seed that hold progression items (for us or someone else).
+// Filled in by both ParseLocationData and ParseProgressionData.
+static std::set<uint16_t> advancementLocations;
+
+// Local location ID: Item ID to be obtained from that location.
+// All data about locations in our seed. Only used in local play (no AP server).
+static std::unordered_map<uint16_t, uint16_t> allLocationData;
+
+// Local location ID: Cost to buy item.
+static std::unordered_map<Uint16, Uint16> shopPrices;
+
+// ----------------------------------------------------------------------------
+// Data -- Stored In Save Game
+// ----------------------------------------------------------------------------
+
+// These are C structs that are available C side.
+apitem_t APItems; // Weapons, levels; One time collectibles, etc.
+apstat_t APStats; // Cash, Armor, Power, etc. Upgradable stats.
+bool APLevelClear[80]; // Solely tracks level completion
+
+// ------------------------------------------------------------------
+
+// Set of global location IDs.
+// Locations in our seed that we've checked (or had checked for us).
+static std::set<int64_t> allLocationsChecked;
+
+// Set of global location IDs.
+// Locations across the multiworld that have had our items. Used to dedupe location checks.
+// As such, the IDs may not even match up to anything in our game.
+static std::set<int64_t> allOurItemLocations;
+
+// Local location ID: Previously scouted Network Item.
+// Scouted information about our shop items when playing remotely.
+// We only call for LocationScouts when completing a level for the first time.
+static std::unordered_map<Uint16, APClient::NetworkItem> scoutedShopLocations;
+
+// ----------------------------------------------------------------------------
+
+void Archipelago_Save(void)
+{
+	json saveData;
+
+	saveData["APItems"] += APItems.FrontPorts;
+	saveData["APItems"] += APItems.RearPorts;
+	saveData["APItems"] += APItems.Specials;
+	for (int i = 0; i < 5; ++i)
+		saveData["APItems"] += APItems.Levels[i];
+	for (int i = 0; i < 36; i += 3)
+		saveData["APItems"] += (APItems.Sidekicks[i]) | (APItems.Sidekicks[i+1] << 3) | (APItems.Sidekicks[i+2] << 6);
+
+	for (int i = 0; i < 5; ++i)
+		saveData["APStats"] += APStats.Clears[i];
+	saveData["APStats"] += APStats.PowerMaxLevel;
+	saveData["APStats"] += APStats.GeneratorLevel;
+	saveData["APStats"] += APStats.ArmorLevel;
+	saveData["APStats"] += APStats.ShieldLevel | (APStats.SolarShield ? 0x80 : 0x00);
+	saveData["APStats"] += APStats.Cash;
+	// QueuedSuperBombs is not saved
+
+	if (!allLocationsChecked.empty())
+		saveData["Checked"] = allLocationsChecked;
+	if (!allOurItemLocations.empty())
+		saveData["ExternLocs"] = allOurItemLocations;
+
+	for (auto const &[locationID, networkItem] : scoutedShopLocations)
+	{
+		// We don't save location because that's the key
+		std::string locationStr = std::to_string(locationID);
+		saveData["Scouts"][locationStr] += networkItem.item;
+		saveData["Scouts"][locationStr] += networkItem.player;
+		saveData["Scouts"][locationStr] += networkItem.flags;
+	}
+	std::cout << saveData << std::endl;
+
+	std::stringstream saveFileName;
+	saveFileName << get_user_directory() << "/AP" << multiworldSeedName << ".sav";
+
+	std::ofstream saveFile(saveFileName.str(), std::ios::trunc | std::ios::binary);
+	json::to_msgpack(saveData, saveFile);
+}
+
+static bool Archipelago_Load(void)
+{
+	// Clear out everything first
+	memset(&APItems, 0, sizeof(APItems));
+	memset(&APStats, 0, sizeof(APStats));
+	allLocationsChecked.clear();
+	allOurItemLocations.clear();
+	scoutedShopLocations.clear();
+
+	std::stringstream saveFileName;
+	saveFileName << get_user_directory() << "/AP" << multiworldSeedName << ".sav";
+
+	std::ifstream saveFile(saveFileName.str(), std::ios::binary);
+	if (!saveFile.is_open())
+		return false;
+
+	try
+	{
+		json saveData = json::from_msgpack(saveFile);
+
+		APItems.FrontPorts = saveData["APItems"].at(0).template get<Uint64>();
+		APItems.RearPorts = saveData["APItems"].at(1).template get<Uint64>();
+		APItems.Specials = saveData["APItems"].at(2).template get<Uint64>();
+		for (int i = 0; i < 5; ++i)
+			APItems.Levels[i] = saveData["APItems"].at(3 + i).template get<Uint32>();
+		for (int i = 0; i < 12; ++i)
+		{
+			Uint16 combinedSidekicks = saveData["APItems"].at(8 + i).template get<Uint16>();
+			APItems.Sidekicks[0 + i*3] = (combinedSidekicks & 0x3);
+			APItems.Sidekicks[1 + i*3] = ((combinedSidekicks >> 3) & 0x3);
+			APItems.Sidekicks[2 + i*3] = ((combinedSidekicks >> 6) & 0x3);
+		}
+
+		for (int i = 0; i < 5; ++i)
+			APStats.Clears[i] = saveData["APStats"].at(i).template get<Uint32>();
+		APStats.PowerMaxLevel = saveData["APStats"].at(5).template get<Uint8>();
+		APStats.GeneratorLevel = saveData["APStats"].at(6).template get<Uint8>();
+		APStats.ArmorLevel = saveData["APStats"].at(7).template get<Uint8>();
+		APStats.ShieldLevel = saveData["APStats"].at(8).template get<Uint8>();
+		APStats.Cash = saveData["APStats"].at(9).template get<Uint64>();
+		if (APStats.ShieldLevel & 0x80)
+		{
+			APStats.SolarShield = true;
+			APStats.ShieldLevel &= 0x7F;
+		}
+
+		if (saveData.contains("Checked"))
+			allLocationsChecked.insert(saveData["Checked"].begin(), saveData["Checked"].end());
+		if (saveData.contains("ExternLocs"))
+			allOurItemLocations.insert(saveData["ExternLocs"].begin(), saveData["ExternLocs"].end());
+		if (saveData.contains("Scouts"))
+		{
+			for (auto & [locationStr, itemJSON] : saveData["Scouts"].items())
+			{
+				Uint16 locationID = std::stoi(locationStr);
+
+				APClient::NetworkItem newItem;
+				newItem.item = itemJSON.at(0).template get<int64_t>();
+				newItem.player = itemJSON.at(1).template get<int>();
+				newItem.flags = itemJSON.at(2).template get<unsigned>();
+				newItem.location = locationID + ARCHIPELAGO_BASE_ID;
+
+				scoutedShopLocations.insert({locationID, newItem});
+			}
+		}
+	}
+	catch (const json::out_of_range&)
+	{
+		// Clear everything AGAIN so we start on a fresh slate...
+		memset(&APItems, 0, sizeof(APItems));
+		memset(&APStats, 0, sizeof(APStats));
+		allLocationsChecked.clear();
+		allOurItemLocations.clear();
+		scoutedShopLocations.clear();
+		return false;
+	}
+
+	std::cout << "Loaded save file " << multiworldSeedName << ".sav" << std::endl;
+	return true;
+}
 
 // ============================================================================
 // Basic Communication
@@ -288,13 +468,6 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 // Items
 // ============================================================================
 
-// These are C structs that are available C side.
-apitem_t APItems; // Weapons, levels; One time collectibles, etc.
-apstat_t APStats; // Cash, Armor, Power, etc. Upgradable stats.
-apupdatereq_t APUpdateRequest; // When C++ side thinks C needs to redraw something
-
-// ----------------------------------------------------------------------------
-
 static const int remoteCashItemValues[] =
 	{50, 75, 100, 150, 200, 300, 375, 500, 750, 800, 1000, 2000, 5000, 7500, 10000, 20000, 40000, 75000, 100000, 1000000};
 
@@ -319,22 +492,45 @@ static void APAll_ResolveItem(int item)
 	else if (item < 600) APItems.FrontPorts |= (Uint64)1 << (item - 500);
 	else if (item < 700) APItems.RearPorts  |= (Uint64)1 << (item - 600);
 	else if (item < 800) APItems.Specials   |= (Uint64)1 << (item - 700);
-	else if (item < 836) ++APItems.Sidekicks[item - 800];
+	else if (item < 836)
+	{
+		if (APItems.Sidekicks[item - 800] < 2)
+			++APItems.Sidekicks[item - 800];
+	} 
 
 	// Armor, shield, money... statistic-affecting things
-	else if (item == 900) ++APStats.PowerMaxLevel;
-	else if (item == 901) ++APStats.GeneratorLevel;
-	else if (item == 902) APStats.ArmorLevel += 2;
-	else if (item == 903) APStats.ShieldLevel += 2;
+	else if (item == 900)
+	{
+		if (APStats.PowerMaxLevel < 10)
+			++APStats.PowerMaxLevel;
+	}
+	else if (item == 901)
+	{
+		if (APStats.GeneratorLevel < 6)
+			++APStats.GeneratorLevel;
+	}
+	else if (item == 902)
+	{
+		APStats.ArmorLevel += 2;
+		if (APStats.ArmorLevel > 28)
+			APStats.ArmorLevel = 28;
+
+		APUpdateRequest.Armor += 2;
+	}
+	else if (item == 903)
+	{
+		APStats.ShieldLevel += 2;
+		if (APStats.ShieldLevel > 28)
+			APStats.ShieldLevel = 28;
+
+		APUpdateRequest.Shield += 2;
+	}
+
 	else if (item == 904) APStats.SolarShield = true;
 	else if (item == 905) ++APStats.QueuedSuperBombs;
 	else if (item >= 980) APStats.Cash += remoteCashItemValues[item - 980];
 
 	std::cout << "Item resolved: " << item << std::endl;
-
-	// Flags to send back to main game, if it's in game, to redraw stuff
-	if      (item == 902) APUpdateRequest.Armor += 2;
-	else if (item == 903) APUpdateRequest.Shield += 2;
 }
 
 // Parses "StartState" structure. In all JSON blobs.
@@ -357,19 +553,6 @@ static void APAll_ParseStartState(json &j)
 // ============================================================================
 // Outgoing and Incoming Locations and Checks
 // ============================================================================
-
-// Locations in our seed that hold progression items (for us or someone else).
-// Filled in by both ParseLocationData and ParseProgressionData.
-// This is local to only us, so uses local IDs (without ARCHIPELAGO_BASE_ID added).
-static std::set<uint16_t> advancementLocations;
-
-// All data about locations in our seed. Only used in local play (no AP server).
-// As such, it also uses local IDs.
-static std::unordered_map<uint16_t, uint16_t> allLocationData;
-
-// Locations in our seed that we've checked (or had checked for us)
-// This is filled with stuff directly from AP, so it uses global IDs (even when playing locally)
-static std::set<int64_t> allLocationsChecked;
 
 // Parses "LocationData" structure. Only present in local play files.
 // Contains all locations and their contents; progression locations are marked with an "!".
@@ -394,6 +577,22 @@ static void APLocal_ParseLocationData(json &j)
 	}
 }
 
+static void APLocal_InitLocationsPerRegion(void)
+{
+	locationsPerRegion.clear();
+	for (uint16_t i = 0; i < 2000; i += 10)
+	{
+		uint16_t total = 0;
+		for (; total < 10; ++total)
+		{
+			if (allLocationData.count(i + total) == 0)
+				break;
+		}
+		if (total > 0)
+			locationsPerRegion.insert({i, total});
+	}
+}
+
 // Called in local games only to handle the results of a location check.
 static void APLocal_ReceiveItem(int64_t locationID)
 {
@@ -414,8 +613,6 @@ static void APLocal_ReceiveItem(int64_t locationID)
 }
 
 // ----------------------------------------------------------------------------
-// Locations across the multiworld that have had our items
-static std::set<int64_t> allOurItemLocations;
 
 // Parses "ProgressionData" structure. Only present in remote slot_data.
 // Contains a list of all locations that are known to have progression items, and nothing more.
@@ -423,6 +620,39 @@ static void APRemote_ParseProgressionData(json &j)
 {
 	advancementLocations.clear();
 	advancementLocations.insert(j.begin(), j.end());
+}
+
+static void APRemote_InitLocationsPerRegion(void)
+{
+	if (!ap)
+		return;
+
+	locationsPerRegion.clear();
+
+	// For regular locations we have to kludge together a list by checking if location names exist
+	for (uint16_t i = 0; i < 1000; i += 10)
+	{
+		uint16_t total = 0;
+		for (; total < 10; ++total)
+		{
+			if (ap->get_location_name(i + total + ARCHIPELAGO_BASE_ID, "Tyrian") == "Unknown")
+				break;
+		}
+		if (total > 0)
+			locationsPerRegion.insert({i, total});
+	}
+	// For shops we can just check shop data.
+	for (uint16_t i = 1000; i < 2000; i += 10)
+	{
+		uint16_t total = 0;
+		for (; total < 10; ++total)
+		{
+			if (shopPrices.count(i + total) == 0)
+				break;
+		}
+		if (total > 0)
+			locationsPerRegion.insert({i, total});
+	}
 }
 
 // *** Callback for APClient's "OnLocationChecked" ***
@@ -487,11 +717,30 @@ bool Archipelago_CheckHasProgression(int checkID)
 	return advancementLocations.count(checkID) == 1;
 }
 
+int Archipelago_GetRegionCheckCount(int firstCheckID)
+{
+	if (locationsPerRegion.count(firstCheckID) == 0)
+		return 0;
+	return locationsPerRegion[firstCheckID];
+}
+
+// Returns bitmask of checked locations.
+Uint32 Archipelago_GetRegionWasCheckedList(int firstCheckID)
+{
+	Uint32 checkList = 0;
+	int checkTotal = Archipelago_GetRegionCheckCount(firstCheckID);
+
+	for (int i = 0; i < checkTotal; ++i)
+	{
+		if (allLocationsChecked.count(firstCheckID + i + ARCHIPELAGO_BASE_ID) == 1)
+			checkList |= (1 << i);
+	}
+	return checkList;
+}
+
 // ============================================================================
 // Shops
 // ============================================================================
-
-static std::unordered_map<Uint16, Uint16> shopPrices;
 
 static shopitem_t shopItemBuffer[5];
 
@@ -519,10 +768,6 @@ Uint16 APAll_GetItemIcon(int64_t itemID)
 #endif
 
 // ----------------------------------------------------------------------------
-
-// Scouted information about our shop items when playing remotely.
-// We only call for LocationScouts when completing a level for the first time.
-static std::unordered_map<Uint16, APClient::NetworkItem> scoutedShopLocations;
 
 void APRemote_CB_ScoutResults(const std::list<APClient::NetworkItem>& items)
 {
@@ -712,6 +957,11 @@ bool Archipelago_StartLocalGame(FILE *file)
 		if (aptyrianJSON.at("NetVersion") > APTYRIAN_NET_VERSION)
 			throw new std::runtime_error("Version mismatch. You need to update APTyrian.");
 
+		if (!tyrian2000detected && aptyrianJSON.at("Settings").at("RequireT2K") == true)
+			throw new std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
+
+		multiworldSeedName = aptyrianJSON.at("Seed").template get<std::string>();
+
 		APSeedSettings.PlayEpisodes = aptyrianJSON["Settings"].at("Episodes").template get<int>();
 		APSeedSettings.GoalEpisodes = aptyrianJSON["Settings"].at("Goal").template get<int>();
 		APSeedSettings.Difficulty = aptyrianJSON["Settings"].at("Difficulty").template get<int>();
@@ -725,9 +975,8 @@ bool Archipelago_StartLocalGame(FILE *file)
 		APSeedSettings.Christmas = aptyrianJSON["Settings"].at("Christmas").template get<bool>();
 		APSeedSettings.DeathLink = false;
 
-		std::string obfuscated = aptyrianJSON.at("StartState").template get<std::string>();
-		json resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-		APAll_ParseStartState(resultJSON);
+		std::string obfuscated;
+		json resultJSON;
 
 		obfuscated = aptyrianJSON.at("ShopData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
@@ -736,11 +985,23 @@ bool Archipelago_StartLocalGame(FILE *file)
 		obfuscated = aptyrianJSON.at("LocationData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APLocal_ParseLocationData(resultJSON);
+
+		// Attempt to load old game first
+		if (!Archipelago_Load())
+		{
+			// Not able to load, load start state and start new game
+			obfuscated = aptyrianJSON.at("StartState").template get<std::string>();
+			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+			APAll_ParseStartState(resultJSON);			
+		}
 	}
 	catch (const std::exception&)
 	{
 		return false;
 	}
+
+	// Init other data (can't fail)
+	APLocal_InitLocationsPerRegion();
 	return true;
 }
 
@@ -824,6 +1085,7 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		if (!tyrian2000detected && slot_data.at("Settings").at("RequireT2K") == true)
 			throw new std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
 
+		multiworldSeedName = slot_data.at("Seed").template get<std::string>();
 
 		APSeedSettings.PlayEpisodes = slot_data["Settings"].at("Episodes").template get<int>();
 		APSeedSettings.GoalEpisodes = slot_data["Settings"].at("Goal").template get<int>();
@@ -838,9 +1100,8 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		APSeedSettings.Christmas = slot_data["Settings"].at("Christmas").template get<bool>();
 		APSeedSettings.DeathLink = slot_data["Settings"].at("DeathLink").template get<bool>();
 
-		std::string obfuscated = slot_data.at("StartState").template get<std::string>();
-		json resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-		APAll_ParseStartState(resultJSON);
+		std::string obfuscated;
+		json resultJSON;
 
 		obfuscated = slot_data.at("ShopData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
@@ -849,6 +1110,15 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		obfuscated = slot_data.at("ProgressionData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APRemote_ParseProgressionData(resultJSON);
+
+		// Attempt to load old game first
+		if (!Archipelago_Load())
+		{
+			// Not able to load, load start state and start new game
+			obfuscated = slot_data.at("StartState").template get<std::string>();
+			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+			APAll_ParseStartState(resultJSON);
+		}
 	}
 	catch (const json::out_of_range&)
 	{
@@ -873,6 +1143,9 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 
 	// Resend all checks to make sure server is up to date.
 	Archipelago_ResendAllChecks();
+
+	// Init other data.
+	APRemote_InitLocationsPerRegion();
 }
 
 // ----------------------------------------------------------------------------
@@ -959,10 +1232,8 @@ void Archipelago_Poll(void)
 
 void Archipelago_Disconnect(void)
 {
-	// Disconnect is only called when we're leaving the multiworld server (or ending a local game),
-	// so invalidate all stored data.
-	allLocationsChecked.clear();
-	allOurItemLocations.clear();
+	// Save before we disconnect!
+	Archipelago_Save();
 
 	if (!ap)
 		return;

@@ -173,8 +173,8 @@ const char *get_user_directory(void);
 void JE_loadConfiguration(void);
 void JE_saveConfiguration(void);
 
-void JE_saveGame(JE_byte slot, const char *name);
-void JE_loadGame(JE_byte slot);
+//void JE_saveGame(JE_byte slot, const char *name);
+//void JE_loadGame(JE_byte slot);
 
 void JE_encryptSaveTemp(void);
 void JE_decryptSaveTemp(void);

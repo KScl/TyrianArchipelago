@@ -386,6 +386,7 @@ bool save_opentyrian_config(void)
 	return true;
 }
 
+#if 0
 static void playeritems_to_pitems(JE_PItemsType pItems, PlayerItems *items, JE_byte initial_episode_num)
 {
 	pItems[0]  = items->weapon[FRONT_WEAPON].id;
@@ -551,6 +552,7 @@ void JE_loadGame(JE_byte slot)
 	saveLevel = mainLevel;
 	memcpy(&lastLevelName, &levelName, sizeof(levelName));
 }
+#endif
 
 void JE_initProcessorType(void)
 {
