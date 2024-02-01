@@ -27,11 +27,15 @@
 
 #define SDL_POLL_INTERVAL 10
 
+#define MOUSEWHEEL_DOWN -1
+#define MOUSEWHEEL_UP    1
+
 extern JE_boolean ESCPressed;
 extern JE_boolean newkey, newmouse, keydown, mousedown;
 extern SDL_Scancode lastkey_scan;
 extern SDL_Keymod lastkey_mod;
 extern Uint8 lastmouse_but;
+extern Sint8 mousewheel;
 extern Sint32 lastmouse_x, lastmouse_y;
 extern JE_boolean mouse_pressed[3];
 extern Sint32 mouse_x, mouse_y;

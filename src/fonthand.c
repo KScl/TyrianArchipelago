@@ -329,3 +329,46 @@ void JE_outTextGlow(SDL_Surface * screen, int x, int y, const char *s)
 	}
 	textGlowBrightness = 6;
 }
+
+// ----------------------------------------------------------------------------
+
+void fonthand_outTextColorize(SDL_Surface *screen, int x, int y, const char *s, Uint8 defaultHue, Uint8 defaultVal, bool darken)
+{
+	Uint8 hue = defaultHue;
+	Uint8 val = defaultVal;
+
+	for (; *s; ++s)
+	{
+		switch (*s)
+		{
+			case ' ': 
+				x += 6;
+				continue; // outer for loop
+
+			case '>':
+				hue = defaultHue;
+				val = defaultVal;
+				continue; // outer for loop
+
+			case '<':
+				if (!s[1] || !s[2])
+					return; // Unsupported behavior
+				hue = (s[1] >= 'A') ? s[1] + 10 - 'A' : s[1] - '0';
+				val = (s[2] >= 'A') ? s[2] + 10 - 'A' : s[2] - '0';
+				s += 2;
+				continue; // outer for loop
+
+			default:
+				break;
+		}
+
+		int spriteID = font_ascii[(unsigned char)*s];
+		if (spriteID != -1 && sprite_exists(TINY_FONT, spriteID))
+		{
+			if (darken)
+				blit_sprite_dark(screen, x + 1, y + 1, TINY_FONT, spriteID, false);
+			blit_sprite_hv_unsafe(screen, x, y, TINY_FONT, spriteID, hue, val);
+			x += sprite(TINY_FONT, spriteID)->width + 1;
+		}
+	}
+}

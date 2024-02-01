@@ -18,9 +18,9 @@
  */
 #include "mainint.h"
 
+#include "apmsg.h"
 #include "backgrnd.h"
 #include "config.h"
-#include "editship.h"
 #include "episodes.h"
 #include "file.h"
 #include "font.h"
@@ -70,49 +70,6 @@ JE_boolean jumpSection;
 JE_boolean useLastBank; /* See if I want to use the last 16 colors for DisplayText */
 
 bool pause_pressed = false, ingamemenu_pressed = false;
-
-/* Draws a message at the bottom text window on the playing screen */
-void JE_drawTextWindow(const char *text)
-{
-	if (textErase > 0) // erase current text
-		blit_sprite(VGAScreenSeg, 16, 189, OPTION_SHAPES, 36);  // in-game text area
-
-	textErase = 100;
-	JE_outText(VGAScreenSeg, 20, 190, text, 0, 4);
-}
-
-void JE_drawTextWindowColorful(const char *text)
-{
-	char buf[256] = "";
-	char *p = buf;
-	JE_byte color = 0, brightness = 4;
-	JE_integer x = 20;
-
-	if (textErase > 0) // erase current text
-		blit_sprite(VGAScreenSeg, 16, 189, OPTION_SHAPES, 36);  // in-game text area
-
-	textErase = 100;
-
-	while (true)
-	{
-		while (*text && *text != '^')
-			*p++ = *text++;
-		if (strlen(buf) > 0)
-		{
-			JE_outText(VGAScreenSeg, x, 190, buf, color, brightness);
-			x += JE_textWidth(buf, TINY_FONT);
-			memset(buf, 0, sizeof(buf));
-			p = buf;
-		}
-		if (!*text)
-			break;
-		++text;
-		color = (*text >= 'A') ? *text + 10 - 'A' : *text - '0';
-		++text;
-		brightness = (*text >= 'A') ? *text + 10 - 'A' : *text - '0';
-		++text;
-	}
-}
 
 void JE_outCharGlow(JE_word x, JE_word y, const char *s)
 {
@@ -1109,6 +1066,7 @@ void JE_initPlayerData(void)
 	strcpy(lastLevelName, miscText[19]);
 }
 
+#if 0
 void JE_sortHighScores(void)
 {
 	JE_byte x;
@@ -1328,6 +1286,7 @@ void JE_highScoreScreen(void)
 		}
 	}
 }
+#endif
 
 void JE_gammaCorrect_func(JE_byte *col, JE_real r)
 {
@@ -2010,6 +1969,7 @@ void JE_inGameHelp(void)
 	VGAScreen = temp_surface;
 }
 
+#if 0
 void JE_highScoreCheck(void)
 {
 	if (shopSpriteSheet.data == NULL)
@@ -2241,6 +2201,7 @@ void JE_highScoreCheck(void)
 		}
 	}
 }
+#endif
 
 #if 0
 // increases game difficulty based on player's total score / total of players' scores
@@ -2498,6 +2459,7 @@ void JE_SFCodes(JE_byte playerNum_, JE_integer PX_, JE_integer PY_, JE_integer m
 	}
 }
 
+#if 0
 void JE_sort(void)
 {
 	JE_byte a, b;
@@ -2527,6 +2489,7 @@ void JE_sort(void)
 		}
 	}
 }
+#endif
 
 void JE_playCredits(void)
 {
@@ -2739,13 +2702,23 @@ void JE_endLevelAni(void)
 	set_colors(white, 254, 254);
 
 	if (!levelTimer || levelTimerCountdown > 0)
-		JE_playSampleNum(V_LEVEL_END);
+		nortsong_playVoice(V_LEVEL_END);
 	else
 		play_song(21);
 
 	const char *levelAction = (levelTimer && levelTimerCountdown <= 0) ? "Failed:" : "Completed:";
 	snprintf(tempStr, sizeof(tempStr), "%s %s", levelAction, levelName);
 	JE_outTextGlow(VGAScreenSeg, 20, 20, tempStr);
+
+	// Mark completion
+	allCompletions[currentLevelID] = true;
+
+	// Scout for new shop checks that just opened
+	Archipelago_ScoutShopItems(allLevelData[currentLevelID].shopStart);
+
+	// Add obtained cash to AP cash total
+	APStats.Cash += player[0].cash;
+	player[0].cash = 0;
 
 	if (twoPlayerMode)
 	{
@@ -2757,7 +2730,7 @@ void JE_endLevelAni(void)
 	}
 	else
 	{
-		sprintf(tempStr, "%s %lu", miscText[28-1], player[0].cash);
+		sprintf(tempStr, "%s %lu", miscText[28-1], APStats.Cash);
 		JE_outTextGlow(VGAScreenSeg, 30, 50, tempStr);
 	}
 
@@ -2890,6 +2863,7 @@ bool str_pop_int(char *str, int *val)
 	return success;
 }
 
+#if 0
 void JE_operation(JE_byte slot)
 {
 	JE_byte flash;
@@ -3021,6 +2995,7 @@ void JE_operation(JE_byte slot)
 
 	wait_noinput(false, true, false);
 }
+#endif
 
 void JE_inGameDisplays(void)
 {
@@ -3030,11 +3005,16 @@ void JE_inGameDisplays(void)
 	snprintf(tempstr, sizeof(tempstr), "%s", difficultyNameB[difficultyLevel+1]);
 	JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
 
+#if 1
+	snprintf(tempstr, sizeof(tempstr), "%lu", APStats.Cash + player[0].cash);
+	JE_textShade(VGAScreen, 30, 175, tempstr, 2, 4, FULL_SHADE);
+#else
 	for (uint i = 0; i < ((twoPlayerMode && !galagaMode) ? 2 : 1); ++i)
 	{
 		snprintf(tempstr, sizeof(tempstr), "%lu", player[i].cash);
 		JE_textShade(VGAScreen, 30 + 200 * i, 175, tempstr, 2, 4, FULL_SHADE);
 	}
+#endif
 
 	/*Special Weapon?*/
 	if (player[0].items.special > 0)
@@ -3226,7 +3206,7 @@ void JE_mainKeyboardInput(void)
 	if (keysactive[SDL_SCANCODE_F2])
 	{
 		player_debugCauseDeathLink();
-		JE_drawTextWindowColorful("^54KS went out in a blaze of glory.");
+		apmsg_drawInGameText("<54KS went out in a blaze of glory.");
 		keysactive[SDL_SCANCODE_F2] = false;
 	}
 	if (keysactive[SDL_SCANCODE_F3])
@@ -3272,7 +3252,7 @@ void JE_mainKeyboardInput(void)
 				player[i].armor = 0;
 
 			youAreCheating = !youAreCheating;
-			JE_drawTextWindow(miscText[63-1]);
+			apmsg_drawInGameText(miscText[63-1]);
 		}
 
 		if (constantPlay && keysactive[SDL_SCANCODE_C])
@@ -3458,6 +3438,8 @@ void JE_pauseGame(void)
 		}
 #endif
 
+		apmsg_manageQueue(true);
+		JE_showVGA();
 		wait_delay();
 	} while (!done);
 
@@ -3575,14 +3557,14 @@ redo:
 					endLevel = false;
 
 					if (galagaMode || episodeNum == 4)
-						this_player->armor = this_player->initial_armor;
+						this_player->armor = APStats.ArmorLevel;
 					else
-						this_player->armor = this_player->initial_armor / 2;
+						this_player->armor = APStats.ArmorLevel / 2;
 
 					if (galagaMode)
 						this_player->shield = 0;
 					else
-						this_player->shield = this_player->shield_max / 2;
+						this_player->shield = APStats.ShieldLevel / 2;
 
 					player_drawShield();
 					player_drawArmor();
@@ -4796,7 +4778,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 								snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[43-1], special[evalue - 32100].name);
 							else
 								snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[64-1], special[evalue - 32100].name);
-							JE_drawTextWindow(tempStr);
+							apmsg_drawInGameText(tempStr);
 							soundQueue[7] = S_POWERUP;
 							enemyAvail[z] = 1;
 						}
@@ -4810,7 +4792,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 								snprintf(tempStr, sizeof(tempStr)-1, "%s %s %s", JE_getName(2), miscTextB[4-1], options[evalue - 32000].name);
 							else
 								snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[44-1], options[evalue - 32000].name);
-							JE_drawTextWindow(tempStr);
+							apmsg_drawInGameText(tempStr);
 
 							// if picked up a different sidekick than player already has, then reset sidekicks to least powerful, else power them up
 							if (evalue - 32000u != player[1].items.sidekick_series)
@@ -4836,7 +4818,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 						{
 							enemyAvail[z] = 1;
 							snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[64-1], options[evalue - 32000].name);
-							JE_drawTextWindow(tempStr);
+							apmsg_drawInGameText(tempStr);
 
 							for (uint i = 0; i < COUNTOF(player[0].items.sidekick); ++i)
 								player[0].items.sidekick[i] = evalue - 32000;
@@ -4858,7 +4840,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 								snprintf(tempStr, sizeof(tempStr)-1, "%s %s %s", JE_getName(2), miscTextB[4-1], weaponPort[evalue - 31000].name);
 							else
 								snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[44-1], weaponPort[evalue - 31000].name);
-							JE_drawTextWindow(tempStr);
+							apmsg_drawInGameText(tempStr);
 							player[1].items.weapon[REAR_WEAPON].id = evalue - 31000;
 							shotMultiPos[SHOT_REAR] = 0;
 							enemyAvail[z] = 1;
@@ -4867,7 +4849,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 						else if (onePlayerAction)
 						{
 							snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[64-1], weaponPort[evalue - 31000].name);
-							JE_drawTextWindow(tempStr);
+							apmsg_drawInGameText(tempStr);
 							player[0].items.weapon[REAR_WEAPON].id = evalue - 31000;
 							shotMultiPos[SHOT_REAR] = 0;
 							enemyAvail[z] = 1;
@@ -4885,7 +4867,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 								snprintf(tempStr, sizeof(tempStr)-1, "%s %s %s", JE_getName(1), miscTextB[4-1], weaponPort[evalue - 30000].name);
 							else
 								snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[43-1], weaponPort[evalue - 30000].name);
-							JE_drawTextWindow(tempStr);
+							apmsg_drawInGameText(tempStr);
 							player[0].items.weapon[FRONT_WEAPON].id = evalue - 30000;
 							shotMultiPos[SHOT_FRONT] = 0;
 							enemyAvail[z] = 1;
@@ -4894,7 +4876,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 						else if (onePlayerAction)
 						{
 							snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[64-1], weaponPort[evalue - 30000].name);
-							JE_drawTextWindow(tempStr);
+							apmsg_drawInGameText(tempStr);
 							player[0].items.weapon[FRONT_WEAPON].id = evalue - 30000;
 							shotMultiPos[SHOT_FRONT] = 0;
 							enemyAvail[z] = 1;
@@ -4919,34 +4901,14 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 				else if (evalue >= 28000) // AP
 				{
 					enemyAvail[z] = 1;
-					soundQueue[3] = V_DATA_CUBE;
-					//soundQueue[7] = S_POWERUP;
-					snprintf(tempStr, sizeof(tempStr)-1, "Location %d checked", evalue-28000);
-					JE_drawTextWindow(tempStr);
-
-					Archipelago_SendCheck(evalue-28000);
+					nortsong_playVoice(V_DATA_CUBE);
+					Archipelago_SendCheck(evalue - 28000);
 					JE_setupExplosion(enemy_screen_x, enemy[z].ey, 0, 53, true, false);
 				}
 				else if (evalue > 20000)
 				{
-					if (twoPlayerLinked)
-					{
-						// share the armor evenly between linked players
-						for (uint i = 0; i < COUNTOF(player); ++i)
-						{
-							player[i].armor += (evalue - 20000) / COUNTOF(player);
-							if (player[i].armor > 28)
-								player[i].armor = 28;
-						}
-					}
-					else
-					{
-						this_player->armor += evalue - 20000;
-						if (this_player->armor > 28)
-							this_player->armor = 28;
-					}
+					player_boostArmor(this_player, evalue - 20000);
 					enemyAvail[z] = 1;
-					player_drawArmor();
 					soundQueue[7] = S_POWERUP;
 				}
 				else if (evalue > 10000 && enemyAvail[z] == 2)
@@ -4967,7 +4929,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 					if (evalue == 1)
 					{
 						cubeMax++;
-						soundQueue[3] = V_DATA_CUBE;
+						nortsong_playVoice(V_DATA_CUBE);
 					}
 					else if (evalue == -1)  // got front weapon powerup
 					{
@@ -4977,7 +4939,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 							snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[43-1], miscText[45-1]);
 						else
 							strcpy(tempStr, miscText[45-1]);
-						JE_drawTextWindow(tempStr);
+						apmsg_drawInGameText(tempStr);
 
 						power_up_weapon(&player[0], FRONT_WEAPON);
 						soundQueue[7] = S_POWERUP;
@@ -4990,7 +4952,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 							snprintf(tempStr, sizeof(tempStr)-1, "%s %s", miscText[44-1], miscText[46-1]);
 						else
 							strcpy(tempStr, miscText[46-1]);
-						JE_drawTextWindow(tempStr);
+						apmsg_drawInGameText(tempStr);
 
 						power_up_weapon(twoPlayerMode ? &player[1] : &player[0], REAR_WEAPON);
 						soundQueue[7] = S_POWERUP;

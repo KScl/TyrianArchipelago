@@ -18,16 +18,20 @@
  */
 #include "shots.h"
 
+#include "backgrnd.h"
 #include "player.h"
 #include "sprite.h"
 #include "video.h"
 #include "varz.h"
+#include "vga256d.h"
+
+#include "archipelago/apconnect.h"
 
 // I'm pretty sure the last extra entry is never used.
 PlayerShotDataType playerShotData[MAX_PWEAPON + 1]; /* [1..MaxPWeapon+1] */
 JE_byte shotAvail[MAX_PWEAPON]; /* [1..MaxPWeapon] */   /*0:Avail 1-255:Duration left*/
 
-void simulate_player_shots(void)
+static void simulate_player_shots(void)
 {
 	/* Player Shot Images */
 	for (int z = 0; z < MAX_PWEAPON; z++)
@@ -315,9 +319,9 @@ JE_integer player_shot_create(JE_word portNum, uint bay_i, JE_word PX, JE_word P
 
 	const JE_WeaponType* weapon = &weapons[wpNum];
 
-	if (power < weaponPort[portNum].poweruse)
+	if (generatorPower < weaponPort[portNum].poweruse)
 		return MAX_PWEAPON;
-	power -= weaponPort[portNum].poweruse;
+	generatorPower -= weaponPort[portNum].poweruse;
 
 	if (weapon->sound > 0)
 		soundQueue[soundChannel[bay_i]] = weapon->sound;
@@ -498,4 +502,149 @@ JE_integer player_shot_create(JE_word portNum, uint bay_i, JE_word PX, JE_word P
 	}
 
 	return shot_id;
+}
+
+// ----------------------------------------------------------------------------
+// These functions were copied out of game_menu.c
+
+void shots_initShotSim(void) // fka JE_initWeaponView
+{
+	JE_getShipInfo();
+
+	player[0].sidekick[LEFT_SIDEKICK].x = 72 - 15;
+	player[0].sidekick[LEFT_SIDEKICK].y = 120;
+	player[0].sidekick[RIGHT_SIDEKICK].x = 72 + 15;
+	player[0].sidekick[RIGHT_SIDEKICK].y = 120;
+
+	player[0].x = 72;
+	player[0].y = 110;
+	player[0].delta_x_shot_move = 0;
+	player[0].delta_y_shot_move = 0;
+	player[0].last_x_explosion_follow = 72;
+	player[0].last_y_explosion_follow = 110;
+	generatorPower = 500;
+	lastGenPower = 500;
+
+	memset(shotAvail, 0, sizeof(shotAvail));
+
+	memset(shotRepeat, 1, sizeof(shotRepeat));
+	memset(shotMultiPos, 0, sizeof(shotMultiPos));
+
+	initialize_starfield();
+}
+
+void shots_runShotSim(void) // fka JE_weaponViewFrame
+{
+	fill_rectangle_xy(VGAScreen, 8, 8, 143, 182, 0);
+
+	/* JE: (* Port Configuration Display *)
+	(*    drawportconfigbuttons;*/
+
+	update_and_draw_starfield(VGAScreen, 1);
+
+	const int plX = player[0].x;
+	const int plY = player[0].y;
+
+	// create shots in weapon simulator
+	for (uint i = 0; i < 2; ++i)
+	{
+		if (shotRepeat[i] > 0)
+		{
+			--shotRepeat[i];
+		}
+		else
+		{
+			const uint item       = player[0].items.weapon[i].id,
+			           item_power = player[0].items.weapon[i].power - 1,
+			           item_mode = (i == REAR_WEAPON) ? player[0].weapon_mode - 1 : 0;
+
+			b = player_shot_create(item, i, plX, plY, plX, plY, weaponPort[item].op[item_mode][item_power], 1);
+		}
+	}
+
+	if (options[player[0].items.sidekick[LEFT_SIDEKICK]].wport > 0)
+	{
+		if (shotRepeat[SHOT_LEFT_SIDEKICK] > 0)
+		{
+			--shotRepeat[SHOT_LEFT_SIDEKICK];
+		}
+		else
+		{
+			const uint item = player[0].items.sidekick[LEFT_SIDEKICK];
+			const int x = player[0].sidekick[LEFT_SIDEKICK].x,
+			          y = player[0].sidekick[LEFT_SIDEKICK].y;
+
+			b = player_shot_create(options[item].wport, SHOT_LEFT_SIDEKICK, x, y, plX, plY, options[item].wpnum, 1);
+		}
+	}
+
+	if (options[player[0].items.sidekick[RIGHT_SIDEKICK]].tr == 2)
+	{
+		player[0].sidekick[RIGHT_SIDEKICK].x = player[0].x;
+		player[0].sidekick[RIGHT_SIDEKICK].y = MAX(10, player[0].y - 20);
+	}
+	else
+	{
+		player[0].sidekick[RIGHT_SIDEKICK].x = 72 + 15;
+		player[0].sidekick[RIGHT_SIDEKICK].y = 120;
+	}
+
+	if (options[player[0].items.sidekick[RIGHT_SIDEKICK]].wport > 0)
+	{
+		if (shotRepeat[SHOT_RIGHT_SIDEKICK] > 0)
+		{
+			--shotRepeat[SHOT_RIGHT_SIDEKICK];
+		}
+		else
+		{
+			const uint item = player[0].items.sidekick[RIGHT_SIDEKICK];
+			const int x = player[0].sidekick[RIGHT_SIDEKICK].x,
+			          y = player[0].sidekick[RIGHT_SIDEKICK].y;
+
+			b = player_shot_create(options[item].wport, SHOT_RIGHT_SIDEKICK, x, y, plX, plY, options[item].wpnum, 1);
+		}
+	}
+
+	simulate_player_shots();
+
+	blit_sprite(VGAScreenSeg, 0, 0, OPTION_SHAPES, 12); // upgrade interface
+
+	/*========================Power Bar=========================*/
+
+	generatorPower += powerSys[APStats.GeneratorLevel].power;
+	if (generatorPower > 900)
+		generatorPower = 900;
+
+	temp = generatorPower / 10;
+
+	for (temp = 147 - temp; temp <= 146; temp++)
+	{
+		temp2 = 113 + (146 - temp) / 9 + 2;
+		temp3 = (temp + 1) % 6;
+		if (temp3 == 1)
+			temp2 += 3;
+		else if (temp3 != 0)
+			temp2 += 2;
+
+		JE_pix(VGAScreen, 141, temp, temp2 - 3);
+		JE_pix(VGAScreen, 142, temp, temp2 - 3);
+		JE_pix(VGAScreen, 143, temp, temp2 - 2);
+		JE_pix(VGAScreen, 144, temp, temp2 - 1);
+		fill_rectangle_xy(VGAScreen, 145, temp, 149, temp, temp2);
+
+		if (temp2 - 3 < 112)
+			temp2++;
+	}
+
+	temp = 147 - (generatorPower / 10);
+	temp2 = 113 + (146 - temp) / 9 + 4;
+
+	JE_pix(VGAScreen, 141, temp - 1, temp2 - 1);
+	JE_pix(VGAScreen, 142, temp - 1, temp2 - 1);
+	JE_pix(VGAScreen, 143, temp - 1, temp2 - 1);
+	JE_pix(VGAScreen, 144, temp - 1, temp2 - 1);
+
+	fill_rectangle_xy(VGAScreen, 145, temp-1, 149, temp-1, temp2);
+
+	lastGenPower = temp;
 }

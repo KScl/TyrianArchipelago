@@ -23,18 +23,24 @@ extern "C" {
 	// List of all AP Items, used for local play
 	#include "apitems.h"
 
-	// TODO Please don't have this here!!
-	void JE_drawTextWindowColorful(const char *);
-
 	// These are things from C side that we need here.
 	extern bool tyrian2000detected; // opentyr.h
 	extern const int font_ascii[256]; // fonthand.h
+
+	// These functions are defined from the C side (apmsg.c), and we use them
+	// to communicate information to the player while in game.
+	void apmsg_enqueue(const char *);
+	void apmsg_playSFX(archipelago_sound_t);
+	void apmsg_setSpeed(Uint8 speed);
 }
 
 using nlohmann::json;
 
 // Settings package received from server.
-archipelago_settings_t ArchipelagoOpts;
+archipelago_settings_t APSeedSettings;
+
+// Local options.
+archipelago_options_t APOptions;
 
 std::string connection_slot_name = "";
 std::string connection_server_address = "";
@@ -80,6 +86,36 @@ static json APAll_DeobfuscateJSONObject(std::string str)
 	return deobfJSON;
 }
 
+// Cleans up chat by replacing any unknown characters with question marks.
+static std::string APRemote_CleanString(std::string input)
+{
+	for (char &c : input)
+	{
+		if (font_ascii[(unsigned char)c] == -1 && c != ' ')
+			c = '?';
+	}
+	return input;
+}
+
+// Unlike ap->get_player_alias, allows getting from any team
+static std::string APRemote_GetPlayerName(int slot, int team = -1)
+{
+	if (!ap)
+		return "Unknown";
+	if (slot == 0)
+		return "Server";
+	if (team == -1)
+		team = ap->get_team_number();
+
+	for (auto const& player : ap->get_players())
+	{
+		if (player.team == team && player.slot == slot)
+			return APRemote_CleanString(player.alias);
+	}
+
+	return "Unknown";
+}
+
 // ============================================================================
 // Chat / Game displays
 // ============================================================================
@@ -122,28 +158,30 @@ static std::string APLocal_BuildItemString(Uint16 localItemID, Uint8 flags)
 		return "";
 
 	std::stringstream s;
-	if      (flags & 1) s << "^95"; // Progression
-	else if (flags & 2) s << "^83"; // Useful
-	else if (flags & 4) s << "^45"; // Trap (none currently in local pool, may change)
-	else                s << "^08"; // Filler
-	s << APLocal_ItemNames[localItemID] << "^04";
+	if      (flags & 1) s << "<95"; // Progression
+	else if (flags & 2) s << "<83"; // Useful
+	else if (flags & 4) s << "<45"; // Trap (none currently in local pool, may change)
+	else                s << "<06"; // Filler
+	s << APLocal_ItemNames[localItemID] << ">";
 	return s.str();
 }
 
 // ----------------------------------------------------------------------------
 
 // Creates a string out of a NetworkItem for colorful print.
-static std::string APRemote_BuildItemString(const APClient::NetworkItem &item)
+static std::string APRemote_BuildItemString(const APClient::NetworkItem &item, int64_t playerID)
 {
 	if (!ap)
 		return "";
 
+	std::string itemName = ap->get_item_name(item.item, ap->get_player_game(playerID));
+
 	std::stringstream s;
-	if      (item.flags & 1) s << "^95"; // Progression
-	else if (item.flags & 2) s << "^83"; // Useful
-	else if (item.flags & 4) s << "^45"; // Trap
-	else                     s << "^08"; // Filler
-	s << ap->get_item_name(item.item, ap->get_player_game(item.player)) << "^04";
+	if      (item.flags & 1) s << "<95"; // Progression
+	else if (item.flags & 2) s << "<83"; // Useful
+	else if (item.flags & 4) s << "<45"; // Trap
+	else                     s << "<06"; // Filler
+	s << APRemote_CleanString(itemName) << ">";
 	return s.str();
 }
 
@@ -154,9 +192,8 @@ static std::string APRemote_BuildLocationString(int64_t locationID, int64_t play
 	if (!ap)
 		return "";
 
-	std::stringstream s;
-	s << "^08" << ap->get_location_name(locationID, ap->get_player_game(playerID)) << "^04";
-	return s.str();
+	std::string locationName = ap->get_location_name(locationID, ap->get_player_game(playerID));
+	return "<06" + APRemote_CleanString(locationName) + ">";
 }
 
 // *** Callback for "PrintJSON" ***
@@ -169,21 +206,82 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 	std::stringstream s;
 	if (args.type == "ItemSend")
 	{
-		if (*args.receiving == args.item->player)
-			s << "You got your ";
-		else
-			s << "Received ";
+		// We are receiving an item
+		if (*args.receiving == ap->get_player_number())
+		{
+			if (*args.receiving == args.item->player) // From (and to) ourselves
+				s << "You got your ";
+			else // Someone else sent us something
+				s << "Received ";
 
-		s << APRemote_BuildItemString(*args.item);
+			s << APRemote_BuildItemString(*args.item, *args.receiving);
 
-		if (*args.receiving != args.item->player)
-			s << " from " << ap->get_player_alias(args.item->player);
+			if (*args.receiving != args.item->player)
+				s << " from " << APRemote_GetPlayerName(args.item->player);
+
+			apmsg_playSFX(args.item->item >= ARCHIPELAGO_BASE_ID+980
+				? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
+		}
+		// We are sending an item to another person
+		else if (args.item->player == ap->get_player_number())
+		{
+			s << "Sent " << APRemote_BuildItemString(*args.item, *args.receiving);
+			s << " to " << APRemote_GetPlayerName(*args.receiving);
+		}
+		else return; // We don't care about items that don't pertain to us
 	}
-	else
-		return;
+	// We are getting an item from the server via !getitem (ignore original message contents)
+	else if (args.type == "ItemCheat")
+	{
+		if (*args.receiving != ap->get_player_number())
+			return; // Don't care if someone else used !getitem
+
+		s << "Received " << APRemote_BuildItemString(*args.item, *args.receiving);
+		s << " from [Server]";
+
+		apmsg_playSFX(args.item->item >= ARCHIPELAGO_BASE_ID+980
+			? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
+	}
+	// A hint that pertains to us was received (ignore original message contents)
+	else if (args.type == "Hint")
+	{
+		s << APRemote_GetPlayerName(*args.receiving) << "'s ";
+		s << APRemote_BuildItemString(*args.item, *args.receiving) << " is at\n";
+		s << APRemote_BuildLocationString(args.item->location, args.item->player);
+		s << "\nin " << APRemote_GetPlayerName(args.item->player) << "'s world. ";
+		if (*args.found)
+			s << "<C5(found)";
+		else
+			s << "<45(not found)";
+	}
+	// Someone joined or left the game (ignore original message contents)
+	else if (args.type == "Join" || args.type == "Part")
+	{
+		s << APRemote_GetPlayerName(*args.slot, *args.team);
+		if (args.type == "Join")
+		{
+			s << " [" << ap->get_player_game(*args.slot) << "]";
+			s << " joined the game";
+		}
+		else
+			s << " left the game";
+	}
+	// Most other types that we don't handle in any special way
+	else if (args.type != "Tutorial" && args.type != "TagsChanged")
+	{
+		std::string message = ap->render_json(args.data, APClient::RenderFormat::TEXT);
+		s << APRemote_CleanString(message);
+
+		if (args.type == "Countdown" || args.type == "Chat" || args.type == "ServerChat")
+			apmsg_playSFX(APSFX_CHAT);
+		if (args.type == "Countdown")
+			apmsg_setSpeed(8);
+	}
+	// Don't handle tutorial text.
+	else return;
 
 	std::string output = s.str();
-	JE_drawTextWindowColorful(output.c_str());
+	apmsg_enqueue(output.c_str());
 }
 
 // ============================================================================
@@ -193,11 +291,12 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 // These are C structs that are available C side.
 apitem_t APItems; // Weapons, levels; One time collectibles, etc.
 apstat_t APStats; // Cash, Armor, Power, etc. Upgradable stats.
+apupdatereq_t APUpdateRequest; // When C++ side thinks C needs to redraw something
 
 // ----------------------------------------------------------------------------
 
 static const int remoteCashItemValues[] =
-	{50, 75, 100, 150, 200, 300, 375, 500, 750, 800, 1000, 2000, 5000, 7500, 10000, 20000, 40000, 750000, 100000, 1000000};
+	{50, 75, 100, 150, 200, 300, 375, 500, 750, 800, 1000, 2000, 5000, 7500, 10000, 20000, 40000, 75000, 100000, 1000000};
 
 // Based on item ID, adjusts APItems or APStats appropriately to mark it as acquired.
 // Uses local IDs, but is called in both local and remote play.
@@ -228,10 +327,14 @@ static void APAll_ResolveItem(int item)
 	else if (item == 902) APStats.ArmorLevel += 2;
 	else if (item == 903) APStats.ShieldLevel += 2;
 	else if (item == 904) APStats.SolarShield = true;
-	else if (item == 904) ++APStats.QueuedSuperBombs;
+	else if (item == 905) ++APStats.QueuedSuperBombs;
 	else if (item >= 980) APStats.Cash += remoteCashItemValues[item - 980];
 
 	std::cout << "Item resolved: " << item << std::endl;
+
+	// Flags to send back to main game, if it's in game, to redraw stuff
+	if      (item == 902) APUpdateRequest.Armor += 2;
+	else if (item == 903) APUpdateRequest.Shield += 2;
 }
 
 // Parses "StartState" structure. In all JSON blobs.
@@ -246,7 +349,7 @@ static void APAll_ParseStartState(json &j)
 	APStats.ArmorLevel = 10 + (j.value<int>("Armor", 0) * 2);
 	APStats.ShieldLevel = 10 + (j.value<int>("Shield", 0) * 2);
 	APStats.PowerMaxLevel = j.value<int>("Power", 0);
-	APStats.GeneratorLevel = j.value<int>("Generator", 0);
+	APStats.GeneratorLevel = 1 + j.value<int>("Generator", 0);
 	APStats.SolarShield = j.value<bool>("SolarShield", false);
 	APStats.Cash = j.value<int64_t>("Credits", 0);
 }
@@ -302,7 +405,7 @@ static void APLocal_ReceiveItem(int64_t locationID)
 
 	Uint8 flags = APLocal_GetItemFlags(itemID, locationID);
 	std::string output = "You got your " + APLocal_BuildItemString(itemID, flags);
-	JE_drawTextWindowColorful(output.c_str());
+	apmsg_enqueue(output.c_str());
 
 	std::cout << "You got your "
 	          << APLocal_BuildANSIString(itemID, flags)
@@ -325,7 +428,7 @@ static void APRemote_ParseProgressionData(json &j)
 // *** Callback for APClient's "OnLocationChecked" ***
 // Keeps a local copy of all checked locations, used to suppress items from spawning
 // if they've already been collected in the seed
-static void APRemote_CB_RemoteLocationCheck(const std::list <int64_t>& locations)
+static void APRemote_CB_RemoteLocationCheck(const std::list<int64_t>& locations)
 {
 	allLocationsChecked.insert(locations.begin(), locations.end());
 }
@@ -336,9 +439,14 @@ static void APRemote_CB_ReceiveItem(const std::list<APClient::NetworkItem>& item
 {
 	for (auto const &item : items)
 	{
-		if (allOurItemLocations.count(item.location) == 1)
-			continue; // Already handled the item from this location, ignore
-		allOurItemLocations.insert({item.location});
+		// -1 is cheat console, -2 is starting inventory
+		// We allow infinite number of items from those locations for obvious reasons
+		if (item.location != -1 && item.location != -2)
+		{
+			if (allOurItemLocations.count(item.location) == 1)
+				continue; // Already handled the item from this location, ignore
+			allOurItemLocations.insert({item.location});
+		}
 
 		// Messaging is handled when we receive the PrintJSON.
 		APAll_ResolveItem(item.item);
@@ -380,12 +488,140 @@ bool Archipelago_CheckHasProgression(int checkID)
 }
 
 // ============================================================================
+// Shops
+// ============================================================================
+
+static std::unordered_map<Uint16, Uint16> shopPrices;
+
+static shopitem_t shopItemBuffer[5];
+
+void APAll_ParseShopData(json &j)
+{
+	shopPrices.clear();
+
+	for (auto &location : j.items())
+	{
+		Uint16 locationID = std::stoi(location.key());
+		Uint16 itemID = location.value().template get<Uint16>();
+		shopPrices.emplace(locationID, itemID);
+	}
+}
+
+#if 0
+Uint16 APAll_GetItemIcon(int64_t itemID)
+{
+	// Automatically subtract the AP Base ID if we notice it.
+	if (itemID >= ARCHIPELAGO_BASE_ID && itemID <= ARCHIPELAGO_BASE_ID+999)
+		itemID -= ARCHIPELAGO_BASE_ID;
+	if (itemID < 0 || itemID > 999)
+		return 1;
+}
+#endif
+
+// ----------------------------------------------------------------------------
+
+// Scouted information about our shop items when playing remotely.
+// We only call for LocationScouts when completing a level for the first time.
+static std::unordered_map<Uint16, APClient::NetworkItem> scoutedShopLocations;
+
+void APRemote_CB_ScoutResults(const std::list<APClient::NetworkItem>& items)
+{
+	for (auto const &item : items)
+	{
+		std::cout << "Received scout for " << item.location << std::endl;
+		scoutedShopLocations.insert({item.location - ARCHIPELAGO_BASE_ID, item});
+	}
+}
+
+// ----------------------------------------------------------------------------
+
+int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
+{
+	memset(shopItemBuffer, 0, sizeof(shopItemBuffer));
+
+	int i;
+	for (i = 0; i < 5; ++i)
+	{
+		if (shopPrices.count(shopStartID + i) == 0)
+			break;
+		shopItemBuffer[i].LocationID = shopStartID + i;
+		shopItemBuffer[i].Cost = shopPrices[shopStartID + i];
+
+		std::string itemName;
+		std::string playerName = "";
+
+		if (APSeedSettings.ShopMenu == 2)
+		{
+			// Hidden shop contents mode (local or remote, doesn't matter)
+			itemName = "Archipelago Item " + i;
+			shopItemBuffer[i].Icon = 1003;
+		}
+		else if (!ap)
+		{
+			// Local game, we have the info already
+			itemName = APLocal_ItemNames[allLocationData[shopStartID + i]];
+		}
+		else if (scoutedShopLocations.count(shopStartID + i) == 1)
+		{
+			// Remote game, previously scouted location from the server
+			int playerID = scoutedShopLocations[shopStartID + i].player;
+			int itemID = scoutedShopLocations[shopStartID + i].item;
+
+			itemName = ap->get_item_name(itemID, ap->get_player_game(playerID));
+
+			// Only fill in player name if we know who it is, and it isn't us.
+			if (playerID != ap->get_player_number())
+				playerName = APRemote_GetPlayerName(playerID) + "'s";
+
+			if (scoutedShopLocations[shopStartID + i].flags & 1)
+				shopItemBuffer[i].Icon = 1007;
+			else
+				shopItemBuffer[i].Icon = 1003;
+		}
+		else
+		{
+			// We don't have the scouted info, for some reason
+			itemName = "Unknown Item " + i;
+			shopItemBuffer[i].Icon = 1003;
+		}
+
+		strncpy(shopItemBuffer[i].ItemName, itemName.c_str(), 40 - 1);
+		shopItemBuffer[i].ItemName[39] = 0;
+
+		strncpy(shopItemBuffer[i].PlayerName, playerName.c_str(), 40 - 1);
+		shopItemBuffer[i].PlayerName[39] = 0;
+	}
+	*shopItems = (i == 0) ? NULL : shopItemBuffer;
+	return i;
+}
+
+// Only relevant for local; sends out a LocationScouts request to get
+// the contents of our shops, when they're unlocked
+void Archipelago_ScoutShopItems(int shopStartID)
+{
+	if (!ap)
+		return;
+
+	std::list<int64_t> scoutRequests;
+	for (int i = 0; i < 5; ++i)
+	{
+		if (shopPrices.count(shopStartID + i) == 0)
+			break;
+		scoutRequests.emplace_back(shopStartID + i + ARCHIPELAGO_BASE_ID);
+		std::cout << "Scouting for location " << shopStartID + i + ARCHIPELAGO_BASE_ID << std::endl;
+	}
+
+	if (!scoutRequests.empty())
+		ap->LocationScouts(scoutRequests);
+}
+
+// ============================================================================
 // DeathLink
 // ============================================================================
 
 // Set to true in bounce handler if someone else has died.
 // Set to false by the game at start of stage.
-bool apDeathLinkReceived;
+bool APDeathLinkReceived;
 
 static double lastBounceTime; // Required to filter out own deathlinks.
 
@@ -407,17 +643,17 @@ std::vector<std::string> death_messages[] = {
 
 void APRemote_CB_Bounce(const json& bounceJson)
 {
-	if (!ArchipelagoOpts.deathlink)
+	if (!APSeedSettings.DeathLink || !APOptions.EnableDeathLink)
 		return;
 
 	std::cout << bounceJson << std::endl;
 	if (lastBounceTime == bounceJson["data"].at("time"))
 		return; // Ignore own deaths
 
-	apDeathLinkReceived = true;
+	APDeathLinkReceived = true;
 
-	std::string output = "^45" + bounceJson["data"].at("cause").template get<std::string>();
-	JE_drawTextWindowColorful(output.c_str());
+	std::string output = "<45" + bounceJson["data"].at("cause").template get<std::string>();
+	apmsg_enqueue(output.c_str());
 }
 
 // ----------------------------------------------------------------------------
@@ -425,10 +661,10 @@ void APRemote_CB_Bounce(const json& bounceJson)
 // Sends death out to the multiworld.
 void Archipelago_SendDeathLink(damagetype_t source)
 {
-	if (!ap || !ArchipelagoOpts.deathlink)
+	if (!ap || !APSeedSettings.DeathLink || !APOptions.EnableDeathLink)
 		return;
 
-	if (apDeathLinkReceived || source == DAMAGE_DEATHLINK)
+	if (APDeathLinkReceived || source == DAMAGE_DEATHLINK)
 		return; // Prevent chained deathlinks
 
 	int entry = rand() % death_messages[source].size();
@@ -438,7 +674,26 @@ void Archipelago_SendDeathLink(damagetype_t source)
 	json bounceData = { {"time", lastBounceTime}, {"cause", cause}, {"source", ap->get_slot()} };
 	ap->Bounce(bounceData, {}, {}, {"DeathLink"});
 
-	JE_drawTextWindowColorful("^45Sending death to your friends...");
+	apmsg_enqueue("<45Sending death to your friends...");
+}
+
+// Enables or disables DeathLink locally.
+// Call after changing APOptions.EnableDeathLink
+void Archipelago_UpdateDeathLinkState(void)
+{
+	if (!APSeedSettings.DeathLink)
+	{
+		APOptions.EnableDeathLink = false;
+		return;
+	}
+
+	if (!ap)
+		return;
+
+	std::list<std::string> tags;
+	if (APOptions.EnableDeathLink)
+		tags.push_back("DeathLink");
+	ap->ConnectUpdate(std::nullopt, tags);
 }
 
 // ============================================================================
@@ -457,17 +712,26 @@ bool Archipelago_StartLocalGame(FILE *file)
 		if (aptyrianJSON.at("NetVersion") > APTYRIAN_NET_VERSION)
 			throw new std::runtime_error("Version mismatch. You need to update APTyrian.");
 
-		ArchipelagoOpts.game_difficulty = aptyrianJSON["Settings"].at("Difficulty").template get<int>();
-		ArchipelagoOpts.hard_contact = aptyrianJSON["Settings"].at("HardContact").template get<bool>();
-		ArchipelagoOpts.excess_armor = aptyrianJSON["Settings"].at("ExcessArmor").template get<bool>();
-		ArchipelagoOpts.show_twiddle_inputs = aptyrianJSON["Settings"].at("ShowTwiddles").template get<bool>();
-		ArchipelagoOpts.archipelago_radar = aptyrianJSON["Settings"].at("APRadar").template get<bool>();
-		ArchipelagoOpts.christmas = aptyrianJSON["Settings"].at("Christmas").template get<bool>();
-		ArchipelagoOpts.deathlink = false;
+		APSeedSettings.PlayEpisodes = aptyrianJSON["Settings"].at("Episodes").template get<int>();
+		APSeedSettings.GoalEpisodes = aptyrianJSON["Settings"].at("Goal").template get<int>();
+		APSeedSettings.Difficulty = aptyrianJSON["Settings"].at("Difficulty").template get<int>();
+
+		APSeedSettings.ShopMenu = aptyrianJSON["Settings"].at("ShopMenu").template get<int>();
+		APSeedSettings.SpecialMenu = aptyrianJSON["Settings"].at("SpecialMenu").template get<int>();
+		APSeedSettings.HardContact = aptyrianJSON["Settings"].at("HardContact").template get<bool>();
+		APSeedSettings.ExcessArmor = aptyrianJSON["Settings"].at("ExcessArmor").template get<bool>();
+		APSeedSettings.TwiddleInputs = aptyrianJSON["Settings"].at("ShowTwiddles").template get<bool>();
+		APSeedSettings.ArchipelagoRadar = aptyrianJSON["Settings"].at("APRadar").template get<bool>();
+		APSeedSettings.Christmas = aptyrianJSON["Settings"].at("Christmas").template get<bool>();
+		APSeedSettings.DeathLink = false;
 
 		std::string obfuscated = aptyrianJSON.at("StartState").template get<std::string>();
 		json resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APAll_ParseStartState(resultJSON);
+
+		obfuscated = aptyrianJSON.at("ShopData").template get<std::string>();
+		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+		APAll_ParseShopData(resultJSON);
 
 		obfuscated = aptyrianJSON.at("LocationData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
@@ -560,17 +824,27 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		if (!tyrian2000detected && slot_data.at("Settings").at("RequireT2K") == true)
 			throw new std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
 
-		ArchipelagoOpts.game_difficulty = slot_data["Settings"].at("Difficulty").template get<int>();
-		ArchipelagoOpts.hard_contact = slot_data["Settings"].at("HardContact").template get<bool>();
-		ArchipelagoOpts.excess_armor = slot_data["Settings"].at("ExcessArmor").template get<bool>();
-		ArchipelagoOpts.show_twiddle_inputs = slot_data["Settings"].at("ShowTwiddles").template get<bool>();
-		ArchipelagoOpts.archipelago_radar = slot_data["Settings"].at("APRadar").template get<bool>();
-		ArchipelagoOpts.christmas = slot_data["Settings"].at("Christmas").template get<bool>();
-		ArchipelagoOpts.deathlink = slot_data["Settings"].at("DeathLink").template get<bool>();
+
+		APSeedSettings.PlayEpisodes = slot_data["Settings"].at("Episodes").template get<int>();
+		APSeedSettings.GoalEpisodes = slot_data["Settings"].at("Goal").template get<int>();
+		APSeedSettings.Difficulty = slot_data["Settings"].at("Difficulty").template get<int>();
+
+		APSeedSettings.ShopMenu = slot_data["Settings"].at("ShopMenu").template get<int>();
+		APSeedSettings.SpecialMenu = slot_data["Settings"].at("SpecialMenu").template get<int>();
+		APSeedSettings.HardContact = slot_data["Settings"].at("HardContact").template get<bool>();
+		APSeedSettings.ExcessArmor = slot_data["Settings"].at("ExcessArmor").template get<bool>();
+		APSeedSettings.TwiddleInputs = slot_data["Settings"].at("ShowTwiddles").template get<bool>();
+		APSeedSettings.ArchipelagoRadar = slot_data["Settings"].at("APRadar").template get<bool>();
+		APSeedSettings.Christmas = slot_data["Settings"].at("Christmas").template get<bool>();
+		APSeedSettings.DeathLink = slot_data["Settings"].at("DeathLink").template get<bool>();
 
 		std::string obfuscated = slot_data.at("StartState").template get<std::string>();
 		json resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APAll_ParseStartState(resultJSON);
+
+		obfuscated = slot_data.at("ShopData").template get<std::string>();
+		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+		APAll_ParseShopData(resultJSON);
 
 		obfuscated = slot_data.at("ProgressionData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
@@ -592,6 +866,10 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 	connection_stat = APCONN_READY;
 	connection_errors = 0;
 	connection_ever_made = true;
+
+	// Update tags if we need to.
+	if (APSeedSettings.DeathLink && APOptions.EnableDeathLink)
+		Archipelago_UpdateDeathLinkState();
 
 	// Resend all checks to make sure server is up to date.
 	Archipelago_ResendAllChecks();
@@ -631,6 +909,8 @@ void Archipelago_Connect(void)
 	connection_error_desc = "";
 	connection_ever_made = false;
 
+	APOptions.EnableDeathLink = true;
+
 	if (connection_server_address.empty())
 		return APRemote_FatalError("Please provide a server address to connect to.");
 	if (connection_slot_name.empty())
@@ -644,6 +924,7 @@ void Archipelago_Connect(void)
 	// Checks and Items
 	ap->set_items_received_handler(APRemote_CB_ReceiveItem);
 	ap->set_location_checked_handler(APRemote_CB_RemoteLocationCheck);
+	ap->set_location_info_handler(APRemote_CB_ScoutResults);
 
 	// DeathLink
 	ap->set_bounced_handler(APRemote_CB_Bounce);

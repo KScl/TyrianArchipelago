@@ -54,4 +54,8 @@ void JE_outTextAndDarken(SDL_Surface * screen, int x, int y, const char *s, unsi
 void JE_updateWarning(SDL_Surface * screen);
 void JE_outTextGlow(SDL_Surface * screen, int x, int y, const char *s);
 
+// ----------------------------------------------------------------------------
+
+void fonthand_outTextColorize(SDL_Surface *screen, int x, int y, const char *s, Uint8 defaultHue, Uint8 defaultVal, bool darken);
+
 #endif /* FONTHAND_H */

@@ -67,8 +67,8 @@ typedef struct
 	Uint8 *lives;
 	
 	// calculatable
-	uint shield_max;
-	uint initial_armor;
+	// uint shield_max; // replaced with APStats.ShieldLevel
+	// uint initial_armor; // replaced with APStats.ArmorLevel
 	uint shot_hit_area_x, shot_hit_area_y;
 	
 	// state
@@ -138,6 +138,8 @@ void player_drawPortConfigButtons(void);
 void player_wipeShieldArmorBars(void);
 void player_drawShield(void);
 void player_drawArmor(void);
+
+void player_boostArmor(Player *this_player, int amount);
 
 // ----------------------------------------------------------------------------
 

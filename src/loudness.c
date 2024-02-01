@@ -66,7 +66,7 @@ static FILE *music_file = NULL;
 static Uint32 *song_offset;
 static Uint16 song_count = 0;
 
-#define CHANNEL_COUNT 8
+#define CHANNEL_COUNT 16 // AP - Regular game uses lower 8, Archipelago audio uses upper 8
 static const Sint16 *channelSamples[CHANNEL_COUNT];
 static size_t channelSampleCount[CHANNEL_COUNT] = { 0 };
 static Uint8 channelVolume[CHANNEL_COUNT];

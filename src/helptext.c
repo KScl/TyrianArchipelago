@@ -278,7 +278,7 @@ void JE_loadHelpText(void)
 
 	/*Game speed text*/
 	skip_pascal_string(f);
-	for (unsigned int i = 0; i < COUNTOF(gameSpeedText); ++i)
+	for (unsigned int i = 0; i < COUNTOF(gameSpeedText) - 1; ++i)
 		read_encrypted_pascal_string(gameSpeedText[i], sizeof(gameSpeedText[i]), f);
 	strncpy(gameSpeedText[5], "Unbounded", sizeof(gameSpeedText[5]));
 	skip_pascal_string(f);

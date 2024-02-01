@@ -37,6 +37,7 @@ JE_boolean newkey, newmouse, keydown, mousedown;
 SDL_Scancode lastkey_scan;
 SDL_Keymod lastkey_mod;
 Uint8 lastmouse_but;
+Sint8 mousewheel;
 Sint32 lastmouse_x, lastmouse_y;
 JE_boolean mouse_pressed[3] = {false, false, false};
 Sint32 mouse_x, mouse_y;
@@ -151,6 +152,7 @@ void service_SDL_events(JE_boolean clear_new)
 		newmouse = false;
 		new_text = false;
 		requestReadClipboard = false;
+		mousewheel = 0;
 	}
 
 	while (SDL_PollEvent(&ev))
@@ -224,6 +226,13 @@ void service_SDL_events(JE_boolean clear_new)
 
 				if (ev.motion.xrel != 0 || ev.motion.yrel != 0)
 					mouseInactive = false;
+				break;
+
+			case SDL_MOUSEWHEEL:
+				if (ev.wheel.y != 0)
+					mousewheel = ev.wheel.y;
+				if (ev.wheel.direction == SDL_MOUSEWHEEL_FLIPPED)
+					mousewheel *= -1;
 				break;
 
 			case SDL_MOUSEBUTTONDOWN:

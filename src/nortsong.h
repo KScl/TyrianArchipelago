@@ -51,4 +51,10 @@ void JE_changeVolume(JE_word *music, int music_delta, JE_word *sample, int sampl
 void nortsong_loadSoundFiles(void);
 void JE_playSampleNum(JE_byte samplenum);
 
+// Plays sound on specially reserved channels 9-15, to ensure it goes through
+void nortsong_playPrioritySound(JE_byte samplenum);
+
+// Plays voice on specially reserved channel 16, and checks for Christmas
+void nortsong_playVoice(JE_byte samplenum);
+
 #endif /* NORTSONG_H */

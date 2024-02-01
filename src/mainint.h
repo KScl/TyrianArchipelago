@@ -39,7 +39,7 @@ extern bool pause_pressed, ingamemenu_pressed;
 
 /*void JE_textMenuWait(JE_word waittime, JE_boolean dogamma);*/
 
-void JE_drawTextWindow(const char *text);
+//void JE_drawTextWindow(const char *text);
 void JE_initPlayerData(void);
 void JE_highScoreScreen(void);
 void JE_gammaCorrect_func(JE_byte *col, JE_real r);
@@ -51,15 +51,15 @@ void JE_helpSystem(JE_byte startTopic);
 void JE_doInGameSetup(void);
 JE_boolean JE_inGameSetup(void);
 void JE_inGameHelp(void);
-void JE_sortHighScores(void);
-void JE_highScoreCheck(void);
+//void JE_sortHighScores(void);
+//void JE_highScoreCheck(void);
 //void adjust_difficulty(void);
 
 bool load_next_demo(void);
 bool replay_demo_keys(void);
 
 void JE_SFCodes(JE_byte playerNum_, JE_integer PX_, JE_integer PY_, JE_integer mouseX_, JE_integer mouseY_);
-void JE_sort(void);
+//void JE_sort(void);
 
 long weapon_upgrade_cost(long base_cost, unsigned int power);
 ulong JE_getCost(JE_byte itemType, JE_word itemNum);
@@ -73,8 +73,8 @@ void JE_endLevelAni(void);
 void JE_drawCube(SDL_Surface * screen, JE_word x, JE_word y, JE_byte filter, JE_byte brightness);
 void JE_handleChat(void);
 bool str_pop_int(char *str, int *val);
-bool JE_loadScreen(void);
-void JE_operation(JE_byte slot);
+//bool JE_loadScreen(void);
+//void JE_operation(JE_byte slot);
 void JE_inGameDisplays(void);
 void JE_mainKeyboardInput(void);
 void JE_pauseGame(void);

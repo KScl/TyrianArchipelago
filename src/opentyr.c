@@ -19,7 +19,6 @@
 #include "opentyr.h"
 
 #include "config.h"
-#include "editship.h"
 #include "episodes.h"
 #include "file.h"
 #include "font.h"
@@ -814,7 +813,7 @@ int main(int argc, char *argv[])
 	if (record_demo)
 		printf("demo recording enabled (input limited to keyboard)\n");
 
-	JE_loadExtraShapes();  /*Editship*/
+	//JE_loadExtraShapes();  /*Editship*/
 
 	JE_loadHelpText();
 	/*debuginfo("Help text complete");*/
@@ -840,7 +839,7 @@ int main(int argc, char *argv[])
 	for (; ; )
 	{
 		JE_initPlayerData();
-		JE_sortHighScores();
+		//JE_sortHighScores();
 
 		play_demo = false;
 		stopped_demo = false;

@@ -35,7 +35,7 @@ extern PlayerShotDataType playerShotData[MAX_PWEAPON + 1];
 extern JE_byte shotAvail[MAX_PWEAPON];
 
 /** Used in the shop to show weapon previews. */
-void simulate_player_shots(void);
+//void simulate_player_shots(void);
 
 /** Points shot movement in the specified direction. Used for the turret gun. */
 void player_shot_set_direction(JE_integer shot_id, uint weapon_id, JE_real direction);
@@ -55,5 +55,10 @@ JE_integer player_shot_create(
 	JE_word portnum, uint shot_i, JE_word px, JE_word py,
 	JE_word mousex, JE_word mousey,
 	JE_word wpnum, JE_byte playernum);
+
+// ----------------------------------------------------------------------------
+
+void shots_initShotSim(void); // fka JE_initWeaponView
+void shots_runShotSim(void); // fka JE_weaponViewFrame
 
 #endif // SHOTS_H

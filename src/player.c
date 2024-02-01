@@ -62,6 +62,33 @@ void handle_got_purple_ball(Player *this_player)
 		power_up_weapon(this_player, this_player->is_dragonwing ? REAR_WEAPON : FRONT_WEAPON);
 }
 
+void player_boostArmor(Player *this_player, int amount)
+{
+	if (twoPlayerLinked)
+	{
+		// share the armor evenly between linked players
+		for (uint i = 0; i < COUNTOF(player); ++i)
+		{
+			player[i].armor += amount / COUNTOF(player);
+			if (player[i].armor > 28)
+				player[i].armor = 28;
+
+			if (!APSeedSettings.ExcessArmor && player[i].armor > APStats.ArmorLevel)
+				player[i].armor = APStats.ArmorLevel;
+		}
+	}
+	else
+	{
+		this_player->armor += amount;
+		if (this_player->armor > 28)
+			this_player->armor = 28;
+
+		if (!APSeedSettings.ExcessArmor && this_player->armor > APStats.ArmorLevel)
+			this_player->armor = APStats.ArmorLevel;
+	}
+	player_drawArmor();
+}
+
 // ---------------------------------------------------------------------------
 
 Uint16 player_getPortConfigCount(void) // JE_portConfigs
@@ -121,9 +148,9 @@ void player_drawShield(void)
 	else
 	{
 		JE_dBar3(VGAScreenSeg, 270, 194, player[0].shield, 144);
-		if (player[0].shield != player[0].shield_max)
+		if (player[0].shield != APStats.ShieldLevel)
 		{
-			const uint y = 193 - (player[0].shield_max * 2);
+			const uint y = 193 - (APStats.ShieldLevel * 2);
 			JE_rectangle(VGAScreenSeg, 270, y, 278, y, 68); /* <MXD> SEGa000 */
 		}
 	}
@@ -132,9 +159,13 @@ void player_drawShield(void)
 void player_drawArmor(void)
 {
 	// This is a very silly place to have this cap but it was here originally, so...
-	for (uint i = 0; i < COUNTOF(player); ++i)
-		if (player[i].armor > 28)
-			player[i].armor = 28;
+	//for (uint i = 0; i < COUNTOF(player); ++i)
+	//	if (player[i].armor > 28)
+	//		player[i].armor = 28;
+
+	// So you know what why not join the silliness
+	//if (APSeedSettings.ExcessArmor && player[0].armor > APStats.ArmorLevel)
+	//	player[0].armor = APStats.ArmorLevel;
 
 	if (twoPlayerMode && !galagaMode)
 	{
@@ -144,9 +175,9 @@ void player_drawArmor(void)
 	else
 	{
 		JE_dBar3(VGAScreenSeg, 307, 194, player[0].armor, 224);
-		if (!ArchipelagoOpts.excess_armor && player[0].armor < player[0].initial_armor)
+		if (!APSeedSettings.ExcessArmor && player[0].armor < APStats.ArmorLevel)
 		{
-			const uint y = 193 - (player[0].initial_armor * 2);
+			const uint y = 193 - (APStats.ArmorLevel * 2);
 			JE_rectangle(VGAScreenSeg, 307, y, 315, y, 68); /* <MXD> SEGa000 */
 		}
 	}
@@ -164,7 +195,7 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 		return 0;
 
 	soundQueue[7] = S_SHIELD_HIT;
-	if (ArchipelagoOpts.hard_contact && damageType == DAMAGE_CONTACT)
+	if (APSeedSettings.HardContact && damageType == DAMAGE_CONTACT)
 	{
 		this_player->shield = 0;
 		damageAmount = 1;
@@ -224,7 +255,10 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 // Handle receiving a DeathLink request from someone else.
 void player_handleDeathLink(Player *this_player)
 {
-	if (!this_player->is_alive || !apDeathLinkReceived)
+	if (!this_player->is_alive
+		|| !APSeedSettings.DeathLink // DeathLink off in seed
+		|| !APOptions.EnableDeathLink // DeathLink off in options menu
+		|| !APDeathLinkReceived) // Haven't received one
 		return;
 
 	this_player->shield = 0;
@@ -234,10 +268,10 @@ void player_handleDeathLink(Player *this_player)
 
 void player_debugCauseDeathLink(void)
 {
-	apDeathLinkReceived = true;
+	APDeathLinkReceived = true;
 }
 
 void player_resetDeathLink(void)
 {
-	apDeathLinkReceived = false;
+	APDeathLinkReceived = false;
 }

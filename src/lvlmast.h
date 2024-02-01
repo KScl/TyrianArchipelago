@@ -51,8 +51,34 @@ struct JE_EventRecType
 extern struct JE_EventRecType eventRec[EVENT_MAXIMUM]; /* [1..eventMaximum] */
 extern JE_word maxEvent;
 
-//void level_loadEvents(FILE *level_f, JE_byte levelNum);
+void level_loadFromLevelID(int levelID);
 
-void level_loadFromLevelID(Uint16 levelID);
+// ----------------------------------------------------------------------------
+
+#define LEVELDATA_COUNT 65
+
+typedef struct {
+	Uint16 episodeNum;
+	Uint16 levelNum;
+	Uint16 levelNumHard;
+	Uint8 planetNum;
+	Uint8 musicNum;
+
+	// Start of location/shop checks for this level
+	Uint16 locStart;
+	Uint16 shopStart;
+
+	const char *levelName; // Shown in level
+	const char *prettyName; // Shown in menus
+
+	bool endEpisode;
+} leveldata_t;
+
+extern int currentLevelID;
+
+extern leveldata_t allLevelData[LEVELDATA_COUNT];
+extern bool allCompletions[LEVELDATA_COUNT];
+
+int level_getByEpisode(Uint8 episode, Uint8 levelID);
 
 #endif /* LVLMAST_H */

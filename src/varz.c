@@ -19,7 +19,6 @@
 #include "varz.h"
 
 #include "config.h"
-#include "editship.h"
 #include "episodes.h"
 #include "joystick.h"
 #include "lds_play.h"
@@ -35,6 +34,8 @@
 #include "sprite.h"
 #include "vga256d.h"
 #include "video.h"
+
+#include "archipelago/apconnect.h"
 
 JE_integer tempDat, tempDat2, tempDat3;
 
@@ -320,13 +321,14 @@ Sprite2_array *shipGrPtr, *shipGr2ptr;
 
 void JE_getShipInfo(void)
 {
-	JE_boolean extraShip, extraShip2;
+	//JE_boolean extraShip, extraShip2;
 
 	shipGrPtr = &spriteSheet9;
 	shipGr2ptr = &spriteSheet9;
 
-	powerAdd  = powerSys[player[0].items.generator].power;
+	//powerAdd  = powerSys[player[0].items.generator].power;
 
+#if 0
 	extraShip = player[0].items.ship > 90;
 	if (extraShip)
 	{
@@ -352,13 +354,19 @@ void JE_getShipInfo(void)
 		shipGr2 = 0;
 		player[1].armor = 10;
 	}
+#else
+	shipGr = ships[player[0].items.ship].shipgraphic;
+	player[0].armor = APStats.ArmorLevel;
+
+	shipGr2 = 0;
+	player[1].armor = 10;
+#endif
 
 	for (uint i = 0; i < COUNTOF(player); ++i)
 	{
-		player[i].initial_armor = player[i].armor;
+		//player[i].initial_armor = player[i].armor;
 
-		uint temp = ((i == 0 && extraShip) ||
-		             (i == 1 && extraShip2)) ? 2 : ships[player[i].items.ship].ani;
+		uint temp = ships[player[i].items.ship].ani;
 
 		if (temp == 0)
 		{
@@ -373,6 +381,7 @@ void JE_getShipInfo(void)
 	}
 }
 
+#if 0
 JE_word JE_SGr(JE_word ship, Sprite2_array **ptr)
 {
 	const JE_word GR[15] /* [1..15] */ = {233, 157, 195, 271, 81, 0, 119, 5, 43, 81, 119, 157, 195, 233, 271};
@@ -383,6 +392,7 @@ JE_word JE_SGr(JE_word ship, Sprite2_array **ptr)
 
 	return GR[tempW-1];
 }
+#endif
 
 void JE_drawOptions(void)
 {

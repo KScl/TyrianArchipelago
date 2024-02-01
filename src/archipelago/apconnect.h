@@ -10,22 +10,34 @@ typedef enum {
 	APCONN_READY
 } archipelago_connectionstat_t;
 
+typedef enum {
+	APSFX_RECEIVE_ITEM = 1,
+	APSFX_RECEIVE_MONEY,
+	APSFX_CHAT,
+} archipelago_sound_t;
+
 typedef struct {
-	int goal;
-	bool shops_exist;
+	int PlayEpisodes;
+	int GoalEpisodes;
+	int Difficulty;
 
-	int game_difficulty;
-	bool hard_contact;
-	bool excess_armor;
-	bool show_twiddle_inputs;
-
-	bool archipelago_radar;
-	bool christmas;
-
-	bool deathlink;
+	int ShopMenu;
+	bool SpecialMenu;
+	bool HardContact;
+	bool ExcessArmor;
+	bool TwiddleInputs;
+	bool ArchipelagoRadar;
+	bool Christmas;
+	bool DeathLink;
 } archipelago_settings_t;
 
-extern archipelago_settings_t ArchipelagoOpts;
+extern archipelago_settings_t APSeedSettings;
+
+typedef struct {
+	bool EnableDeathLink;
+} archipelago_options_t;
+
+extern archipelago_options_t APOptions;
 
 // ----------------------------------------------------------------------------
 // Local Game
@@ -48,7 +60,7 @@ archipelago_connectionstat_t Archipelago_ConnectionStatus(void);
 const char* Archipelago_GetConnectionError(void);
 
 // ----------------------------------------------------------------------------
-// Checks
+// Items and Checks
 // ----------------------------------------------------------------------------
 
 typedef struct {
@@ -61,22 +73,46 @@ typedef struct {
 
 typedef struct {
 	Uint8  PowerMaxLevel; // 0 - 10; +1 per "Maximum Power Up"
-	Uint8  GeneratorLevel; // 0 - 5; +1 per "Progressive Generator"
+	Uint8  GeneratorLevel; // 1 - 6; +1 per "Progressive Generator"
 
 	Uint8  ArmorLevel; // 10 - 28; +2 per "Armor Up"
 	Uint8  ShieldLevel; // 10 - 28; +2 per "Shield Up"
 	bool   SolarShield; // True if obtained
 
 	Uint8  QueuedSuperBombs; // Will be given to the player next available opportunity
-	Uint32 Cash;
+	Uint64 Cash;
 } apstat_t;
+
+typedef struct {
+	Uint8 Armor;
+	Uint8 Shield;
+} apupdatereq_t;
 
 extern apitem_t APItems;
 extern apstat_t APStats;
+extern apupdatereq_t APUpdateRequest;
 
 void Archipelago_SendCheck(int checkID);
 bool Archipelago_WasChecked(int checkID);
 bool Archipelago_CheckHasProgression(int checkID);
+
+// ----------------------------------------------------------------------------
+// Shops
+// ----------------------------------------------------------------------------
+
+typedef struct {
+	Uint16 LocationID;
+	Uint16 Cost;
+	Uint16 Icon;
+	char   ItemName[40];
+	char   PlayerName[40];
+} shopitem_t;
+
+// Returns count of items contained in *items
+int Archipelago_GetShopItems(int shopStartID, shopitem_t **items);
+
+// Scouts for shop items (only relevant for remote game)
+void Archipelago_ScoutShopItems(int shopStartID);
 
 // ----------------------------------------------------------------------------
 // DeathLink
@@ -91,6 +127,7 @@ typedef enum { // redefinition
 } damagetype_t;
 #endif
 
-extern bool apDeathLinkReceived;
+extern bool APDeathLinkReceived;
 
 void Archipelago_SendDeathLink(damagetype_t source);
+void Archipelago_UpdateDeathLinkState(void);

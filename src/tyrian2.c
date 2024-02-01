@@ -20,12 +20,12 @@
 
 #include "animlib.h"
 #include "apmenu.h"
+#include "apmsg.h"
 #include "backgrnd.h"
 #include "episodes.h"
 #include "file.h"
 #include "font.h"
 #include "fonthand.h"
-#include "game_menu.h"
 #include "joystick.h"
 #include "keyboard.h"
 #include "lds_play.h"
@@ -790,7 +790,8 @@ start_level:
 			fade_song();
 			fade_black(10);
 
-			JE_loadGame(twoPlayerMode ? 22 : 11);
+			//JE_loadGame(twoPlayerMode ? 22 : 11);
+			player[0].cash = 0;
 			if (doNotSaveBackup)
 			{
 				superTyrian = false;
@@ -895,13 +896,14 @@ start_level_first:
 	backPos = 0;
 	backPos2 = 0;
 	backPos3 = 0;
-	power = 0;
+	generatorPower = 0;
 	starfield_speed = 1;
 
 	/* Setup player ship graphics */
 	JE_getShipInfo();
 
 	player_resetDeathLink();
+	memset(&APUpdateRequest, 0, sizeof(APUpdateRequest));
 
 	for (uint i = 0; i < COUNTOF(player); ++i)
 	{
@@ -970,19 +972,18 @@ start_level_first:
 	uint old_weapon_bar[2] = { 0, 0 };  // only redrawn when they change
 
 	/* Initially erase power bars */
-	lastPower = power / 10;
+	lastGenPower = generatorPower / 10;
 
 	/* Initial Text */
-	JE_drawTextWindow(miscText[20]);
+	apmsg_drawInGameText(miscText[20]);
 
 	/* Setup Armor/Shield Data */
 	shieldWait = 1;
-	shieldT    = shields[player[0].items.shield].tpwr * 20;
 
 	for (uint i = 0; i < COUNTOF(player); ++i)
 	{
 		player[i].shield     = shields[player[i].items.shield].mpwr;
-		player[i].shield_max = player[i].shield * 2;
+		//player[i].shield_max = player[i].shield * 2;
 	}
 
 	player_drawShield();
@@ -1021,12 +1022,14 @@ start_level_first:
 
 	set_volume(tyrMusicVolume, fxVolume);
 
+#if 0
 	/*Save backup game*/
 	if (!play_demo && !doNotSaveBackup)
 	{
 		temp = twoPlayerMode ? 22 : 11;
 		JE_saveGame(temp, "LAST LEVEL    ");
 	}
+#endif
 
 	if (!play_demo && record_demo)
 	{
@@ -1142,7 +1145,7 @@ start_level_first:
 
 	/* --- Clear Sound Queue --- */
 	memset(soundQueue,       0, sizeof(soundQueue));
-	soundQueue[3] = V_GOOD_LUCK;
+	nortsong_playVoice(V_GOOD_LUCK);
 
 	memset(enemySpriteSheetIds, 0, sizeof(enemySpriteSheetIds));
 	memset(enemy,               0, sizeof(enemy));
@@ -1238,9 +1241,21 @@ level_loop:
 	{
 		VGAScreen = VGAScreenSeg; /* side-effect of game_screen */
 
-		/*-----------------------Message Bar------------------------*/
-		if (textErase > 0 && --textErase == 0)
-			blit_sprite(VGAScreenSeg, 16, 189, OPTION_SHAPES, 36);  // in-game message area
+		// Message bar moved into apmsg_manageQueue:
+		apmsg_manageQueue(true);
+
+		// Give player queued superbombs if we can.
+		if (player[0].superbombs < 10 && APStats.QueuedSuperBombs)
+		{
+			--APStats.QueuedSuperBombs;
+			++player[0].superbombs;
+		}
+
+		if (APUpdateRequest.Armor)
+			player_boostArmor(&player[0], APUpdateRequest.Armor);
+		if (APUpdateRequest.Shield)
+			player_drawShield();
+		memset(&APUpdateRequest, 0, sizeof(APUpdateRequest));
 
 		/*------------------------Shield Gen-------------------------*/
 		if (galagaMode)
@@ -1270,6 +1285,10 @@ level_loop:
 		}
 		else // not galagaMode
 		{
+			// For reference: Default shields are 6*20
+			uint shieldT = APStats.SolarShield ? 20 : 140;
+			// shieldT = shields[player[0].items.shield].tpwr * 20;
+
 			if (twoPlayerMode)
 			{
 				if (--shieldWait == 0)
@@ -1278,23 +1297,23 @@ level_loop:
 
 					for (uint i = 0; i < COUNTOF(player); ++i)
 					{
-						if (player[i].shield < player[i].shield_max && player[i].is_alive)
+						if (player[i].shield < APStats.ShieldLevel && player[i].is_alive)
 							++player[i].shield;
 					}
 
 					player_drawShield();
 				}
 			}
-			else if (player[0].is_alive && player[0].shield < player[0].shield_max && power > shieldT)
+			else if (player[0].is_alive && player[0].shield < APStats.ShieldLevel && generatorPower > shieldT)
 			{
 				if (--shieldWait == 0)
 				{
 					shieldWait = 15;
 
-					power -= shieldT;
+					generatorPower -= shieldT;
 
 					++player[0].shield;
-					if (player[1].shield < player[0].shield_max)
+					if (player[1].shield < APStats.ShieldLevel)
 						++player[1].shield;
 
 					player_drawShield();
@@ -1327,24 +1346,24 @@ level_loop:
 		/*------------------------Power Bar-------------------------*/
 		if (twoPlayerMode || onePlayerAction)
 		{
-			power = 900;
+			generatorPower = 900;
 		}
 		else
 		{
-			power += powerAdd;
-			if (power > 900)
-				power = 900;
+			generatorPower += powerSys[APStats.GeneratorLevel].power;
+			if (generatorPower > 900)
+				generatorPower = 900;
 
-			temp = power / 10;
+			temp = generatorPower / 10;
 
-			if (temp != lastPower)
+			if (temp != lastGenPower)
 			{
-				if (temp > lastPower)
-					fill_rectangle_xy(VGAScreenSeg, 269, 113 - 11 - temp, 276, 114 - 11 - lastPower, 113 + temp / 7);
+				if (temp > lastGenPower)
+					fill_rectangle_xy(VGAScreenSeg, 269, 113 - 11 - temp, 276, 114 - 11 - lastGenPower, 113 + temp / 7);
 				else
-					fill_rectangle_xy(VGAScreenSeg, 269, 113 - 11 - lastPower, 276, 114 - 11 - temp, 0);
+					fill_rectangle_xy(VGAScreenSeg, 269, 113 - 11 - lastGenPower, 276, 114 - 11 - temp, 0);
 				
-				lastPower = temp;
+				lastGenPower = temp;
 			}
 		}
 
@@ -3071,13 +3090,12 @@ bool JE_loadMap(void)
 #endif
 	nextLevel = 1;
 
-	Uint16 levelID = ap_itemScreen();
-	if (levelID == 0)
+	int levelID = ap_itemScreen();
+	if (levelID < 0)
 	{
 		Archipelago_Disconnect();
 		return 0;
 	}
-	printf("levelID = %d\n", levelID);
 	level_loadFromLevelID(levelID);
 
 	loadLevelOk = true;
@@ -4481,7 +4499,7 @@ void JE_eventSystem(void)
 		break;
 
 	case 116: // HardContactCallout
-		if (!ArchipelagoOpts.hard_contact)
+		if (!APSeedSettings.HardContact)
 			break;
 		// fall through
 	case 16: // VoicedCallout
@@ -4491,8 +4509,8 @@ void JE_eventSystem(void)
 		}
 		else
 		{
-			JE_drawTextWindow(outputs[eventRec[eventLoc-1].eventdat-1]);
-			soundQueue[3] = windowTextSamples[eventRec[eventLoc-1].eventdat-1];
+			apmsg_drawInGameText(outputs[eventRec[eventLoc-1].eventdat-1]);
+			nortsong_playVoice(windowTextSamples[eventRec[eventLoc-1].eventdat-1]);
 		}
 		break;
 

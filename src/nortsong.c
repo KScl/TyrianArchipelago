@@ -28,6 +28,8 @@
 #include "sndmast.h"
 #include "vga256d.h"
 
+#include "archipelago/apconnect.h"
+
 #include "SDL.h"
 
 JE_word frameCountMax;
@@ -37,7 +39,7 @@ size_t soundSampleCount[SOUND_COUNT] = { 0 }; /* [1..soundnum + 9] */  // FKA fx
 
 JE_word tyrMusicVolume, fxVolume;
 const JE_word fxPlayVol = 4;
-JE_word tempVolume;
+JE_word tempVolume; 
 
 // The period of the x86 programmable interval timer in milliseconds.
 static const float pitPeriod = (12.0f / 14318180.0f) * 1000.0f;
@@ -211,10 +213,6 @@ void nortsong_loadSoundFiles()
 	}
 
 	free(cvt.buf);
-
-	return;
-
-
 }
 
 void JE_playSampleNum(JE_byte samplenum)
@@ -265,4 +263,25 @@ void JE_changeVolume(JE_word *music, int music_delta, JE_word *sample, int sampl
 	*sample = sample_temp;
 	
 	set_volume(*music, *sample);
+}
+
+// ----------------------------------------------------------------------------
+
+static Uint8 priorityChannel = 8;
+
+void nortsong_playPrioritySound(JE_byte samplenum)
+{
+	multiSamplePlay(soundSamples[samplenum-1],
+		            soundSampleCount[samplenum-1],
+		            priorityChannel, fxPlayVol);
+
+	if (++priorityChannel >= 15)
+		priorityChannel = 8;
+}
+
+void nortsong_playVoice(JE_byte samplenum)
+{
+	if (APSeedSettings.Christmas)
+		samplenum += 9;
+	multiSamplePlay(soundSamples[samplenum-1], soundSampleCount[samplenum-1], 15, fxPlayVol);
 }
