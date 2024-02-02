@@ -31,7 +31,7 @@ bool has_mouse = true;
 #endif
 bool mouse_has_three_buttons = true;
 
-bool mouseInactive = true;
+mousestate_t mouseActivity = MOUSE_INACTIVE;
 JE_byte mouseCursor;
 JE_word mouseX, mouseY, mouseButton;
 JE_word mouseXB, mouseYB;
@@ -128,7 +128,7 @@ void JE_mouseStart(void)
 
 		JE_grabShapeTypeOne(mouseGrabX, mouseGrabY, mouseGrabShape);
 
-		if (!mouseInactive)
+		if (mouseActivity != MOUSE_INACTIVE)
 		{
 			const Sint32 x = mouse_x - spriteInfo->x - spriteInfo->fx;
 			const Sint32 y = mouse_y - spriteInfo->y - spriteInfo->fy;
@@ -150,7 +150,7 @@ void JE_mouseStartFilter(Uint8 filter)
 
 		JE_grabShapeTypeOne(mouseGrabX, mouseGrabY, mouseGrabShape);
 
-		if (!mouseInactive)
+		if (mouseActivity != MOUSE_INACTIVE)
 		{
 			const Sint32 x = mouse_x - spriteInfo->x - spriteInfo->fx;
 			const Sint32 y = mouse_y - spriteInfo->y - spriteInfo->fy;

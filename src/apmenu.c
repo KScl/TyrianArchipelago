@@ -36,7 +36,7 @@ typedef struct {
 
 static int apmenu_mouseInTarget(const mousetargets_t *targets, int x, int y)
 {
-	if (!has_mouse || mouseInactive)
+	if (!has_mouse || mouseActivity != MOUSE_ACTIVE)
 		return -1;
 
 	mouseCursor = MOUSE_POINTER_NORMAL;
@@ -641,6 +641,8 @@ bool apmenu_quitRequest(void)
 		return true;
 	}
 
+	if (mouseActivity == MOUSE_ACTIVE)
+		mouseActivity = MOUSE_DELAYED;
 	JE_playSampleNum(S_CLICK);
 	return false;
 }
@@ -1329,6 +1331,9 @@ int ap_itemScreen(void)
 				{
 					itemSubMenus[currentSubMenu].exitFunc();
 					currentSubMenu = itemSubMenus[currentSubMenu].previous;
+
+					if (mouseActivity == MOUSE_ACTIVE)
+						mouseActivity = MOUSE_DELAYED;
 					updatePalette = true;
 					// Do not call the init function on a submenu return
 					break;
@@ -1336,6 +1341,8 @@ int ap_itemScreen(void)
 				// Intentional fall through
 
 			case SUBMENU_EXIT:
+				if (mouseActivity == MOUSE_ACTIVE)
+					mouseActivity = MOUSE_DELAYED;
 				if (!apmenu_quitRequest())
 					break;
 
@@ -1352,6 +1359,9 @@ int ap_itemScreen(void)
 				itemSubMenus[currentSubMenu].exitFunc();
 				currentSubMenu = nextSubMenu;
 				itemSubMenus[currentSubMenu].initFunc();
+
+				if (mouseActivity == MOUSE_ACTIVE)
+					mouseActivity = MOUSE_DELAYED;
 				updatePalette = true;
 				break;
 		}

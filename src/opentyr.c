@@ -765,7 +765,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	JE_loadConfiguration();
+	config_load();
 
 	JE_paramCheck(argc, argv);
 

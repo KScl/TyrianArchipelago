@@ -201,7 +201,7 @@ void service_SDL_events(JE_boolean clear_new)
 				lastkey_mod = ev.key.keysym.mod;
 				keydown = true;
 
-				mouseInactive = true;
+				mouseActivity = MOUSE_INACTIVE;
 				return;
 
 			case SDL_KEYUP:
@@ -225,7 +225,7 @@ void service_SDL_events(JE_boolean clear_new)
 				               mouse_y < 0 || mouse_y >= vga_height ? SDL_TRUE : SDL_FALSE);
 
 				if (ev.motion.xrel != 0 || ev.motion.yrel != 0)
-					mouseInactive = false;
+					mouseActivity = MOUSE_ACTIVE;
 				break;
 
 			case SDL_MOUSEWHEEL:
@@ -236,7 +236,7 @@ void service_SDL_events(JE_boolean clear_new)
 				break;
 
 			case SDL_MOUSEBUTTONDOWN:
-				mouseInactive = false;
+				mouseActivity = MOUSE_ACTIVE;
 
 				// fall through
 			case SDL_MOUSEBUTTONUP:

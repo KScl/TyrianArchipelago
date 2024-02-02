@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <iostream>
+#include <random>
 
 // In general, the following prefixes are used throughout this file:
 // APAll_ is for handling functions common to both local and remote play
@@ -13,7 +15,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <apclient.hpp>
-#include <apuuid.hpp>
 #pragma GCC diagnostic pop
 
 extern "C" {
@@ -48,6 +49,8 @@ archipelago_options_t APOptions;
 std::string connection_slot_name = "";
 std::string connection_server_address = "";
 std::string connection_password = "";
+
+std::string clientUUID = "";
 
 // ----------------------------------------------------------------------------
 
@@ -113,6 +116,59 @@ static std::unordered_map<Uint16, APClient::NetworkItem> scoutedShopLocations;
 
 // ----------------------------------------------------------------------------
 
+// List of all characters that can generate in UUIDs.
+// This is not a string, it is not null terminated.
+static const char uuidCharacters[32] = {
+	'0', '8', 'G', 'S',
+	'1', '9', 'H', 'T',
+	'2', 'A', 'K', 'U',
+	'3', 'B', 'L', 'V',
+	'4', 'C', 'M', 'W',
+	'5', 'D', 'N', 'X',
+	'6', 'E', 'P', 'Y',
+	'7', 'F', 'R', 'Z'
+};
+
+// Generates a new UUID for this client.
+void Archipelago_GenerateUUID(void)
+{
+	std::stringstream s;
+
+	std::random_device dev;
+	unsigned int result, maxval;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		if (i)
+			s << '-';
+
+		result = dev();
+		maxval = dev.max();
+		while (maxval)
+		{
+			s << uuidCharacters[result & 31];
+			result >>= 5;
+			maxval >>= 5;
+		}
+	}
+
+	clientUUID = s.str();
+}
+
+// Reads UUID from given source (config file)
+void Archipelago_SetUUID(const char *uuid)
+{
+	clientUUID = uuid;
+}
+
+// Outputs UUID (for saving into config file)
+const char *Archipelago_GetUUID(void)
+{
+	return clientUUID.c_str();
+}
+
+// ------------------------------------------------------------------
+
 void Archipelago_Save(void)
 {
 	json saveData;
@@ -147,7 +203,6 @@ void Archipelago_Save(void)
 		saveData["Scouts"][locationStr] += networkItem.player;
 		saveData["Scouts"][locationStr] += networkItem.flags;
 	}
-	std::cout << saveData << std::endl;
 
 	std::stringstream saveFileName;
 	saveFileName << get_user_directory() << "/AP" << multiworldSeedName << ".sav";
@@ -772,10 +827,7 @@ Uint16 APAll_GetItemIcon(int64_t itemID)
 void APRemote_CB_ScoutResults(const std::list<APClient::NetworkItem>& items)
 {
 	for (auto const &item : items)
-	{
-		std::cout << "Received scout for " << item.location << std::endl;
 		scoutedShopLocations.insert({item.location - ARCHIPELAGO_BASE_ID, item});
-	}
 }
 
 // ----------------------------------------------------------------------------
@@ -853,7 +905,6 @@ void Archipelago_ScoutShopItems(int shopStartID)
 		if (shopPrices.count(shopStartID + i) == 0)
 			break;
 		scoutRequests.emplace_back(shopStartID + i + ARCHIPELAGO_BASE_ID);
-		std::cout << "Scouting for location " << shopStartID + i + ARCHIPELAGO_BASE_ID << std::endl;
 	}
 
 	if (!scoutRequests.empty())
@@ -1076,7 +1127,6 @@ static void APRemote_CB_SlotRefused(const std::list<std::string>& reasons)
 // This is where we get our slot_data and thus where most of the magic happens.
 static void APRemote_CB_SlotConnected(const json& slot_data)
 {
-	std::cout << slot_data << std::endl;
 	try
 	{
 		if (slot_data.at("NetVersion") > APTYRIAN_NET_VERSION)
@@ -1174,8 +1224,8 @@ void Archipelago_Connect(void)
 	          << connection_slot_name      << "@"
 	          << connection_server_address << ")" << std::endl;
 	ap.reset();
-	std::string uuid = ap_get_uuid("test.uuid");
-	std::cout << uuid << std::endl;
+
+	std::cout << clientUUID << std::endl;
 
 	connection_stat = APCONN_CONNECTING;
 	connection_errors = 0;
@@ -1189,7 +1239,7 @@ void Archipelago_Connect(void)
 	if (connection_slot_name.empty())
 		return APRemote_FatalError("Please provide a slot name.");
 
-	ap.reset(new APClient(uuid, "Tyrian", connection_server_address));
+	ap.reset(new APClient(clientUUID, "Tyrian", connection_server_address));
 
 	// Chat and other communications
 	ap->set_print_json_handler(APRemote_CB_ReceivePrint);
@@ -1233,7 +1283,9 @@ void Archipelago_Poll(void)
 void Archipelago_Disconnect(void)
 {
 	// Save before we disconnect!
-	Archipelago_Save();
+	if (connection_ever_made)
+		Archipelago_Save();
+	connection_ever_made = false;
 
 	if (!ap)
 		return;

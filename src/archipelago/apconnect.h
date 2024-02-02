@@ -39,6 +39,10 @@ typedef struct {
 
 extern archipelago_options_t APOptions;
 
+void Archipelago_GenerateUUID(void);
+void Archipelago_SetUUID(const char *uuid);
+const char *Archipelago_GetUUID(void);
+
 void Archipelago_Save(void);
 
 // ----------------------------------------------------------------------------

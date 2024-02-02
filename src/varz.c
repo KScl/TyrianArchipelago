@@ -471,7 +471,7 @@ void JE_tyrianHalt(JE_byte code)
 		JE_drawANSI("exitmsg.bin");
 		JE_gotoXY(1,22);*/
 
-		JE_saveConfiguration();
+		config_save();
 	}
 
 	/* endkeyboard; */

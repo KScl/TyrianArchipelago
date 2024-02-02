@@ -66,7 +66,7 @@ enum
 	KEY_SETTING_RIGHT_SIDEKICK,
 };
 
-typedef JE_byte DosKeySettings[8];  // fka KeySettingType
+//typedef JE_byte DosKeySettings[8];  // fka KeySettingType
 
 typedef SDL_Scancode KeySettings[8];
 
@@ -105,7 +105,7 @@ typedef JE_SaveFileType JE_SaveFilesType[SAVE_FILES_NUM]; /* [1..savefilesnum] *
 typedef JE_byte JE_SaveGameTemp[SAVE_FILES_SIZE + 4 + 100]; /* [1..sizeof(savefilestype) + 4 + 100] */
 
 extern const JE_byte cryptKey[10];
-extern const DosKeySettings defaultDosKeySettings;  // fka defaultKeySettings
+//extern const DosKeySettings defaultDosKeySettings;  // fka defaultKeySettings
 extern const KeySettings defaultKeySettings;
 extern const char defaultHighScoreNames[34][23];
 extern const char defaultTeamNames[22][25];
@@ -139,7 +139,7 @@ extern JE_byte shotRepeat[11], shotMultiPos[11];
 extern JE_boolean portConfigChange, portConfigDone;
 extern char lastLevelName[11], levelName[11];
 extern JE_byte mainLevel, nextLevel, saveLevel;
-extern DosKeySettings dosKeySettings;  // fka keySettings
+//extern DosKeySettings dosKeySettings;  // fka keySettings
 extern KeySettings keySettings;
 extern JE_shortint levelFilter, levelFilterNew, levelBrightness, levelBrightnessChg;
 extern JE_boolean filtrationAvail, filterActive, filterFade, filterFadeStart;
@@ -156,27 +156,21 @@ extern JE_byte background3over;
 extern JE_byte background2over;
 extern JE_byte gammaCorrection;
 extern JE_boolean superPause, explosionTransparent, youAreCheating, displayScore, background2, smoothScroll, wild, superWild, starActive, topEnemyOver, skyEnemyOverAll, background2notTransparent;
-extern JE_byte versionNum;
 extern JE_byte fastPlay;
 extern JE_boolean pentiumMode;
 extern JE_byte gameSpeed;
 extern JE_byte processorType;
-extern JE_SaveFilesType saveFiles;
-extern JE_SaveGameTemp saveTemp;
-extern JE_word editorLevel;
+//extern JE_SaveFilesType saveFiles;
+//extern JE_SaveGameTemp saveTemp;
+//extern JE_word editorLevel;
 
 extern Config opentyrian_config;
 
 void JE_initProcessorType(void);
 void JE_setNewGameSpeed(void);
 const char *get_user_directory(void);
-void JE_loadConfiguration(void);
-void JE_saveConfiguration(void);
 
-//void JE_saveGame(JE_byte slot, const char *name);
-//void JE_loadGame(JE_byte slot);
-
-void JE_encryptSaveTemp(void);
-void JE_decryptSaveTemp(void);
+void config_load(void);
+void config_save(void);
 
 #endif /* CONFIG_H */

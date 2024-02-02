@@ -32,10 +32,17 @@ enum
 	MOUSE_POINTER_RIGHT,
 };
 
+typedef enum
+{
+	MOUSE_INACTIVE = 0,
+	MOUSE_DELAYED,
+	MOUSE_ACTIVE
+} mousestate_t;
+
 extern bool has_mouse;
 extern bool mouse_has_three_buttons;
 
-extern bool mouseInactive;
+extern mousestate_t mouseActivity;
 extern JE_byte mouseCursor;
 extern JE_word mouseX, mouseY, mouseButton;
 extern JE_word mouseXB, mouseYB;
