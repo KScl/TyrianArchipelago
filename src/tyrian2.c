@@ -60,8 +60,8 @@ void tyrian_enemyDieItem(JE_byte enemyId);
 void tyrian_setupAPItemSpawn(Sint16 item, Sint16 apItemNum);
 #define ARCHIPELAGO_ITEM     900
 #define ARCHIPELAGO_ITEM_MAX 931
-static const Sint16 apBehaviorList[] = {512, 513, 628, 512, 513};
-static const Sint16 apEnemySection[] = { 25,  25,   0,   0,   0};
+static const Sint16 apBehaviorList[] = {512, 513, 628, 512, 513, 512, 513};
+static const Sint16 apEnemySection[] = { 25,  25,   0,   0,   0,  75,  75};
 
 struct {
 	Uint16 location;
@@ -5286,7 +5286,7 @@ void JE_eventSystem(void)
 						assigned = temp;
 					}
 
-					printf("enemy%3d: %d, %d\n", temp, enemy[temp].ex, enemy[temp].ey);
+					//printf("enemy%3d: %d, %d\n", temp, enemy[temp].ex, enemy[temp].ey);
 					xmin = MIN(xmin, enemy[temp].ex);
 					xmax = MAX(xmax, enemy[temp].ex);
 					ymin = MIN(ymin, enemy[temp].ey);
@@ -5298,9 +5298,9 @@ void JE_eventSystem(void)
 
 			apCheckData[apCheckCount].alignX = ((xmax + xmin) / 2) - enemy[assigned].ex;
 			apCheckData[apCheckCount].alignY = ((ymax + ymin) / 2) - enemy[assigned].ey;
-			printf("x: %d, %d\n", xmin, xmax);
-			printf("y: %d, %d\n", ymin, ymax);
-			printf("align: %d, %d\n", apCheckData[apCheckCount].alignX, apCheckData[apCheckCount].alignY);
+			//printf("x: %d, %d\n", xmin, xmax);
+			//printf("y: %d, %d\n", ymin, ymax);
+			//printf("align: %d, %d\n", apCheckData[apCheckCount].alignX, apCheckData[apCheckCount].alignY);
 			apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
 			apCheckData[apCheckCount].behavesAs = apBehaviorList[eventRec[eventLoc-1].eventdat3];
 			++apCheckCount;

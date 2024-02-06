@@ -24,6 +24,7 @@
 #include "vga256d.h"
 #include "video.h"
 
+#include "archipelago/apitems.h"
 #include "archipelago/apconnect.h"
 
 Player player[2];
@@ -87,6 +88,174 @@ void player_boostArmor(Player *this_player, int amount)
 			this_player->armor = APStats.ArmorLevel;
 	}
 	player_drawArmor();
+}
+
+// ---------------------------------------------------------------------------
+
+void player_updateItemChoices(void)
+{
+	// Default everything to "none"
+	player[0].items.weapon[FRONT_WEAPON].id = 0;
+	player[0].items.weapon[FRONT_WEAPON].power = 1;
+	player[0].items.weapon[REAR_WEAPON].id = 0;
+	player[0].items.weapon[REAR_WEAPON].power = 1;
+	player[0].items.special = 0;
+	player[0].items.sidekick[LEFT_SIDEKICK] = 0;
+	player[0].items.sidekick[RIGHT_SIDEKICK] = 0;
+
+	// Ensure power levels are within range that player has access to
+	if (APItemChoices.FrontPort.PowerLevel > APStats.PowerMaxLevel)
+		APItemChoices.FrontPort.PowerLevel = APStats.PowerMaxLevel;
+	if (APItemChoices.RearPort.PowerLevel > APStats.PowerMaxLevel)
+		APItemChoices.RearPort.PowerLevel = APStats.PowerMaxLevel;
+
+	// Assign player's choices
+	if (APItemChoices.FrontPort.Item)
+	{
+		if (APItemChoices.FrontPort.Item >= 500 && APItemChoices.FrontPort.Item < 500 + 64
+			&& (APItems.FrontPorts & (1 << (APItemChoices.FrontPort.Item - 500))))
+		{
+			player[0].items.weapon[FRONT_WEAPON].id = apitems_FrontPorts[APItemChoices.FrontPort.Item - 500];
+			player[0].items.weapon[FRONT_WEAPON].power = APItemChoices.FrontPort.PowerLevel + 1;
+		}
+		else
+			APItemChoices.FrontPort.Item = 0;
+	}
+
+	if (APItemChoices.RearPort.Item)
+	{
+		if (APItemChoices.RearPort.Item >= 600 && APItemChoices.RearPort.Item < 600 + 64
+			&& (APItems.RearPorts & (1 << (APItemChoices.RearPort.Item - 600))))
+		{
+			player[0].items.weapon[REAR_WEAPON].id = apitems_RearPorts[APItemChoices.RearPort.Item - 600];
+			player[0].items.weapon[REAR_WEAPON].power = APItemChoices.RearPort.PowerLevel + 1;
+		}
+		else
+			APItemChoices.RearPort.Item = 0;
+	}
+
+	if (APItemChoices.Special.Item)
+	{
+		if (APItemChoices.Special.Item >= 700 && APItemChoices.Special.Item < 700 + 64
+			&& (APItems.Specials & (1 << (APItemChoices.Special.Item - 700))))
+		{
+			player[0].items.special = apitems_Specials[APItemChoices.Special.Item - 700];
+		}
+		else
+			APItemChoices.Special.Item = 0;
+	}
+
+	for (int i = 0; i < 2; ++i)
+	{
+		if (!APItemChoices.Sidekick[i].Item)
+			continue;
+
+		if (APItemChoices.Sidekick[i].Item >= 800 && APItemChoices.Sidekick[i].Item < 800 + 36
+			&& APItems.Sidekicks[APItemChoices.Sidekick[i].Item - 800])
+		{
+			// Check for right-only sidekicks on left
+			if (i == 0 && apitems_RightOnlySidekicks[APItemChoices.Sidekick[i].Item - 800])
+				APItemChoices.Sidekick[i].Item = 0;
+			else
+				player[0].items.sidekick[i] = apitems_Sidekicks[APItemChoices.Sidekick[i].Item - 800];
+		} 
+		else
+			APItemChoices.Sidekick[i].Item = 0;
+	}
+
+	// If both sidekicks are the same (and not none), confirm the player has two of that sidekick
+	if (APItemChoices.Sidekick[0].Item
+		&& APItemChoices.Sidekick[0].Item == APItemChoices.Sidekick[1].Item
+		&& APItems.Sidekicks[APItemChoices.Sidekick[0].Item - 800] < 2)
+	{
+		APItemChoices.Sidekick[1].Item = 0;
+		player[0].items.sidekick[RIGHT_SIDEKICK] = 0;
+	}
+
+	memset(shotMultiPos, 0, sizeof(shotMultiPos));
+}
+
+// Temporarily overrides player items in a given section.
+// Used in the upgrade menus to show the results of changing / powering up weapons.
+bool player_overrideItemChoice(int section, Uint16 itemID, Uint8 powerLevel)
+{
+	memset(shotMultiPos, 0, sizeof(shotMultiPos));
+
+	if (itemID == 0) switch (section)
+	{
+		default:
+		case 0: // Front Weapon - Not allowed
+			return false;
+		case 1: // Rear Weapon - Always allowed
+			player[0].items.weapon[REAR_WEAPON].id = 0;
+			return true;
+		case 2: // Left Sidekick - Always allowed
+		case 3: // Right Sidekick - Always allowed
+			player[0].items.sidekick[section - 2] = 0;
+			return true;
+		case 4: // Special - Always allowed
+			player[0].items.special = 0;
+			return true;
+	}
+
+	if (section < 2 && powerLevel > APStats.PowerMaxLevel)
+		return false;
+	switch (section)
+	{
+		case 0: // Front Weapon
+			if ((itemID >= 500 && itemID < 500 + 64)
+				&& (APItems.FrontPorts & (1 << (itemID - 500))))
+			{
+				player[0].items.weapon[FRONT_WEAPON].id = apitems_FrontPorts[itemID - 500];
+				player[0].items.weapon[FRONT_WEAPON].power = powerLevel + 1;
+				return true;
+			}
+			return false;
+
+		case 1: // Rear Weapon
+			if ((itemID >= 600 && itemID < 600 + 64)
+				&& (APItems.RearPorts & (1 << (itemID - 600))))
+			{
+				player[0].items.weapon[REAR_WEAPON].id = apitems_RearPorts[itemID - 600];
+				player[0].items.weapon[REAR_WEAPON].power = powerLevel + 1;
+				return true;
+			}
+			return false;
+
+		case 2: // Left Sidekick
+		case 3: // Right Sidekick
+			if ((itemID >= 800 && itemID < 800 + 36)
+				&& APItems.Sidekicks[itemID - 800])
+			{
+				// Check for right-only on left
+				if (section == 2 && apitems_RightOnlySidekicks[itemID - 800])
+					return false;
+
+				// Check for double sidekick with only one item
+				const Uint8 sideID = apitems_Sidekicks[itemID - 800];
+				if (player[0].items.sidekick[section == 2 ? RIGHT_SIDEKICK : LEFT_SIDEKICK] == sideID
+					&& APItems.Sidekicks[itemID - 800] < 2)
+				{
+					return false;
+				}
+
+				player[0].items.sidekick[section - 2] = sideID;
+				return true;
+			}
+			return false;
+
+		case 4: // Special
+			if ((itemID >= 700 && itemID < 700 + 64)
+				&& (APItems.Specials & (1 << (itemID - 700))))
+			{
+				player[0].items.special = apitems_Specials[itemID - 700];
+				return true;
+			}
+			return false;
+
+		default:
+			return false;
+	}
 }
 
 // ---------------------------------------------------------------------------

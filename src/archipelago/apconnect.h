@@ -69,6 +69,14 @@ const char* Archipelago_GetConnectionError(void);
 // Items and Checks
 // ----------------------------------------------------------------------------
 
+#define AP_BITSET(var, bit) ((var) & (1 << (bit)))
+
+typedef struct {
+	Uint16 Item;
+	Uint8  PowerLevel;
+} apweapon_t;
+
+// Items that have been collected, that the player can choose from
 typedef struct {
 	Uint64 FrontPorts; // One bit per weapon, 1 enables
 	Uint64 RearPorts; // One bit per weapon, 1 enables
@@ -77,6 +85,15 @@ typedef struct {
 	Uint8  Sidekicks[36]; // Total number obtained, per sidekick
 } apitem_t;
 
+// Player's item choices (see above)
+typedef struct {
+	apweapon_t FrontPort;
+	apweapon_t RearPort;
+	apweapon_t Special;
+	apweapon_t Sidekick[2];
+} apitemchoice_t;
+
+// Stats of the player's game / ship
 typedef struct {
 	Uint32 Clears[5]; // One bit per level, per episode
 
@@ -88,9 +105,10 @@ typedef struct {
 	bool   SolarShield; // True if obtained
 
 	Uint8  QueuedSuperBombs; // Will be given to the player next available opportunity
-	Uint64 Cash;
+	Uint64 Cash; // Definitive cash total for the player
 } apstat_t;
 
+// Request C side to update / redraw
 typedef struct {
 	Uint8 Armor;
 	Uint8 Shield;
@@ -98,6 +116,7 @@ typedef struct {
 
 extern apitem_t APItems;
 extern apstat_t APStats;
+extern apitemchoice_t APItemChoices;
 
 extern apupdatereq_t APUpdateRequest;
 
@@ -125,6 +144,9 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **items);
 
 // Scouts for shop items (only relevant for remote game)
 void Archipelago_ScoutShopItems(int shopStartID);
+
+unsigned int Archipelago_GetUpgradeCost(int itemID, int powerLevel);
+unsigned int Archipelago_GetTotalUpgradeCost(int itemID, int powerLevel);
 
 // ----------------------------------------------------------------------------
 // DeathLink

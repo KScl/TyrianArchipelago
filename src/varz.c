@@ -471,6 +471,7 @@ void JE_tyrianHalt(JE_byte code)
 		JE_drawANSI("exitmsg.bin");
 		JE_gotoXY(1,22);*/
 
+		Archipelago_Disconnect(); // Graceful server disconnect, save data
 		config_save();
 	}
 
@@ -503,7 +504,6 @@ void JE_tyrianHalt(JE_byte code)
 		       "\n");
 	}
 #endif
-
 	SDL_Quit();
 	exit(code);
 }

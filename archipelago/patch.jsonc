@@ -21,12 +21,15 @@
 
 	"Episode1 TYRIAN Hard": {
 		// Addition of Archipelago Items
-		"18:REPLACE":   { "time": 160, "event":201, /* AP_CheckFromEnemy */ "ap_id":0, "linknum": 1, "movement":"falling" }, 
+		"18:REPLACE":   { "time": 160, "event":201, /* AP_CheckFromEnemy */ "ap_id":0, "linknum": 1, "movement":"falling" },
 		"154:REPLACE":  { "time": 650, "event":201, /* AP_CheckFromEnemy */ "ap_id":1, "linknum":16, "movement":"falling" },
 		"432:REPLACE":  { "time":1927, "event":201, /* AP_CheckFromEnemy */ "ap_id":2, "linknum":62, "movement":"falling" },
 		"528:REPLACE":  { "time":2432, "event":201, /* AP_CheckFromEnemy */ "ap_id":4, "linknum": 5, "movement":"falling", "backup":397 },
-		"746:REPLACE":  { "time":2992, "event":201, /* AP_CheckFromEnemy */ "ap_id":5, "linknum":14, "movement":"falling" },
-		"1032:REPLACE": { "time":4516, "event":201, /* AP_CheckFromEnemy */ "ap_id":6, "linknum":11, "movement":"falling", "backup":397 },
+		"681:REPLACE":  { "time":2765, "event":201, /* AP_CheckFromEnemy */ "ap_id":5, "linknum": 7, "movement":"falling" },
+		"746:REPLACE":  { "time":2992, "event":201, /* AP_CheckFromEnemy */ "ap_id":6, "linknum":14, "movement":"falling" },
+		"883:REPLACE":  { "time":3415, "event":201, /* AP_CheckFromEnemy */ "ap_id":7, "linknum":17, "movement":"falling" },
+		"1032:REPLACE": { "time":4516, "event":201, /* AP_CheckFromEnemy */ "ap_id":8, "linknum":11, "movement":"falling", "backup":397 },
+		"1115:APPEND":  { "time":5384, "event":201, /* AP_CheckFromEnemy */ "ap_id":9, "linknum":142, "movement":"swaying", "is_boss":true },
 
 		// Replace the special rock with a regular one, and put an AP Check inside it
 		"413:REPLACE": [
@@ -37,7 +40,10 @@
 			{ "time":1868, "event":6, /* NewEnemy_Ground */ "linknum":30, "type":517, "ex":282, "ey":-28 },
 			{ "time":1868, "event":6, /* NewEnemy_Ground */ "linknum":30, "type":516, "ex":258, "ey":-28 }
 		],
-		"419:PREPEND": { "time":1868, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":3, "movement":"static", "align_x":6, "align_y":7 }
+		"419:PREPEND": { "time":1868, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":3, "movement":"static", "align_x":6, "align_y":7 }, // BUBBLES Warp Rock
+
+		// Additional callouts for contact_bypasses_shields
+		"606:APPEND": { "time":2573, "event":116, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
 	},
 
 	"Episode1 BUBBLES": {
@@ -72,7 +78,7 @@
 		"1056:REPLACE": { "time":4070, "event":201, /* AP_CheckFromEnemy */ "ap_id": 24, "linknum": 9, "movement":"falling" },
 
 		// Additional callouts for contact_bypasses_shields
-		"757:APPEND": { "time":2850, "event":116, /* HardContactCallout */ "output":"Enemy approaching from behind." },
+		"757:APPEND": { "time":2850, "event":116, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 
 		// Bug fix: Point the Accel event for the formation change above to the right linknum
 		"28:REPLACE": { "time":150, "event":20, /* EnemyGlobal_Accel */ "linknum":20, "excc":-12, "eycc":-6 },
@@ -150,25 +156,38 @@
 		"633:REPLACE": { "time":6290, "event":0 /* NoOp */ }
 	},
 
-	"Episode1 MINEMAZE": {
-
-	},
-
 	"Episode1 ASTEROID?": {
 		// Addition of Archipelago Items
 		"41:REPLACE": [
-			{ "time":160, "event":201, /* AP_CheckFromEnemy */ "linknum": 2, "ap_id": 70, "movement":"falling"},
-			{ "time":160, "event":201, /* AP_CheckFromEnemy */ "linknum": 4, "ap_id": 71, "movement":"falling"}
+			{ "time":160, "event":201, /* AP_CheckFromEnemy */ "linknum": 2, "ap_id": 60, "movement":"falling"},
+			{ "time":160, "event":201, /* AP_CheckFromEnemy */ "linknum": 4, "ap_id": 61, "movement":"falling"}
 		],
-		"88:REPLACE":  { "time":1056, "event":201, /* AP_CheckFromEnemy */ "linknum": 3, "ap_id": 72, "movement":"falling", "backup":394 },
-		"101:REPLACE": { "time":1169, "event":201, /* AP_CheckFromEnemy */ "linknum": 1, "ap_id": 73, "movement":"static", "backup":397 },
-		"103:REPLACE": { "time":1200, "event":201, /* AP_CheckFromEnemy */ "linknum":19, "ap_id": 74, "movement":"sky_falling"},
-		"110:REPLACE": { "time":1310, "event":201, /* AP_CheckFromEnemy */ "linknum":18, "ap_id": 75, "movement":"sky_falling"},
+		"88:REPLACE":  { "time":1056, "event":201, /* AP_CheckFromEnemy */ "linknum": 3, "ap_id": 62, "movement":"falling", "backup":394 },
+		"101:REPLACE": { "time":1169, "event":201, /* AP_CheckFromEnemy */ "linknum": 1, "ap_id": 63, "movement":"static", "backup":397 },
+		"103:REPLACE": { "time":1200, "event":201, /* AP_CheckFromEnemy */ "linknum":19, "ap_id": 64, "movement":"sky_falling"},
+		"110:REPLACE": { "time":1310, "event":201, /* AP_CheckFromEnemy */ "linknum":18, "ap_id": 65, "movement":"sky_falling"},
 
 		// Move the event that removes the item from the second ship slightly later, to match the timing of the first
 		// 30 ticks (0.9 seconds) -> 50 ticks (1.4 seconds) : It's otherwise unfairly difficult
 		"115:REPLACE": { "time":1340, "event": 0  /* NoOp */ },
 		"119:APPEND":  { "time":1360, "event":33, /* EnemyFromOtherEnemy */ "linknum":18, "type":394}
+	},
+
+	"Episode1 MINEMAZE": {
+		// Addition of Archipelago Items
+		"67:REPLACE":  { "time": 872, "event":201, /* AP_CheckFromEnemy */ "ap_id":71, "linknum":9, "movement":"falling"},
+		"221:REPLACE": { "time":2420, "event":200, /* AP_CheckFreestanding */ "ap_id":73, "movement":"gnd2_falling", "ex":126 },
+		"257:REPLACE": { "time":2760, "event":201, /* AP_CheckFromEnemy */ "ap_id":75, "linknum":4, "movement":"falling"},
+		"265:REPLACE": { "time":2820, "event":201, /* AP_CheckFromEnemy */ "ap_id":74, "linknum":9, "movement":"falling"},
+
+		// We need to do a bit of special trickery for gate items
+		"26:APPEND":  { "time":356, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":70, "movement":"falling" },
+		"30:REPLACE": { "time":356, "event":0 /* NoOp */ },
+		"108:REPLACE": [
+			{ "time":1280, "event":10, /* NewEnemy_Ground2 */ "linknum":21, "type":589, "ex":234 },
+			{ "time":1280, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":72, "movement":"falling" },
+			{ "time":1280, "event":10, /* NewEnemy_Ground2 */ "linknum":21, "type":587, "ex":258 }
+		]
 	},
 
 	"Episode1 WINDY": {
@@ -177,15 +196,23 @@
 	},
 
 	"Episode1 SAVARA Easy": {
-
+		"38:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":90, "linknum": 19, "movement":"falling" },
+		"171:REPLACE": { "time":1690, "event":201, /* AP_CheckFromEnemy */ "ap_id":91, "linknum": 10, "movement":"falling" },
+		"227:REPLACE": { "time":2270, "event":201, /* AP_CheckFromEnemy */ "ap_id":92, "linknum": 19, "movement":"falling" },
+		"283:REPLACE": { "time":2720, "event":201, /* AP_CheckFromEnemy */ "ap_id":93, "linknum":  5, "movement":"falling" },
+		"358:REPLACE": { "time":3600, "event":201, /* AP_CheckFromEnemy */ "ap_id":94, "linknum":  8, "movement":"static" },
+		"375:REPLACE": { "time":3830, "event":201, /* AP_CheckFromEnemy */ "ap_id":95, "linknum":  2, "movement":"falling" },
+		"482:APPEND":  { "time":4501, "event":201, /* AP_CheckFromEnemy */ "ap_id":96, "linknum":143, "movement":"swaying", "is_boss":true }
 	},
 
 	"Episode1 SAVARA Hard": {
-
-	},
-
-	"Episode1 BONUS": {
-
+		"118:REPLACE": { "time": 760, "event":201, /* AP_CheckFromEnemy */ "ap_id":100, "linknum": 13, "movement":"falling" },
+		"200:REPLACE": { "time":1150, "event":201, /* AP_CheckFromEnemy */ "ap_id":101, "linknum":  7, "movement":"falling" },
+		"303:REPLACE": { "time":1800, "event":201, /* AP_CheckFromEnemy */ "ap_id":102, "linknum":  8, "movement":"static" },
+		"476:REPLACE": { "time":2720, "event":201, /* AP_CheckFromEnemy */ "ap_id":103, "linknum":  4, "movement":"falling" },
+		"587:REPLACE": { "time":3190, "event":201, /* AP_CheckFromEnemy */ "ap_id":104, "linknum":  1, "movement":"falling" },
+		"688:REPLACE": { "time":4260, "event":201, /* AP_CheckFromEnemy */ "ap_id":105, "linknum": 26, "movement":"falling" },
+		"765:APPEND":  { "time":4801, "event":201, /* AP_CheckFromEnemy */ "ap_id":106, "linknum":143, "movement":"swaying", "is_boss":true }
 	},
 
 	"Episode1 MINES": {
@@ -200,7 +227,14 @@
 	},
 
 	"Episode1 DELIANI": {
-
+		"109:REPLACE": {"time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":130, "linknum": 1, "movement":"falling" },
+		"119:REPLACE": {"time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":131, "linknum": 4, "movement":"falling" },
+		"216:REPLACE": {"time":1647, "event":201, /* AP_CheckFromEnemy */ "ap_id":132, "linknum":61, "movement":"falling" },
+		"266:REPLACE": {"time":2000, "event":201, /* AP_CheckFromEnemy */ "ap_id":133, "linknum":11, "movement":"falling" },
+		"276:REPLACE": {"time":2100, "event":201, /* AP_CheckFromEnemy */ "ap_id":134, "linknum":14, "movement":"falling" },
+		"313:APPEND":  {"time":2740, "event":201, /* AP_CheckFromEnemy */ "ap_id":135, "linknum": 5, "movement":"falling" },
+		"468:REPLACE": {"time":4010, "event":201, /* AP_CheckFromEnemy */ "ap_id":136, "linknum": 5, "movement":"falling" },
+		"535:APPEND":  {"time":4780, "event":201, /* AP_CheckFromEnemy */ "ap_id":137, "linknum":10, "movement":"swaying", "is_boss":true }
 	},
 
 	"Episode1 SAVARA V": {
@@ -215,13 +249,28 @@
 	// Episode 2 - Treachery
 	// -------------------------------------------------------------------------------------------
 
+	"Episode2 GYGES": {
+		// Addition of Archipelago Items
+		"8:REPLACE":   { "time":   2, "event":201, /* AP_CheckFromEnemy */ "ap_id":170, "linknum":  1, "movement":"falling" },
+		"161:REPLACE": { "time": 530, "event":201, /* AP_CheckFromEnemy */ "ap_id":171, "linknum":146, "movement":"falling" },
+		"283:REPLACE": { "time":1610, "event":201, /* AP_CheckFromEnemy */ "ap_id":172, "linknum": 16, "movement":"falling" },
+		"411:APPEND":  { "time":2710, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":173, "movement":"falling" },
+		"573:REPLACE": { "time":3481, "event":201, /* AP_CheckFromEnemy */ "ap_id":174, "linknum":201, "movement":"falling", "backup":397 },
+		"594:REPLACE": { "time":3752, "event":201, /* AP_CheckFromEnemy */ "ap_id":175, "linknum":  5, "movement":"falling" },
+		"661:APPEND":  { "time":4629, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":176, "movement":"falling" },
+		"812:APPEND":  { "time":5359, "event":201, /* AP_CheckFromEnemy */ "ap_id":177, "linknum":110, "movement":"swaying", "is_boss":true },
+
+		// Don't allow lower floor to be transparent (bugfix?)
+		"1:REPLACE":   { "time":   0, "event":48 /* Background2Transparent(False) */ }
+	},
+
 	"Episode2 BOTANY B": {
 		// Addition of Archipelago Items
 		"10:APPEND":  { "time": 133, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":260, "movement":"falling" },
 		"93:APPEND":  { "time":1225, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":261, "movement":"falling" },
 		"205:APPEND": { "time":1981, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":262, "movement":"falling" },
 		"255:APPEND": { "time":2681, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":263, "movement":"falling" },
-		"272:APPEND": { "time":3044, "event":201, /* AP_CheckFromEnemy */ "linknum": 11, "ap_id":264, "movement":"falling" }
+		"272:APPEND": { "time":3044, "event":201, /* AP_CheckFromEnemy */ "ap_id":264, "linknum":11, "movement":"falling" }
 	},
 
 	// -------------------------------------------------------------------------------------------
@@ -285,7 +334,6 @@
 			"7":  "Episode1 MINES",
 			"8":  "Episode1 SAVARA Easy",
 			"9":  "Episode1 TYRIAN Easy",
-			"10": "Episode1 BONUS",
 			"11": "Episode1 HOLES ver2.1",
 			"12": "Episode1 SAVARA Hard",
 			"13": "Episode1 SOH JIN",
@@ -294,6 +342,7 @@
 			"16": "Episode1 ASSASSIN"
 		},
 		"Episode 2": {
+			"2":  "Episode2 GYGES",
 			"11": "Episode2 BOTANY B"
 		},
 		"Episode 3": {

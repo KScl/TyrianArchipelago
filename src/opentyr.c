@@ -764,6 +764,7 @@ int main(int argc, char *argv[])
 		printf("Failed to initialize SDL: %s\n", SDL_GetError());
 		return -1;
 	}
+	SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 
 	config_load();
 
@@ -868,10 +869,6 @@ int main(int argc, char *argv[])
 		Archipelago_Disconnect();
 	}
 
-	// Shouldn't be possible, but just to make sure
-	Archipelago_Disconnect();
-
 	JE_tyrianHalt(0);
-
 	return 0;
 }

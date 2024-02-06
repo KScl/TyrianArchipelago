@@ -22,6 +22,7 @@
 #include "mouse.h"
 #include "network.h"
 #include "opentyr.h"
+#include "varz.h"
 #include "video.h"
 #include "video_scale.h"
 
@@ -56,6 +57,16 @@ static Sint32 mouseWindowXRelative;
 static Sint32 mouseWindowYRelative;
 
 bool requestReadClipboard = false;
+
+char *fileDropped;
+
+void clearFileDropped(void)
+{
+	if (!fileDropped)
+		return;
+	SDL_free(fileDropped);
+	fileDropped = NULL;
+}
 
 void flush_events_buffer(void)
 {
@@ -159,6 +170,12 @@ void service_SDL_events(JE_boolean clear_new)
 	{
 		switch (ev.type)
 		{
+			case SDL_DROPFILE:
+				if (fileDropped)
+					SDL_free(fileDropped);
+				fileDropped = ev.drop.file;
+				break;
+
 			case SDL_WINDOWEVENT:
 				switch (ev.window.event)
 				{
@@ -273,8 +290,7 @@ void service_SDL_events(JE_boolean clear_new)
 				break;
 
 			case SDL_QUIT:
-				/* TODO: Call the cleanup code here. */
-				exit(0);
+				JE_tyrianHalt(0);
 				break;
 		}
 	}

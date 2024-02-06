@@ -59,7 +59,7 @@ PlayerItems;
 
 typedef struct
 {
-	ulong cash;
+	ulong cash; // temporary (in level), zeroed out when starting stage
 	
 	PlayerItems items, last_items;
 	
@@ -129,6 +129,9 @@ static inline bool all_players_alive(void)
 void calc_purple_balls_needed(Player *);
 bool power_up_weapon(Player *, uint port);
 void handle_got_purple_ball(Player *);
+
+void player_updateItemChoices(void);
+bool player_overrideItemChoice(int section, Uint16 itemID, Uint8 powerLevel);
 
 // ----------------------------------------------------------------------------
 

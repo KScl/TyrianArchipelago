@@ -1,6 +1,9 @@
 #include <assert.h>
+#include <filesystem>
 #include <iostream>
 #include <random>
+
+#include "SDL.h"
 
 // In general, the following prefixes are used throughout this file:
 // APAll_ is for handling functions common to both local and remote play
@@ -49,11 +52,15 @@ archipelago_settings_t APSeedSettings;
 // Local options.
 archipelago_options_t APOptions;
 
-std::string connection_slot_name = "";
-std::string connection_server_address = "";
-std::string connection_password = "";
+static std::string connection_slot_name = "";
+static std::string connection_server_address = "";
+static std::string connection_password = "";
 
-std::string clientUUID = "";
+static std::string clientUUID = "";
+
+// True if we're in a game (local or remote)
+// Used to save data if something happens
+static bool gameInProgress = false;
 
 // ----------------------------------------------------------------------------
 
@@ -92,6 +99,9 @@ static std::unordered_map<uint16_t, uint16_t> allLocationData;
 // Local location ID: Cost to buy item.
 static std::unordered_map<Uint16, Uint16> shopPrices;
 
+// Local weapon ID: Base cost to upgrade weapon.
+static std::unordered_map<Uint16, Uint16> upgradePrices;
+
 // ----------------------------------------------------------------------------
 // Data -- Stored In Save Game
 // ----------------------------------------------------------------------------
@@ -99,6 +109,7 @@ static std::unordered_map<Uint16, Uint16> shopPrices;
 // These are C structs that are available C side.
 apitem_t APItems; // Weapons, levels; One time collectibles, etc.
 apstat_t APStats; // Cash, Armor, Power, etc. Upgradable stats.
+apitemchoice_t APItemChoices; // APItems chosen to use
 
 // ------------------------------------------------------------------
 
@@ -116,39 +127,31 @@ static std::unordered_map<Uint16, APClient::NetworkItem> scoutedShopLocations;
 
 // ----------------------------------------------------------------------------
 
-// List of all characters that can generate in UUIDs.
-// This is not a string, it is not null terminated.
-static const char uuidCharacters[32] = {
-	'0', '8', 'G', 'S',
-	'1', '9', 'H', 'T',
-	'2', 'A', 'K', 'U',
-	'3', 'B', 'L', 'V',
-	'4', 'C', 'M', 'W',
-	'5', 'D', 'N', 'X',
-	'6', 'E', 'P', 'Y',
-	'7', 'F', 'R', 'Z'
-};
+// All characters that can generate in UUIDs.
+static const char uuidCharacters[33] = "0123456789ABCDEFGHKLMNPRSTUVWXYZ";
 
 // Generates a new UUID for this client.
 void Archipelago_GenerateUUID(void)
 {
-	std::stringstream s;
-
 	std::random_device dev;
-	unsigned int result, maxval;
 
-	for (int i = 0; i < 4; ++i)
+	int bitsPerIter = 0;
+	for (unsigned int maxval = dev.max(); maxval; maxval >>= 1)
+		++bitsPerIter;
+	if (bitsPerIter == 0)
+		bitsPerIter = 32; // Assuming 32bit max?
+
+	std::stringstream s;
+	for (int bits = 0; bits < 128; bits += bitsPerIter)
 	{
-		if (i)
+		if (bits)
 			s << '-';
 
-		result = dev();
-		maxval = dev.max();
-		while (maxval)
+		unsigned int result = dev();
+		for (int i = bitsPerIter; i > 0; i -= 5)
 		{
 			s << uuidCharacters[result & 31];
 			result >>= 5;
-			maxval >>= 5;
 		}
 	}
 
@@ -189,6 +192,12 @@ void Archipelago_Save(void)
 	saveData["APStats"] += APStats.ShieldLevel | (APStats.SolarShield ? 0x80 : 0x00);
 	saveData["APStats"] += APStats.Cash;
 	// QueuedSuperBombs is not saved
+
+	saveData["APItemChoices"] += APItemChoices.FrontPort.Item | (APItemChoices.FrontPort.PowerLevel << 10);
+	saveData["APItemChoices"] += APItemChoices.RearPort.Item | (APItemChoices.RearPort.PowerLevel << 10);
+	saveData["APItemChoices"] += APItemChoices.Special.Item;
+	saveData["APItemChoices"] += APItemChoices.Sidekick[0].Item;
+	saveData["APItemChoices"] += APItemChoices.Sidekick[1].Item;
 
 	if (!allLocationsChecked.empty())
 		saveData["Checked"] = allLocationsChecked;
@@ -257,6 +266,17 @@ static bool Archipelago_Load(void)
 			APStats.ShieldLevel &= 0x7F;
 		}
 
+		APItemChoices.FrontPort.Item = saveData["APItemChoices"].at(0).template get<Uint16>();
+		APItemChoices.RearPort.Item = saveData["APItemChoices"].at(1).template get<Uint16>();
+		APItemChoices.Special.Item = saveData["APItemChoices"].at(2).template get<Uint16>();
+		APItemChoices.Sidekick[0].Item = saveData["APItemChoices"].at(3).template get<Uint16>();
+		APItemChoices.Sidekick[1].Item = saveData["APItemChoices"].at(4).template get<Uint16>();
+
+		APItemChoices.FrontPort.PowerLevel = APItemChoices.FrontPort.Item >> 10;
+		APItemChoices.FrontPort.Item &= 0x3FF;
+		APItemChoices.RearPort.PowerLevel = APItemChoices.RearPort.Item >> 10;
+		APItemChoices.RearPort.Item &= 0x3FF;
+
 		if (saveData.contains("Checked"))
 			allLocationsChecked.insert(saveData["Checked"].begin(), saveData["Checked"].end());
 		if (saveData.contains("Index"))
@@ -278,8 +298,10 @@ static bool Archipelago_Load(void)
 			}
 		}
 	}
-	catch (const json::out_of_range&)
+	catch (...)
 	{
+		std::cout << "Couldn't load save file " << multiworldSeedName << ".sav; starting new game" << std::endl;
+
 		// Clear everything AGAIN so we start on a fresh slate...
 		memset(&APItems, 0, sizeof(APItems));
 		memset(&APStats, 0, sizeof(APStats));
@@ -597,6 +619,35 @@ static void APAll_ParseStartState(json &j)
 	APStats.GeneratorLevel = 1 + j.value<int>("Generator", 0);
 	APStats.SolarShield = j.value<bool>("SolarShield", false);
 	APStats.Cash = j.value<int64_t>("Credits", 0);
+
+	// While we're here, also set up player's chosen items to a known state (empty)
+	memset(&APItemChoices, 0, sizeof(APItemChoices));
+
+	// And default the player's front port to whatever they've started with.
+	// If they started with multiple (via starting_inventory), use the first one in ID order.
+	for (int i = 0; i < 64; ++i)
+	{
+		if (APItems.FrontPorts & (1 << i))
+		{
+			APItemChoices.FrontPort.Item = 500 + i;
+			break;
+		}
+	}
+
+	// If the Specials menu isn't enabled, then "choose" the first special we see automatically.
+	// Either this loop won't find anything (if specials are off), or it'll find whatever special
+	// the seed designated the player to start with, and force them on that.
+	if (!APSeedSettings.SpecialMenu)
+	{
+		for (int i = 0; i < 64; ++i)
+		{
+			if (APItems.Specials & (1 << i))
+			{
+				APItemChoices.Special.Item = 700 + i;
+				break;
+			}
+		}
+	}
 }
 
 // ============================================================================
@@ -654,6 +705,7 @@ static void APLocal_ReceiveItem(int64_t locationID)
 	Uint8 flags = APLocal_GetItemFlags(itemID, locationID);
 	std::string output = "You got your " + APLocal_BuildItemString(itemID, flags);
 	apmsg_enqueue(output.c_str());
+	apmsg_playSFX(itemID >= 980 ? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
 
 	std::cout << "You got your "
 	          << APLocal_BuildANSIString(itemID, flags)
@@ -788,12 +840,10 @@ Uint32 Archipelago_GetRegionWasCheckedList(int firstCheckID)
 }
 
 // ============================================================================
-// Shops
+// Shops & Upgrades (Spending Money)
 // ============================================================================
 
-static shopitem_t shopItemBuffer[5];
-
-void APAll_ParseShopData(json &j)
+static void APAll_ParseShopData(json &j)
 {
 	shopPrices.clear();
 
@@ -805,15 +855,29 @@ void APAll_ParseShopData(json &j)
 	}
 }
 
+static void APAll_ParseWeaponCost(json &j)
+{
+	upgradePrices.clear();
+
+	for (auto &item : j.items())
+	{
+		Uint16 itemID = std::stoi(item.key());
+		Uint16 itemPrice = item.value().template get<Uint16>();
+		upgradePrices.emplace(itemID, itemPrice);
+	}
+}
+
 // ----------------------------------------------------------------------------
 
-void APRemote_CB_ScoutResults(const std::list<APClient::NetworkItem>& items)
+static void APRemote_CB_ScoutResults(const std::list<APClient::NetworkItem>& items)
 {
 	for (auto const &item : items)
 		scoutedShopLocations.insert({item.location - ARCHIPELAGO_BASE_ID, item});
 }
 
 // ----------------------------------------------------------------------------
+
+static shopitem_t shopItemBuffer[5];
 
 int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 {
@@ -894,6 +958,24 @@ void Archipelago_ScoutShopItems(int shopStartID)
 		ap->LocationScouts(scoutRequests);
 }
 
+unsigned int Archipelago_GetUpgradeCost(int itemID, int powerLevel)
+{
+	if (upgradePrices.count(itemID) != 1)
+		return 0;
+
+	const int upgradeMultiplier[11] = {0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55};
+	return upgradePrices[itemID] * upgradeMultiplier[powerLevel];
+}
+
+unsigned int Archipelago_GetTotalUpgradeCost(int itemID, int powerLevel)
+{
+	if (upgradePrices.count(itemID) != 1 || powerLevel > 10)
+		return 0;
+
+	const int upgradeMultiplier[11] = {0, 1, 4, 10, 20, 35, 56, 84, 120, 165, 220};
+	return upgradePrices[itemID] * upgradeMultiplier[powerLevel];
+}
+
 // ============================================================================
 // DeathLink
 // ============================================================================
@@ -920,7 +1002,7 @@ std::vector<std::string> death_messages[] = {
 
 // ----------------------------------------------------------------------------
 
-void APRemote_CB_Bounce(const json& bounceJSON)
+static void APRemote_CB_Bounce(const json& bounceJSON)
 {
 	// Only care about DeathLink-tagged bounces (for now)
 	if (!APSeedSettings.DeathLink || !APOptions.EnableDeathLink
@@ -986,7 +1068,7 @@ void Archipelago_UpdateDeathLinkState(void)
 
 bool Archipelago_StartLocalGame(FILE *file)
 {
-	if (ap) // Excuse me? No? Not if we're playing online already
+	if (gameInProgress || ap)
 		return false;
 
 	try
@@ -1021,6 +1103,10 @@ bool Archipelago_StartLocalGame(FILE *file)
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APAll_ParseShopData(resultJSON);
 
+		obfuscated = aptyrianJSON.at("WeaponCost").template get<std::string>();
+		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+		APAll_ParseWeaponCost(resultJSON);
+
 		obfuscated = aptyrianJSON.at("LocationData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APLocal_ParseLocationData(resultJSON);
@@ -1048,6 +1134,7 @@ bool Archipelago_StartLocalGame(FILE *file)
 
 	// Init other data (can't fail)
 	APLocal_InitLocationsPerRegion();
+	gameInProgress = true;
 	return true;
 }
 
@@ -1056,8 +1143,8 @@ bool Archipelago_StartLocalGame(FILE *file)
 // ============================================================================
 
 static archipelago_connectionstat_t connection_stat = APCONN_NOT_CONNECTED;
-static bool connection_ever_made = false; // More retry attempts if we know connection worked in past
-static int connection_errors = 0;
+static bool connection_ever_made = false; // Disables timeout
+static uint64_t connection_start_time; // For initial connection timeout
 static std::string connection_error_desc = "";
 
 // ----------------------------------------------------------------------------
@@ -1067,7 +1154,6 @@ static std::string connection_error_desc = "";
 static void APRemote_FatalError(std::string reason)
 {
 	connection_stat = APCONN_NOT_CONNECTED;
-	connection_errors = 999;
 	connection_error_desc = reason;
 }
 
@@ -1080,7 +1166,6 @@ static void APRemote_CB_Disconnect()
 // *** Callback for APClient's "OnSocketError" ***
 static void APRemote_CB_Error(const std::string& error)
 {
-	++connection_errors;
 	connection_error_desc = error;
 	connection_stat = APCONN_CONNECTING;
 }
@@ -1152,6 +1237,10 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APAll_ParseShopData(resultJSON);
 
+		obfuscated = slot_data.at("WeaponCost").template get<std::string>();
+		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+		APAll_ParseWeaponCost(resultJSON);
+
 		obfuscated = slot_data.at("ProgressionData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APRemote_ParseProgressionData(resultJSON);
@@ -1179,7 +1268,6 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 
 	std::cout << "Successfully connected." << std::endl;
 	connection_stat = APCONN_READY;
-	connection_errors = 0;
 	connection_ever_made = true;
 
 	// Update tags if we need to.
@@ -1191,6 +1279,7 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 
 	// Init other data.
 	locationsPerRegion.clear(); // Will be properly init later (after data package is received)
+	gameInProgress = true;
 }
 
 // ----------------------------------------------------------------------------
@@ -1215,17 +1304,13 @@ void Archipelago_SetDefaultConnectionPassword(const char *connectionPassword)
 
 void Archipelago_Connect(void)
 {
+	if (gameInProgress)
+		return;
+
 	std::cout << "Connecting to Archipelago server ("
 	          << connection_slot_name      << "@"
 	          << connection_server_address << ")" << std::endl;
 	ap.reset();
-
-	std::cout << clientUUID << std::endl;
-
-	connection_stat = APCONN_CONNECTING;
-	connection_errors = 0;
-	connection_error_desc = "";
-	connection_ever_made = false;
 
 	APOptions.EnableDeathLink = true;
 
@@ -1234,6 +1319,8 @@ void Archipelago_Connect(void)
 	if (connection_slot_name.empty())
 		return APRemote_FatalError("Please provide a slot name.");
 
+	std::string cert = std::filesystem::exists("./cacert.pem") ? "./cacert.pem" : "";
+	std::cout << cert << std::endl;
 	ap.reset(new APClient(clientUUID, "Tyrian", connection_server_address));
 
 	// Chat and other communications
@@ -1253,6 +1340,11 @@ void Archipelago_Connect(void)
 	ap->set_room_info_handler(APRemote_CB_RoomInfo);
 	ap->set_slot_refused_handler(APRemote_CB_SlotRefused);
 	ap->set_slot_connected_handler(APRemote_CB_SlotConnected);
+
+	connection_stat = APCONN_CONNECTING;
+	connection_error_desc = "";
+	connection_ever_made = false;
+	connection_start_time = SDL_GetTicks64();
 }
 
 void Archipelago_Poll(void)
@@ -1267,9 +1359,12 @@ void Archipelago_Poll(void)
 	}
 	else
 	{
-		// Only tolerate two errors before giving up entirely
-		if (connection_errors >= 2)
+		if (connection_stat == APCONN_NOT_CONNECTED // Fatal error occurred
+			|| (connection_stat == APCONN_CONNECTING && SDL_GetTicks64() > connection_start_time + 10000))
+		{
+			// Fatal error or connection timeout, disconnect and remove game info
 			Archipelago_Disconnect();
+		}
 		else
 			ap->poll();
 	}
@@ -1278,9 +1373,9 @@ void Archipelago_Poll(void)
 void Archipelago_Disconnect(void)
 {
 	// Save before we disconnect!
-	if (connection_ever_made)
+	if (gameInProgress)
 		Archipelago_Save();
-	connection_ever_made = false;
+	gameInProgress = false;
 
 	if (!ap)
 		return;

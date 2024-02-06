@@ -1,4 +1,7 @@
-const char *const apitems_AllNames[1000] = {
+#ifndef ARCHIPELAGO_APITEMS_H
+#define ARCHIPELAGO_APITEMS_H
+
+static const char *const apitems_AllNames[1000] = {
 	"TYRIAN (Episode 1)",    // 0
 	"BUBBLES (Episode 1)",   // 1
 	"HOLES (Episode 1)",     // 2
@@ -307,7 +310,7 @@ const char *const apitems_AllNames[1000] = {
 
 // ============================================================================
 
-const Uint16 apitems_AllIcons[1000] = {
+static const Uint16 apitems_AllIcons[1000] = {
 	// Regular shop item sprites are 1 - 304
 	// Powerup / Special Weapon sprites are 1001 - 1304
 	// Coin / etc sprites are 2001-2304
@@ -426,7 +429,7 @@ const Uint16 apitems_AllIcons[1000] = {
 // ============================================================================
 
 // Map from item ID 500+ to internal ports
-const Uint8 apitems_FrontPorts[64] = {
+static const Uint8 apitems_FrontPorts[64] = {
 	1, // Pulse-Cannon
 	2, // Multi-Cannon
 	3, // Mega Cannon
@@ -460,7 +463,7 @@ const Uint8 apitems_FrontPorts[64] = {
 };
 
 // Map from item ID 600+ to internal ports
-const Uint8 apitems_RearPorts[64] = {
+static const Uint8 apitems_RearPorts[64] = {
 	9, // Starburst
 	10, // Multi-Cannon (Rear)
 	11, // Sonic Wave
@@ -482,7 +485,7 @@ const Uint8 apitems_RearPorts[64] = {
 };
 
 // Map from item ID 700+ to internal special weapons
-const Uint8 apitems_Specials[64] = {
+static const Uint8 apitems_Specials[64] = {
 	1, // Repulsor
 	2, // Pearl Wind
 	3, // Soul of Zinglon
@@ -512,7 +515,7 @@ const Uint8 apitems_Specials[64] = {
 };
 
 // Map from item ID 800+ to internal sidekicks
-const Uint8 apitems_Sidekicks[36] = {
+static const Uint8 apitems_Sidekicks[36] = {
 	1, // Single Shot Option
 	2, // Dual Shot Option
 	3, // Charge Cannon
@@ -548,5 +551,40 @@ const Uint8 apitems_Sidekicks[36] = {
 	32, // Flying Punch
 };
 
-// ============================================================================
+static const bool apitems_RightOnlySidekicks[36] = {
+	false, // Single Shot Option
+	false, // Dual Shot Option
+	false, // Charge Cannon
+	false, // Vulcan Shot Option
+	false, // Wobbley
+	false, // MegaMissile
+	false, // Atom Bombs
+	false, // Phoenix Device
+	false, // Plasma Storm
+	false, // Mini-Missile
+	false, // Buster Rocket
+	false, // Zica Supercharger
+	false, // MicroBomb
+	false, // 8-Way MicroBomb
+	false, // Post-It Mine
+	false, // Mint-O-Ship
+	false, // Zica Flamethrower
+	false, // Side Ship
+	false, // Companion Ship Warfly
+	true,  // MicroSol FrontBlaster
+	false, // Companion Ship Gerund
+	true,  // BattleShip-Class Firebomb
+	true,  // Protron Cannon Indigo
+	false, // Companion Ship Quicksilver
+	true,  // Protron Cannon Tangerine
+	true,  // MicroSol FrontBlaster II
+	true,  // Beno Wallop Beam
+	true,  // Beno Protron System -B-
+	false, // Tropical Cherry Companion
+	false, // Satellite Marlo
+	// ---------- TYRIAN 2000 LINE ----------
+	false, // Bubble Gum-Gun
+	false, // Flying Punch	
+};
 
+#endif

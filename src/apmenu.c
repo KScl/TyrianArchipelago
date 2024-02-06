@@ -31,7 +31,7 @@ typedef struct {
 	struct {
 		Sint16 x, y, w, h;
 		unsigned int pointer_type;
-	} items[16];
+	} items[20];
 } mousetargets_t;
 
 static int apmenu_mouseInTarget(const mousetargets_t *targets, int x, int y)
@@ -60,6 +60,8 @@ static int apmenu_mouseInTarget(const mousetargets_t *targets, int x, int y)
 
 bool ap_connectScreen(void)
 {
+	clearFileDropped();
+
 	JE_loadPic(VGAScreen2, 2, false);
 	draw_font_hv_shadow(VGAScreen2, 10,  10, "01", small_font, centered,  1, 6, false, 1);
 	draw_font_hv_shadow(VGAScreen2, 10,  20, "02", small_font, centered,  2, 6, false, 1);
@@ -85,10 +87,22 @@ bool ap_connectScreen(void)
 
 // void draw_font_hv_shadow(SDL_Surface *surface, int x, int y, const char *text, Font font, FontAlignment alignment, Uint8 hue, Sint8 value, bool black, int shadow_dist)
 
-	while (true)
+	bool game_ready = false;
+	while (!game_ready)
 	{
-		service_SDL_events(true);
 		push_joysticks_as_keyboard();
+		service_SDL_events(true);
+
+		if (fileDropped)
+		{
+			FILE *f = fopen(fileDropped, "r");
+			clearFileDropped();
+			game_ready = Archipelago_StartLocalGame(f);
+			fclose(f);
+
+			if (game_ready)
+				break;
+		}
 
 		++visual_time;
 		visual_time &= 0x1F;
@@ -124,28 +138,6 @@ bool ap_connectScreen(void)
 					fade_black(15);
 					return false;
 				}
-				else if (newkey && lastkey_scan == SDL_SCANCODE_F3)
-				{
-					FILE *f = fopen("local.aptyrian", "r");
-					if (!f)
-						break;
-					bool result = Archipelago_StartLocalGame(f);
-					fclose(f);
-					if (!result)
-						break;
-
-					// Force
-					JE_playSampleNum(S_SELECT);
-					fade_black(15);
-					onePlayerAction = false;
-					twoPlayerMode = false;
-					difficultyLevel = initialDifficulty = APSeedSettings.Difficulty;
-					player[0].cash = 0;
-					sprites_loadMainShapeTables(APSeedSettings.Christmas);
-					JE_initEpisode(1); // Temporary: We need to init items before first menu
-
-					return true;
-				}
 				break;
 
 			case APCONN_CONNECTING:
@@ -158,22 +150,24 @@ bool ap_connectScreen(void)
 
 			case APCONN_READY:
 				// Ready to start the game
-				JE_playSampleNum(S_SELECT);
-				fade_black(15);
-				onePlayerAction = false;
-				twoPlayerMode = false;
-				difficultyLevel = initialDifficulty = APSeedSettings.Difficulty;
-				player[0].cash = 0;
-				sprites_loadMainShapeTables(APSeedSettings.Christmas);
-				JE_initEpisode(1); // Temporary: We need to init items before first menu
-
-				return true;
+				game_ready = true;
+				break;
 		}
 
 		JE_showVGA();
 		SDL_Delay(16);
 		memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 	}
+
+	JE_playSampleNum(S_SELECT);
+	fade_black(15);
+	player[0].cash = 0;
+	onePlayerAction = false;
+	twoPlayerMode = false;
+	difficultyLevel = initialDifficulty = APSeedSettings.Difficulty;
+	sprites_loadMainShapeTables(APSeedSettings.Christmas);
+	JE_initEpisode(1); // Temporary: We need to init items before first menu
+	return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -406,10 +400,17 @@ static void submenuInShop_Run(void);
 static void submenuOptions_Run(void);
 static void submenuOptions_Exit(void);
 
-static void submenuUpgradeChoice_Init(void);
-static void submenuUpgradeChoice_Run(void);
+static void submenuUpgrade_Init(void);
+static void submenuUpgrade_Run(void);
 
-static void submenuUpgradeSelect_Run(void);
+static void submenuUpFrontPort_Init(void);
+static void submenuUpRearPort_Init(void);
+static void submenuUpLeftSide_Init(void);
+static void submenuUpRightSide_Init(void);
+static void submenuUpSpecial_Init(void);
+
+static void submenuUpAll_Run(void);
+static void submenuUpAll_Exit(void);
 
 typedef enum {
 	MENUNAV_NONE = 0,
@@ -430,8 +431,12 @@ typedef enum
 	SUBMENU_SELECT_SHOP,
 	SUBMENU_IN_SHOP,
 	SUBMENU_OPTIONS,
-	SUBMENU_UPGRADE_CHOICE,
-	SUBMENU_UPGRADE_SELECT,
+	SUBMENU_UPGRADE,
+	SUBMENU_UP_FRONTPORT,
+	SUBMENU_UP_REARPORT,
+	SUBMENU_UP_LEFTSIDE,
+	SUBMENU_UP_RIGHTSIDE,
+	SUBMENU_UP_SPECIAL,
 	NUM_SUBMENU
 } submenutype_t;
 
@@ -450,15 +455,24 @@ static const struct {
 	{"Visit Shop", 17, SUBMENU_MAIN, sidebarPlanetNav, nullinit, nullexit, submenuLevelSelect_Run},
 	{"Shop", 0, SUBMENU_SELECT_SHOP, sidebarArchipelagoInfo, submenuInShop_Init, nullexit, submenuInShop_Run},
 	{"Options", 0, SUBMENU_MAIN, sidebarArchipelagoInfo, nullinit, submenuOptions_Exit, submenuOptions_Run},
-	{"Upgrade Ship", 0, SUBMENU_MAIN, sidebarSimulateShots, submenuUpgradeChoice_Init, nullexit, submenuUpgradeChoice_Run},
-	{"Upgrade Ship", 0, SUBMENU_MAIN, sidebarSimulateShots, nullinit, nullexit, submenuUpgradeSelect_Run},
+
+	{"Upgrade Ship", 0, SUBMENU_MAIN, sidebarSimulateShots, submenuUpgrade_Init, nullexit, submenuUpgrade_Run},
+	{"Front Weapon", 0, SUBMENU_UPGRADE, sidebarSimulateShots, submenuUpFrontPort_Init, submenuUpAll_Exit, submenuUpAll_Run},
+	{"Rear Weapon", 0, SUBMENU_UPGRADE, sidebarSimulateShots, submenuUpRearPort_Init, submenuUpAll_Exit, submenuUpAll_Run},
+	{"Left Sidekick", 0, SUBMENU_UPGRADE, sidebarSimulateShots, submenuUpLeftSide_Init, submenuUpAll_Exit, submenuUpAll_Run},
+	{"Right Sidekick", 0, SUBMENU_UPGRADE, sidebarSimulateShots, submenuUpRightSide_Init, submenuUpAll_Exit, submenuUpAll_Run},
+	{"Special", 0, SUBMENU_UPGRADE, sidebarSimulateShots, submenuUpSpecial_Init, submenuUpAll_Exit, submenuUpAll_Run},
 };
 
 static submenutype_t currentSubMenu = SUBMENU_NONE;
 static submenutype_t nextSubMenu = SUBMENU_NONE;
 static int subMenuSelections[NUM_SUBMENU] = {0};
 
-#define SELECTED(menuItem) (subMenuSelections[currentSubMenu] == menuItem)
+// Money subtractions (or additions) that have not been confirmed yet
+// Upgrade menu uses this to show money accurately while you're choosing weapons
+static Uint64 tempMoneySub = 0;
+
+#define SELECTED(menuItem) (subMenuSelections[currentSubMenu] == (menuItem))
 
 // ------------------------------------------------------------------
 
@@ -514,13 +528,28 @@ static menunavcode_t defaultMenuNavigation(const mousetargets_t *mouseTargets)
 			*selection = 0;
 	}
 
-	if ((mouseTarget >= 0 && buttonDown) || (newkey && lastkey_scan == SDL_SCANCODE_RETURN))
-		return MENUNAV_SELECT;
+	if ((mouseTarget >= 0 && buttonDown)
+		|| (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_SPACE)))
+	{
+		return MENUNAV_SELECT;		
+	}
 	if (newkey && lastkey_scan == SDL_SCANCODE_LEFT)
 		return MENUNAV_LEFT;
 	if (newkey && lastkey_scan == SDL_SCANCODE_RIGHT)
 		return MENUNAV_RIGHT;
 	return MENUNAV_NONE;
+}
+
+static void blit_APIcon(int x, int y, Uint16 icon)
+{
+	if (icon > 9000)
+		blit_sprite2x2(VGAScreen, x, y, archipelagoSpriteSheet, icon - 9000);
+	else if (icon > 2000)
+		blit_sprite2x2(VGAScreen, x, y, spriteSheet11, icon - 2000);
+	else if (icon > 1000)
+		blit_sprite2x2(VGAScreen, x, y, spriteSheet10, icon - 1000);
+	else if (icon > 0)
+		blit_sprite2x2(VGAScreen, x, y, shopSpriteSheet, icon);
 }
 
 // ----------------------------------------------------------------------------
@@ -682,12 +711,12 @@ static void submenuMain_Run(void)
 
 		switch (localSelection)
 		{
-			case 0: nextSubMenu = SUBMENU_NEXT_LEVEL;     break;
-			case 1: JE_playSampleNum(S_CLINK);            break;
-			case 2: nextSubMenu = SUBMENU_SELECT_SHOP;    break;
-			case 3: nextSubMenu = SUBMENU_UPGRADE_CHOICE; break;
-			case 4: nextSubMenu = SUBMENU_OPTIONS;        break;
-			case 5: nextSubMenu = SUBMENU_EXIT;           break;
+			case 0: nextSubMenu = SUBMENU_NEXT_LEVEL;  break;
+			case 1: JE_playSampleNum(S_CLINK);         break;
+			case 2: nextSubMenu = SUBMENU_SELECT_SHOP; break;
+			case 3: nextSubMenu = SUBMENU_UPGRADE;     break;
+			case 4: nextSubMenu = SUBMENU_OPTIONS;     break;
+			case 5: nextSubMenu = SUBMENU_EXIT;        break;
 		}
 	}
 
@@ -730,7 +759,7 @@ static void levelselect_changeEpisode(int offset)
 			navEpisode = 5;
 		else if (navEpisode == 6)
 			navEpisode = 1;
-	} while (!(APSeedSettings.PlayEpisodes & (1 << (navEpisode-1))));
+	} while (!AP_BITSET(APSeedSettings.PlayEpisodes, navEpisode-1));
 
 	// Nothing changed, suppress SFX and other behaviors
 	if (navEpisode == startEpisode)
@@ -907,7 +936,7 @@ static void submenuLevelSelect_Run(void)
 		else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
 			levelselect_changeLevel(1);
 
-		if (newkey && lastkey_scan == SDL_SCANCODE_RETURN)
+		if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_SPACE))
 			levelselect_attemptSelect();
 	}
 
@@ -921,7 +950,7 @@ static void submenuLevelSelect_Run(void)
 			break;
 
 		// For regular menu, can select if level unlocked, locked always shows "???"
-		bool canSelect = APItems.Levels[navEpisode - 1] & (1<<(navScroll + i));
+		bool canSelect = AP_BITSET(APItems.Levels[navEpisode - 1], navScroll + i);
 		bool canShow = false;
 		bool highlighted = (!navBack && navScroll + i == navLevel);
 
@@ -948,7 +977,7 @@ static void submenuLevelSelect_Run(void)
 		for (int j = checksAvail; j > 0; --j)
 		{
 			blit_sprite2(VGAScreen, 245 + j*5, 37 + i*16, archipelagoSpriteSheet,
-				(checksObtained & (1 << (j-1))) ? 38 : 37);
+				AP_BITSET(checksObtained, j - 1) ? 38 : 37);
 		}
 	}
 	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Back", SMALL_FONT_SHAPES,
@@ -963,60 +992,425 @@ mousetargets_t upgradeChoiceTargets = {6};
 
 mousetargets_t upgradeChoiceTargetsNoSpecial = {5};
 
-static void submenuUpgradeChoice_Init(void)
+static void submenuUpgrade_Init(void)
 {
 	shots_initShotSim();
+	player_updateItemChoices();
 	subMenuSelections[currentSubMenu] = 0;
 }
 
-static void submenuUpgradeChoice_Run(void)
+static void submenuUpgrade_Run(void)
 {
 	const mousetargets_t *mousenav = (APSeedSettings.SpecialMenu == 0)
 		? &upgradeChoiceTargetsNoSpecial : &upgradeChoiceTargets;
 
+	// Hide power level interface
+	blit_sprite(VGAScreenSeg, 20, 146, OPTION_SHAPES, 17);
+
 	if (defaultMenuNavigation(mousenav) == MENUNAV_SELECT)
 	{
 		JE_playSampleNum(S_CLICK);
-		int localSelection = subMenuSelections[SUBMENU_UPGRADE_CHOICE];
+		int localSelection = subMenuSelections[SUBMENU_UPGRADE];
 		if (APSeedSettings.SpecialMenu == 0 && localSelection > 3)
 			++localSelection;
 
 		switch (localSelection)
 		{
-			case 0: nextSubMenu = SUBMENU_UPGRADE_SELECT;    break;
-			case 1: JE_playSampleNum(S_CLINK);    break;
-			case 2: JE_playSampleNum(S_CLINK);    break;
-			case 3: JE_playSampleNum(S_CLINK);    break;
-			case 4: JE_playSampleNum(S_CLINK);    break;
-			case 5: nextSubMenu = SUBMENU_RETURN; break;
+			case 0: nextSubMenu = SUBMENU_UP_FRONTPORT; break;
+			case 1: nextSubMenu = SUBMENU_UP_REARPORT;  break;
+			case 2: nextSubMenu = SUBMENU_UP_LEFTSIDE;  break;
+			case 3: nextSubMenu = SUBMENU_UP_RIGHTSIDE; break;
+			case 4: nextSubMenu = SUBMENU_UP_SPECIAL;   break;
+			case 5: nextSubMenu = SUBMENU_RETURN;       break;
 		}
 	}
 
-	defaultMenuOptionDraw("Front Weapon",   38 + 0,  true, SELECTED(0));
-	defaultMenuOptionDraw("Rear Weapon",    38 + 16, true, SELECTED(1));
-	defaultMenuOptionDraw("Left Sidekick",  38 + 32, true, SELECTED(2));
-	defaultMenuOptionDraw("Right Sidekick", 38 + 48, true, SELECTED(3));
+	defaultMenuOptionDraw("Front Weapon",   38 + 0,  false, SELECTED(0));
+	defaultMenuOptionDraw("Rear Weapon",    38 + 16, false, SELECTED(1));
+	defaultMenuOptionDraw("Left Sidekick",  38 + 32, false, SELECTED(2));
+	defaultMenuOptionDraw("Right Sidekick", 38 + 48, false, SELECTED(3));
 	if (APSeedSettings.SpecialMenu == 0)
 		defaultMenuOptionDraw("Done",            38 + 80, false, SELECTED(4));
 	else
 	{
-		defaultMenuOptionDraw("Special",         38 + 64, true, SELECTED(4));
+		defaultMenuOptionDraw("Special",         38 + 64, false, SELECTED(4));
 		defaultMenuOptionDraw("Done",            38 + 96, false, SELECTED(5));
 	}
 }
 
-static void submenuUpgradeSelect_Run(void)
+// ------------------------------------------------------------------
+
+static int upgradeScroll = 0;
+
+// This is the structure in APItemChoices that we're wanting to change.
+apweapon_t *mainChoice;
+
+int itemCount = 0;
+apweapon_t itemList[64]; // All possible item IDs, and power levels for each
+bool currentSelectionValid = false;
+
+static void upgrade_changeWeapon(int offset)
 {
-
-	fill_rectangle_xy(VGAScreen, 164, 38+2, 300, 38+6, 227);
-	blit_sprite2(VGAScreen, 298, 38-3, shopSpriteSheet, 247);
-
-	for (int i = 0; i < 18; ++i)
+	if (subMenuSelections[currentSubMenu] == 99) // On "done"
 	{
-		const int shade = i ? 28 : 15;
-		int portID = apitems_FrontPorts[i];
-		JE_textShade(VGAScreen, 171, 38 + 9*i, weaponPort[portID].name, shade / 16, shade % 16 - 8, DARKEN);
+		if (offset > 0)
+			return;
+		JE_playSampleNum(S_CURSOR);
+		subMenuSelections[currentSubMenu] = upgradeScroll + 13;
 	}
+	else if (subMenuSelections[currentSubMenu] + offset >= itemCount)
+	{
+		JE_playSampleNum(S_CURSOR);
+		subMenuSelections[currentSubMenu] = 99;
+	}
+	else if (subMenuSelections[currentSubMenu] + offset >= 0)
+	{
+		JE_playSampleNum(S_CURSOR);
+		subMenuSelections[currentSubMenu] += offset;
+	}
+
+	if (subMenuSelections[currentSubMenu] != 99)
+	{
+		if (subMenuSelections[currentSubMenu] < upgradeScroll)
+			upgradeScroll = subMenuSelections[currentSubMenu];
+		else if (subMenuSelections[currentSubMenu] > upgradeScroll + 13)
+			upgradeScroll = subMenuSelections[currentSubMenu] - 13;
+
+		apweapon_t *tmp = &itemList[subMenuSelections[currentSubMenu]];
+		tempMoneySub = Archipelago_GetTotalUpgradeCost(tmp->Item, tmp->PowerLevel);
+		currentSelectionValid = player_overrideItemChoice(currentSubMenu - SUBMENU_UP_FRONTPORT,
+			tmp->Item, tmp->PowerLevel);
+	}
+}
+
+static void upgrade_changePower(apweapon_t *selWeapon, int offset)
+{
+	if (!currentSelectionValid)
+		return;
+
+	if ((selWeapon->PowerLevel == 0 && offset < 0) // Attempting to go below 1
+		|| (selWeapon->PowerLevel + offset > APStats.PowerMaxLevel)) // Attempting to go over max power
+	{
+		JE_playSampleNum(S_CLINK);
+		return;
+	}
+
+	if (offset > 0)
+	{
+		if (Archipelago_GetTotalUpgradeCost(selWeapon->Item, selWeapon->PowerLevel + 1) > APStats.Cash)
+		{
+			// Can't afford upgrade
+			JE_playSampleNum(S_CLINK);
+			return;
+		}
+	}
+
+	JE_playSampleNum(S_CURSOR);
+	selWeapon->PowerLevel += offset;
+	tempMoneySub = Archipelago_GetTotalUpgradeCost(selWeapon->Item, selWeapon->PowerLevel);
+	currentSelectionValid = player_overrideItemChoice(currentSubMenu - SUBMENU_UP_FRONTPORT,
+		selWeapon->Item, selWeapon->PowerLevel);
+}
+
+static void upgrade_confirm(apweapon_t *selWeapon)
+{
+	if (subMenuSelections[currentSubMenu] == 99)
+	{
+		JE_playSampleNum(S_ITEM);
+		nextSubMenu = SUBMENU_RETURN;
+		return;
+	}
+
+	if (!player_overrideItemChoice(currentSubMenu - SUBMENU_UP_FRONTPORT,
+		selWeapon->Item, selWeapon->PowerLevel))
+		JE_playSampleNum(S_CLINK);
+	else
+	{
+		JE_playSampleNum(S_CLICK);
+		mainChoice->Item = selWeapon->Item;
+		mainChoice->PowerLevel = selWeapon->PowerLevel;
+		subMenuSelections[currentSubMenu] = 99;		
+	}
+}
+
+static void submenuUpAll_Run(void)
+{
+	apweapon_t *selWeapon = mainChoice;
+
+	if (newkey && lastkey_scan == SDL_SCANCODE_UP)
+		upgrade_changeWeapon(-1);
+	else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
+		upgrade_changeWeapon(1);
+
+	if (subMenuSelections[currentSubMenu] != 99)
+	{
+		selWeapon = &itemList[subMenuSelections[currentSubMenu]];
+
+		if (currentSubMenu == SUBMENU_UP_FRONTPORT || currentSubMenu == SUBMENU_UP_REARPORT)
+		{
+			if (newkey && lastkey_scan == SDL_SCANCODE_LEFT)
+				upgrade_changePower(selWeapon, -1);
+			else if (newkey && lastkey_scan == SDL_SCANCODE_RIGHT)
+				upgrade_changePower(selWeapon, 1);			
+		}
+	}
+
+	if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_SPACE))
+		upgrade_confirm(selWeapon);
+
+	if (subMenuSelections[currentSubMenu] == 99 // Over "Done"
+		|| selWeapon->Item < 500 // Item ID too low (probably "None")
+		|| selWeapon->Item > 664 // Item ID too high (wrong menu?)
+		|| !currentSelectionValid) // Current hovered choice is invalid
+	{
+		// Hide power level interface
+		blit_sprite(VGAScreenSeg, 20, 146, OPTION_SHAPES, 17);
+	}
+	else
+	{
+		const unsigned int downCost = Archipelago_GetUpgradeCost(selWeapon->Item, selWeapon->PowerLevel);
+		const unsigned int upCost = Archipelago_GetUpgradeCost(selWeapon->Item, selWeapon->PowerLevel + 1);
+
+		// Weapon downgrading
+		if (selWeapon->PowerLevel == 0)
+			blit_sprite(VGAScreenSeg, 24, 149, OPTION_SHAPES, 13);  // downgrade disabled
+		else
+		{
+			sprintf(string_buffer, "%d", downCost);
+			JE_outText(VGAScreen, 26, 137, string_buffer, 1, 4);
+		}
+
+		// Weapon upgrading
+		if (selWeapon->PowerLevel >= APStats.PowerMaxLevel)
+			blit_sprite(VGAScreenSeg, 119, 149, OPTION_SHAPES, 14);  // upgrade disabled
+		else
+		{
+			sprintf(string_buffer, "%d", upCost);
+
+			if (upCost + tempMoneySub > APStats.Cash)
+				blit_sprite(VGAScreenSeg, 119, 149, OPTION_SHAPES, 14);  // upgrade disabled
+			JE_outText(VGAScreen, 108, 137, string_buffer, (upCost + tempMoneySub > APStats.Cash) ? 7 : 1, 4);
+		}
+
+		// Show weapon power
+		// TODO Show maximum available power in some way
+		for (int i = 0; i <= selWeapon->PowerLevel; ++i)
+		{
+			fill_rectangle_xy(VGAScreen, 45 + i * 6, 151, 45 + i * 6 + 4, 151, 251);
+			JE_pix(VGAScreen, 45 + i * 6, 151, 252);
+			fill_rectangle_xy(VGAScreen, 45 + i * 6, 152, 45 + i * 6 + 4, 164, 250);
+			fill_rectangle_xy(VGAScreen, 45 + i * 6, 165, 45 + i * 6 + 4, 165, 249);
+		}
+
+		sprintf(string_buffer, "POWER: %d", selWeapon->PowerLevel + 1);
+		JE_outText(VGAScreen, 58, 137, string_buffer, 15, 4);
+	}
+
+	int ypos = 38;
+	for (int i = upgradeScroll; i < upgradeScroll + 14; ++i)
+	{
+		const int shade = subMenuSelections[currentSubMenu] == i ? 15 : 28;
+
+		bool enabled = false;
+		bool visible = false;
+
+		if (itemList[i].Item == 0)
+			enabled = visible = true;
+		else if (itemList[i].Item >= 500 && itemList[i].Item < 500 + 64)
+			enabled = visible = AP_BITSET(APItems.FrontPorts, itemList[i].Item - 500);
+		else if (itemList[i].Item >= 600 && itemList[i].Item < 600 + 64)
+			enabled = visible = AP_BITSET(APItems.RearPorts, itemList[i].Item - 600);
+		else if (itemList[i].Item >= 700 && itemList[i].Item < 700 + 64)
+			enabled = visible = AP_BITSET(APItems.Specials, itemList[i].Item - 700);
+		else if (itemList[i].Item >= 800 && itemList[i].Item < 800 + 36)
+		{
+			const int sideID = itemList[i].Item - 800;
+			visible = (APItems.Sidekicks[sideID] > 0);
+
+			if (currentSubMenu == SUBMENU_UP_LEFTSIDE && APItemChoices.Sidekick[1].Item == itemList[i].Item)
+				enabled = (APItems.Sidekicks[sideID] > 1);
+			else if (currentSubMenu == SUBMENU_UP_RIGHTSIDE && APItemChoices.Sidekick[0].Item == itemList[i].Item)
+				enabled = (APItems.Sidekicks[sideID] > 1);
+			else
+				enabled = visible;
+		}
+
+		if (mainChoice->Item == itemList[i].Item)
+		{
+			fill_rectangle_xy(VGAScreen, 164, ypos+2, 300, ypos+6, 227);
+			blit_sprite2(VGAScreen, 298, ypos-3, shopSpriteSheet, 247);
+		}
+
+		if (itemList[i].Item == 0)
+		{
+			JE_textShade(VGAScreen, 171, ypos, "None",
+				shade / 16, shade % 16 - 8, DARKEN);
+		}
+		else if (enabled)
+		{
+			JE_textShade(VGAScreen, 171, ypos, apitems_AllNames[itemList[i].Item],
+				shade / 16, shade % 16 - 8, DARKEN);
+		}
+		else if (visible)
+		{
+			JE_textShade(VGAScreen, 171, ypos, apitems_AllNames[itemList[i].Item],
+				shade / 16, shade % 16 - 8 - 4, DARKEN);
+		}
+		else
+		{
+			JE_textShade(VGAScreen, 171, ypos, "???",
+				shade / 16, shade % 16 - 8 - 4, DARKEN);
+		}
+
+		// Show acquired item count for sidekicks
+		if (visible && itemList[i].Item >= 800 && itemList[i].Item < 800 + 36)
+		{
+			snprintf(string_buffer, sizeof(string_buffer), "%u", APItems.Sidekicks[itemList[i].Item - 800]);
+			JE_textShade(VGAScreen, 164, ypos, string_buffer, shade / 16, shade % 16 - 8 - 5, DARKEN);
+		}
+		ypos += 9;
+	}
+
+	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Done", SMALL_FONT_SHAPES,
+		right_aligned, 15, -3 + (subMenuSelections[currentSubMenu] == 99 ? 2 : 0), false, 2);
+}
+
+// ------------------------------------------------------------------
+
+static void submenuUpAll_Init(void)
+{
+	// Scroll the item the player currently has to the center.
+	upgradeScroll = subMenuSelections[currentSubMenu] - 7;
+	if (upgradeScroll < 0)
+		upgradeScroll = 0;
+	else if (upgradeScroll > itemCount - 14)
+		upgradeScroll = itemCount - 14;
+
+	currentSelectionValid = player_overrideItemChoice(currentSubMenu - SUBMENU_UP_FRONTPORT,
+		mainChoice->Item, mainChoice->PowerLevel);
+
+	// Money only for front and rear ports
+	if (currentSubMenu == SUBMENU_UP_FRONTPORT || currentSubMenu == SUBMENU_UP_REARPORT)
+	{
+		tempMoneySub = Archipelago_GetTotalUpgradeCost(mainChoice->Item, mainChoice->PowerLevel);
+		APStats.Cash += tempMoneySub;
+	}
+}
+
+static void submenuUpAll_Exit(void)
+{
+	// Money only for front and rear ports
+	if (currentSubMenu == SUBMENU_UP_FRONTPORT || currentSubMenu == SUBMENU_UP_REARPORT)
+	{
+		APStats.Cash -= Archipelago_GetTotalUpgradeCost(mainChoice->Item, mainChoice->PowerLevel);
+		tempMoneySub = 0;		
+	}
+	player_updateItemChoices();
+}
+
+// ------------------------------------------------------------------
+
+static void submenuUpFrontPort_Init(void)
+{
+	subMenuSelections[currentSubMenu] = 0;
+
+	mainChoice = &APItemChoices.FrontPort;
+
+	itemCount = 25;
+	memset(itemList, 0, sizeof(itemList));
+	for (int i = 0; i < itemCount; ++i)
+	{
+		itemList[i].Item = 500 + i;
+
+		if (itemList[i].Item == mainChoice->Item)
+		{
+			subMenuSelections[currentSubMenu] = i;
+			itemList[i].PowerLevel = mainChoice->PowerLevel;
+		}
+	}
+	submenuUpAll_Init();
+}
+
+static void submenuUpRearPort_Init(void)
+{
+	subMenuSelections[currentSubMenu] = 0;
+
+	mainChoice = &APItemChoices.RearPort;
+	tempMoneySub = Archipelago_GetTotalUpgradeCost(mainChoice->Item, mainChoice->PowerLevel);
+	APStats.Cash += tempMoneySub;
+
+	itemCount = 17;
+	memset(itemList, 0, sizeof(itemList));
+	for (int i = 1; i < itemCount; ++i)
+	{
+		itemList[i].Item = (600 + i) - 1;
+
+		if (itemList[i].Item == mainChoice->Item)
+		{
+			subMenuSelections[currentSubMenu] = i;
+			itemList[i].PowerLevel = mainChoice->PowerLevel;
+		}
+	}
+	submenuUpAll_Init();
+}
+
+static void submenuUpLeftSide_Init(void)
+{
+	subMenuSelections[currentSubMenu] = 0;
+
+	mainChoice = &APItemChoices.Sidekick[0];
+
+	itemCount = 1;
+	const int trueItemCount = 31;
+
+	memset(itemList, 0, sizeof(itemList));
+	for (int i = 1; i < trueItemCount; ++i)
+	{
+		if (apitems_RightOnlySidekicks[i - 1])
+			continue;
+		itemList[itemCount].Item = (800 + i) - 1;
+
+		if (itemList[itemCount].Item == mainChoice->Item)
+			subMenuSelections[currentSubMenu] = itemCount;
+		++itemCount;
+	}
+	submenuUpAll_Init();
+}
+
+static void submenuUpRightSide_Init(void)
+{
+	subMenuSelections[currentSubMenu] = 0;
+
+	mainChoice = &APItemChoices.Sidekick[1];
+
+	itemCount = 31;
+	memset(itemList, 0, sizeof(itemList));
+	for (int i = 1; i < itemCount; ++i)
+	{
+		itemList[i].Item = (800 + i) - 1;
+
+		if (itemList[i].Item == mainChoice->Item)
+			subMenuSelections[currentSubMenu] = i;
+	}
+	submenuUpAll_Init();
+}
+
+static void submenuUpSpecial_Init(void)
+{
+	subMenuSelections[currentSubMenu] = 0;
+
+	mainChoice = &APItemChoices.Special;
+
+	itemCount = 24;
+	memset(itemList, 0, sizeof(itemList));
+	for (int i = 1; i < itemCount; ++i)
+	{
+		itemList[i].Item = (700 + i) - 1;
+
+		if (itemList[i].Item == mainChoice->Item)
+			subMenuSelections[currentSubMenu] = i;
+	}
+	submenuUpAll_Init();
 }
 
 // ----------------------------------------------------------------------------
@@ -1107,14 +1501,7 @@ static void submenuInShop_Run(void)
 		}
 		*/
 
-		if (shopItemList[i].Icon > 9000)
-			blit_sprite2x2(VGAScreen, 160, y, archipelagoSpriteSheet, shopItemList[i].Icon - 9000);
-		else if (shopItemList[i].Icon > 2000)
-			blit_sprite2x2(VGAScreen, 160, y, spriteSheet11, shopItemList[i].Icon - 2000);
-		else if (shopItemList[i].Icon > 1000)
-			blit_sprite2x2(VGAScreen, 160, y, spriteSheet10, shopItemList[i].Icon - 1000);
-		else if (shopItemList[i].Icon > 0)
-			blit_sprite2x2(VGAScreen, 160, y, shopSpriteSheet, shopItemList[i].Icon);
+		blit_APIcon(160, y, shopItemList[i].Icon);
 	}
 
 	// Draw "Done"
@@ -1223,22 +1610,40 @@ static void submenuOptions_Exit(void)
 
 static void sidebarArchipelagoInfo(void)
 {
-	// We must actually redraw these every frame, because an AP Item can arrive that upgrades them.
 	JE_barDrawShadow(VGAScreen,  42, 152, 2, 14, APStats.ArmorLevel  - 8, 2, 13); // Armor
 	JE_barDrawShadow(VGAScreen, 104, 152, 2, 14, APStats.ShieldLevel - 8, 2, 13); // Shield
 
 	// Draw player ship
 	blit_sprite2x2(VGAScreen, 66, 84, spriteSheet9, ships[1].shipgraphic);
 
-	blit_sprite2x2(VGAScreen,  28,  26, shopSpriteSheet, weaponPort[5].itemgraphic);
-	blit_sprite2x2(VGAScreen,  28,  54, shopSpriteSheet, weaponPort[1].itemgraphic);
-	blit_sprite2x2(VGAScreen,  28, 120, shopSpriteSheet, powerSys[6].itemgraphic);
-	blit_sprite2x2(VGAScreen,   3,  84, shopSpriteSheet, options[1].itemgraphic);
-	blit_sprite2x2(VGAScreen, 129,  84, shopSpriteSheet, options[1].itemgraphic);
+	if (APItemChoices.FrontPort.Item)
+	{
+		const int apItem = APItemChoices.FrontPort.Item;
+		blit_APIcon(108, 30, apitems_AllIcons[apItem]);
+		JE_textShade(VGAScreen, 28, 38, "Front Weapon:", 15, 4, DARKEN);
+		JE_textShade(VGAScreen, 28, 46, apitems_AllNames[apItem], 15, 6, DARKEN);
+	}
+	if (APItemChoices.RearPort.Item)
+	{
+		const int apItem = APItemChoices.RearPort.Item;
+		blit_APIcon(108, 54, apitems_AllIcons[apItem]);
+		JE_textShade(VGAScreen, 28, 62, "Rear Weapon:", 15, 4, DARKEN);
+		JE_textShade(VGAScreen, 28, 70, apitems_AllNames[apItem], 15, 6, DARKEN);
+	}
+	if (APItemChoices.Sidekick[0].Item)
+		blit_APIcon(  3, 84, apitems_AllIcons[APItemChoices.Sidekick[0].Item]);
+	if (APItemChoices.Sidekick[1].Item)
+		blit_APIcon(129, 84, apitems_AllIcons[APItemChoices.Sidekick[1].Item]);
 
-	JE_textShade(VGAScreen, 28, 26, "Zica Laser", 15, 6, DARKEN);
-	JE_textShade(VGAScreen, 28, 54, "Rear Heavy Missile Launcher", 15, 6, DARKEN);
-	JE_textShade(VGAScreen, 52, 120, "Gravitron Pulse-Wave", 15, 6, DARKEN);
+	if (APStats.GeneratorLevel > 0 && APStats.GeneratorLevel <= 6)
+	{
+		// We don't use the apitems lists for these,
+		// APStats.GeneratorLevel maps directly to the internal items anyway.
+		const int item = APStats.GeneratorLevel;
+		blit_sprite2x2(VGAScreen, 108, 120, shopSpriteSheet, powerSys[item].itemgraphic);
+		JE_textShade(VGAScreen, 24, 128, "Generator:", 15, 4, DARKEN);
+		JE_textShade(VGAScreen, 24, 136, powerSys[item].name, 15, 6, DARKEN);
+	}
 }
 
 // ------------------------------------------------------------------
@@ -1313,7 +1718,7 @@ int ap_itemScreen(void)
 		itemSubMenus[currentSubMenu].runFunc();
 
 		// Always draw cash, over top everything
-		snprintf(string_buffer, sizeof(string_buffer), "%lu", APStats.Cash);
+		snprintf(string_buffer, sizeof(string_buffer), "%lu", APStats.Cash - tempMoneySub);
 		JE_textShade(VGAScreen, 65, 173, string_buffer, 1, 6, DARKEN);
 
 		apmsg_manageQueue(false);

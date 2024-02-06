@@ -253,11 +253,13 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			if (j.contains("movement") && j["movement"].is_string())
 			{
 				std::string evStr = j["movement"].template get<std::string>();
-				if      (evStr == "static")      eventRec[x].eventdat3 = 0;
-				else if (evStr == "falling")     eventRec[x].eventdat3 = 1;
-				else if (evStr == "swaying")     eventRec[x].eventdat3 = 2;
-				else if (evStr == "sky_static")  eventRec[x].eventdat3 = 3;
-				else if (evStr == "sky_falling") eventRec[x].eventdat3 = 4;
+				if      (evStr == "static")       eventRec[x].eventdat3 = 0;
+				else if (evStr == "falling")      eventRec[x].eventdat3 = 1;
+				else if (evStr == "swaying")      eventRec[x].eventdat3 = 2;
+				else if (evStr == "sky_static")   eventRec[x].eventdat3 = 3;
+				else if (evStr == "sky_falling")  eventRec[x].eventdat3 = 4;
+				else if (evStr == "gnd2_static")  eventRec[x].eventdat3 = 5;
+				else if (evStr == "gnd2_falling") eventRec[x].eventdat3 = 6;
 			}
 			break;
 

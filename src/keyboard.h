@@ -46,6 +46,11 @@ extern bool windowHasFocus;
 extern bool new_text;
 extern char last_text[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 
+// Last file dragged and dropped into the window
+// Once checked, free with clearFileDropped
+extern char *fileDropped;
+void clearFileDropped(void);
+
 void flush_events_buffer(void);
 void wait_input(JE_boolean keyboard, JE_boolean mouse, JE_boolean joystick);
 void wait_noinput(JE_boolean keyboard, JE_boolean mouse, JE_boolean joystick);
