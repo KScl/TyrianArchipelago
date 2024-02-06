@@ -329,7 +329,7 @@ Uint16 Patcher_DoPatch(Uint16 *idx)
 	if (eventCount > patchEvents.front())
 	{
 		std::cout << "error: Patch events within an earlier replacement (noticed at " << eventCount << ")" << std::endl;
-		throw new std::logic_error("Patch events within earlier replacement");
+		throw std::logic_error("Patch events within earlier replacement");
 	}
 	patchEvents.pop_front();
 

@@ -23,8 +23,8 @@
 
 #include "SDL_clipboard.h"
 
-#include "itemmap.h"
 #include "archipelago/apconnect.h"
+#include "archipelago/apitems.h"
 
 typedef struct { 
 	int count;
@@ -1014,7 +1014,7 @@ static void submenuUpgradeSelect_Run(void)
 	for (int i = 0; i < 18; ++i)
 	{
 		const int shade = i ? 28 : 15;
-		int portID = itemmap_FrontPorts[i];
+		int portID = apitems_FrontPorts[i];
 		JE_textShade(VGAScreen, 171, 38 + 9*i, weaponPort[portID].name, shade / 16, shade % 16 - 8, DARKEN);
 	}
 }
@@ -1039,12 +1039,12 @@ static void submenuInShop_Init(void)
 static void submenuInShop_Run(void)
 {
 	mousetargets_t shopTargets = {shopItemCount + 1, {
-		{164,  38, 120, shopItemCount > 0 ? 26 : 10},
-		{164,  54, 120, shopItemCount > 1 ? 26 : 10},
-		{164,  70, 120, shopItemCount > 2 ? 26 : 10},
-		{164,  86, 120, shopItemCount > 3 ? 26 : 10},
-		{164, 102, 120, shopItemCount > 4 ? 26 : 10},
-		{164, 134, 120, 10},
+		{164,  36, 120, shopItemCount > 0 ? 24 : 10},
+		{164,  62, 120, shopItemCount > 1 ? 24 : 10},
+		{164,  88, 120, shopItemCount > 2 ? 24 : 10},
+		{164, 114, 120, shopItemCount > 3 ? 24 : 10},
+		{164, 140, 120, shopItemCount > 4 ? 24 : 10},
+		{164, 166, 120, 10},
 	}};
 
 	if (defaultMenuNavigation(&shopTargets) == MENUNAV_SELECT)
@@ -1090,23 +1090,29 @@ static void submenuInShop_Run(void)
 		else
 			snprintf(string_buffer, sizeof(string_buffer), "Cost: %d", shopItemList[i].Cost);
 
-		if (!shopItemList[i].PlayerName[0])
-		{
-			JE_textShade(VGAScreen, 185, y + 4, shopItemList[i].ItemName,
-				shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
-		}
-		else
-		{
-			JE_textShade(VGAScreen, 185, y, shopItemList[i].PlayerName,
-				shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
-			JE_textShade(VGAScreen, 185, y+7, shopItemList[i].ItemName,
-				shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
-		}
+		JE_textShade(VGAScreen, 185, y+4, shopItemList[i].ItemName,
+			shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
 		JE_textShade(VGAScreen, 187, y+14, string_buffer,
 			shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
 
-		if (shopItemList[i].Icon > 1000)
-			blit_sprite2x2(VGAScreen, 160, y, archipelagoSpriteSheet, shopItemList[i].Icon - 1000);			
+		/* I couldn't find a way to make this look good
+		else
+		{
+			JE_textShade(VGAScreen, 185, y+2, shopItemList[i].ItemName,
+				shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
+			JE_textShade(VGAScreen, 185, y+9, shopItemList[i].PlayerName,
+				shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
+			JE_textShade(VGAScreen, 187, y+17, string_buffer,
+				shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
+		}
+		*/
+
+		if (shopItemList[i].Icon > 9000)
+			blit_sprite2x2(VGAScreen, 160, y, archipelagoSpriteSheet, shopItemList[i].Icon - 9000);
+		else if (shopItemList[i].Icon > 2000)
+			blit_sprite2x2(VGAScreen, 160, y, spriteSheet11, shopItemList[i].Icon - 2000);
+		else if (shopItemList[i].Icon > 1000)
+			blit_sprite2x2(VGAScreen, 160, y, spriteSheet10, shopItemList[i].Icon - 1000);
 		else if (shopItemList[i].Icon > 0)
 			blit_sprite2x2(VGAScreen, 160, y, shopSpriteSheet, shopItemList[i].Icon);
 	}

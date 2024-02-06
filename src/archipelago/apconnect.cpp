@@ -11,6 +11,9 @@
 // Not functional, apclient uses implicit conversions.
 //#define JSON_USE_IMPLICIT_CONVERSIONS 0
 
+// Uncomment to see server<->client comms from APClient
+//#define APCLIENT_DEBUG
+
 // Silence warnings from apclient/wswrap
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -59,7 +62,7 @@ std::string clientUUID = "";
 #define ARCHIPELAGO_BASE_ID 20031000
 
 // Should match TyrianWorld.aptyrian_net_version
-#define APTYRIAN_NET_VERSION 1
+#define APTYRIAN_NET_VERSION 2
 
 static std::unique_ptr<APClient> ap;
 
@@ -96,18 +99,15 @@ static std::unordered_map<Uint16, Uint16> shopPrices;
 // These are C structs that are available C side.
 apitem_t APItems; // Weapons, levels; One time collectibles, etc.
 apstat_t APStats; // Cash, Armor, Power, etc. Upgradable stats.
-bool APLevelClear[80]; // Solely tracks level completion
 
 // ------------------------------------------------------------------
+
+// Tracks items we've received so far, to ignore duplicates.
+int lastItemIndex = -1;
 
 // Set of global location IDs.
 // Locations in our seed that we've checked (or had checked for us).
 static std::set<int64_t> allLocationsChecked;
-
-// Set of global location IDs.
-// Locations across the multiworld that have had our items. Used to dedupe location checks.
-// As such, the IDs may not even match up to anything in our game.
-static std::set<int64_t> allOurItemLocations;
 
 // Local location ID: Previously scouted Network Item.
 // Scouted information about our shop items when playing remotely.
@@ -192,8 +192,8 @@ void Archipelago_Save(void)
 
 	if (!allLocationsChecked.empty())
 		saveData["Checked"] = allLocationsChecked;
-	if (!allOurItemLocations.empty())
-		saveData["ExternLocs"] = allOurItemLocations;
+	if (lastItemIndex >= 0)
+		saveData["Index"] = lastItemIndex;
 
 	for (auto const &[locationID, networkItem] : scoutedShopLocations)
 	{
@@ -217,8 +217,8 @@ static bool Archipelago_Load(void)
 	memset(&APItems, 0, sizeof(APItems));
 	memset(&APStats, 0, sizeof(APStats));
 	allLocationsChecked.clear();
-	allOurItemLocations.clear();
 	scoutedShopLocations.clear();
+	lastItemIndex = -1;
 
 	std::stringstream saveFileName;
 	saveFileName << get_user_directory() << "/AP" << multiworldSeedName << ".sav";
@@ -259,8 +259,9 @@ static bool Archipelago_Load(void)
 
 		if (saveData.contains("Checked"))
 			allLocationsChecked.insert(saveData["Checked"].begin(), saveData["Checked"].end());
-		if (saveData.contains("ExternLocs"))
-			allOurItemLocations.insert(saveData["ExternLocs"].begin(), saveData["ExternLocs"].end());
+		if (saveData.contains("Index"))
+			lastItemIndex = saveData["Index"].template get<int>();
+
 		if (saveData.contains("Scouts"))
 		{
 			for (auto & [locationStr, itemJSON] : saveData["Scouts"].items())
@@ -283,8 +284,8 @@ static bool Archipelago_Load(void)
 		memset(&APItems, 0, sizeof(APItems));
 		memset(&APStats, 0, sizeof(APStats));
 		allLocationsChecked.clear();
-		allOurItemLocations.clear();
 		scoutedShopLocations.clear();
+		lastItemIndex = -1;
 		return false;
 	}
 
@@ -317,7 +318,7 @@ static json APAll_DeobfuscateJSONObject(std::string str)
 
 	json deobfJSON = json::parse(str, nullptr, false);
 	if (deobfJSON.is_discarded() || deobfJSON.is_string())
-		throw new std::runtime_error("Invalid or corrupt data received.");
+		throw std::runtime_error("Invalid or corrupt data received.");
 	return deobfJSON;
 }
 
@@ -382,7 +383,7 @@ static std::string APLocal_BuildANSIString(Uint16 localItemID, Uint8 flags)
 	else if (flags & 2) s << "\u001b[34;1m"; // Useful
 	else if (flags & 4) s << "\u001b[31;1m"; // Trap (none currently in local pool, may change)
 	else                s << "\u001b[36;1m"; // Filler
-	s << APLocal_ItemNames[localItemID] << "\u001b[0m";
+	s << apitems_AllNames[localItemID] << "\u001b[0m";
 	return s.str();
 }
 
@@ -397,7 +398,7 @@ static std::string APLocal_BuildItemString(Uint16 localItemID, Uint8 flags)
 	else if (flags & 2) s << "<83"; // Useful
 	else if (flags & 4) s << "<45"; // Trap (none currently in local pool, may change)
 	else                s << "<06"; // Filler
-	s << APLocal_ItemNames[localItemID] << ">";
+	s << apitems_AllNames[localItemID] << ">";
 	return s.str();
 }
 
@@ -547,24 +548,17 @@ static void APAll_ResolveItem(int item)
 	else if (item < 600) APItems.FrontPorts |= (Uint64)1 << (item - 500);
 	else if (item < 700) APItems.RearPorts  |= (Uint64)1 << (item - 600);
 	else if (item < 800) APItems.Specials   |= (Uint64)1 << (item - 700);
-	else if (item < 836)
-	{
-		if (APItems.Sidekicks[item - 800] < 2)
-			++APItems.Sidekicks[item - 800];
-	} 
+	else if (item < 836 && APItems.Sidekicks[item-800] < 2) ++APItems.Sidekicks[item-800];
 
 	// Armor, shield, money... statistic-affecting things
-	else if (item == 900)
-	{
-		if (APStats.PowerMaxLevel < 10)
-			++APStats.PowerMaxLevel;
-	}
-	else if (item == 901)
-	{
-		if (APStats.GeneratorLevel < 6)
-			++APStats.GeneratorLevel;
-	}
-	else if (item == 902)
+	else if (item == 900 && APStats.GeneratorLevel < 2) APStats.GeneratorLevel = 2;
+	else if (item == 901 && APStats.GeneratorLevel < 3) APStats.GeneratorLevel = 3;
+	else if (item == 902 && APStats.GeneratorLevel < 4) APStats.GeneratorLevel = 4;
+	else if (item == 903 && APStats.GeneratorLevel < 5) APStats.GeneratorLevel = 5;
+	else if (item == 904 && APStats.GeneratorLevel < 6) APStats.GeneratorLevel = 6;
+	else if (item == 905 && APStats.GeneratorLevel < 6) ++APStats.GeneratorLevel;
+	else if (item == 906 && APStats.PowerMaxLevel < 10) ++APStats.PowerMaxLevel;
+	else if (item == 907)
 	{
 		APStats.ArmorLevel += 2;
 		if (APStats.ArmorLevel > 28)
@@ -572,7 +566,7 @@ static void APAll_ResolveItem(int item)
 
 		APUpdateRequest.Armor += 2;
 	}
-	else if (item == 903)
+	else if (item == 908)
 	{
 		APStats.ShieldLevel += 2;
 		if (APStats.ShieldLevel > 28)
@@ -581,8 +575,8 @@ static void APAll_ResolveItem(int item)
 		APUpdateRequest.Shield += 2;
 	}
 
-	else if (item == 904) APStats.SolarShield = true;
-	else if (item == 905) ++APStats.QueuedSuperBombs;
+	else if (item == 909) APStats.SolarShield = true;
+	else if (item == 910) ++APStats.QueuedSuperBombs;
 	else if (item >= 980) APStats.Cash += remoteCashItemValues[item - 980];
 
 	std::cout << "Item resolved: " << item << std::endl;
@@ -724,17 +718,12 @@ static void APRemote_CB_ReceiveItem(const std::list<APClient::NetworkItem>& item
 {
 	for (auto const &item : items)
 	{
-		// -1 is cheat console, -2 is starting inventory
-		// We allow infinite number of items from those locations for obvious reasons
-		if (item.location != -1 && item.location != -2)
-		{
-			if (allOurItemLocations.count(item.location) == 1)
-				continue; // Already handled the item from this location, ignore
-			allOurItemLocations.insert({item.location});
-		}
-
 		// Messaging is handled when we receive the PrintJSON.
-		APAll_ResolveItem(item.item);
+		if (item.index > lastItemIndex)
+		{
+			lastItemIndex = item.index;
+			APAll_ResolveItem(item.item);
+		}
 	}
 }
 
@@ -774,6 +763,11 @@ bool Archipelago_CheckHasProgression(int checkID)
 
 int Archipelago_GetRegionCheckCount(int firstCheckID)
 {
+	// We can't immediately init locations per region if the data package wasn't cached.
+	// We have to wait until we first need it, and then fill it in.
+	if (ap && locationsPerRegion.empty())
+		APRemote_InitLocationsPerRegion();
+
 	if (locationsPerRegion.count(firstCheckID) == 0)
 		return 0;
 	return locationsPerRegion[firstCheckID];
@@ -811,17 +805,6 @@ void APAll_ParseShopData(json &j)
 	}
 }
 
-#if 0
-Uint16 APAll_GetItemIcon(int64_t itemID)
-{
-	// Automatically subtract the AP Base ID if we notice it.
-	if (itemID >= ARCHIPELAGO_BASE_ID && itemID <= ARCHIPELAGO_BASE_ID+999)
-		itemID -= ARCHIPELAGO_BASE_ID;
-	if (itemID < 0 || itemID > 999)
-		return 1;
-}
-#endif
-
 // ----------------------------------------------------------------------------
 
 void APRemote_CB_ScoutResults(const std::list<APClient::NetworkItem>& items)
@@ -845,18 +828,19 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 		shopItemBuffer[i].Cost = shopPrices[shopStartID + i];
 
 		std::string itemName;
-		std::string playerName = "";
 
 		if (APSeedSettings.ShopMenu == 2)
 		{
 			// Hidden shop contents mode (local or remote, doesn't matter)
 			itemName = "Archipelago Item " + i;
-			shopItemBuffer[i].Icon = 1003;
+			shopItemBuffer[i].Icon = 9003;
 		}
 		else if (!ap)
 		{
 			// Local game, we have the info already
-			itemName = APLocal_ItemNames[allLocationData[shopStartID + i]];
+			Uint16 itemID = allLocationData[shopStartID + i];
+			itemName = apitems_AllNames[itemID];
+			shopItemBuffer[i].Icon = apitems_AllIcons[itemID];
 		}
 		else if (scoutedShopLocations.count(shopStartID + i) == 1)
 		{
@@ -866,27 +850,26 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 
 			itemName = ap->get_item_name(itemID, ap->get_player_game(playerID));
 
-			// Only fill in player name if we know who it is, and it isn't us.
-			if (playerID != ap->get_player_number())
-				playerName = APRemote_GetPlayerName(playerID) + "'s";
+			// We don't show player name, but we used to...
+			//if (playerID != ap->get_player_number())
+			//	playerName = APRemote_GetPlayerName(playerID) + "'s";
 
-			if (scoutedShopLocations[shopStartID + i].flags & 1)
-				shopItemBuffer[i].Icon = 1007;
+			if (itemID >= ARCHIPELAGO_BASE_ID && itemID <= ARCHIPELAGO_BASE_ID+999)
+				shopItemBuffer[i].Icon = apitems_AllIcons[itemID - ARCHIPELAGO_BASE_ID];
+			else if (scoutedShopLocations[shopStartID + i].flags & 1)
+				shopItemBuffer[i].Icon = 9007;
 			else
-				shopItemBuffer[i].Icon = 1003;
+				shopItemBuffer[i].Icon = 9003;
 		}
 		else
 		{
 			// We don't have the scouted info, for some reason
 			itemName = "Unknown Item " + i;
-			shopItemBuffer[i].Icon = 1003;
+			shopItemBuffer[i].Icon = 9003;
 		}
 
 		strncpy(shopItemBuffer[i].ItemName, itemName.c_str(), 40 - 1);
 		shopItemBuffer[i].ItemName[39] = 0;
-
-		strncpy(shopItemBuffer[i].PlayerName, playerName.c_str(), 40 - 1);
-		shopItemBuffer[i].PlayerName[39] = 0;
 	}
 	*shopItems = (i == 0) ? NULL : shopItemBuffer;
 	return i;
@@ -937,19 +920,24 @@ std::vector<std::string> death_messages[] = {
 
 // ----------------------------------------------------------------------------
 
-void APRemote_CB_Bounce(const json& bounceJson)
+void APRemote_CB_Bounce(const json& bounceJSON)
 {
-	if (!APSeedSettings.DeathLink || !APOptions.EnableDeathLink)
+	// Only care about DeathLink-tagged bounces (for now)
+	if (!APSeedSettings.DeathLink || !APOptions.EnableDeathLink
+		|| !bounceJSON.contains("tags") || !bounceJSON.contains("data"))
 		return;
 
-	std::cout << bounceJson << std::endl;
-	if (lastBounceTime == bounceJson["data"].at("time"))
-		return; // Ignore own deaths
+	auto tags = bounceJSON["tags"];
+	if (std::find(tags.begin(), tags.end(), "DeathLink") != tags.end())
+	{
+		if (lastBounceTime == bounceJSON["data"].at("time"))
+			return; // Ignore own deaths
 
-	APDeathLinkReceived = true;
+		APDeathLinkReceived = true;
 
-	std::string output = "<45" + bounceJson["data"].at("cause").template get<std::string>();
-	apmsg_enqueue(output.c_str());
+		std::string output = "<45" + bounceJSON["data"].at("cause").template get<std::string>();
+		apmsg_enqueue(output.c_str());
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -1005,11 +993,11 @@ bool Archipelago_StartLocalGame(FILE *file)
 	{
 		json aptyrianJSON = json::parse(file);
 
-		if (aptyrianJSON.at("NetVersion") > APTYRIAN_NET_VERSION)
-			throw new std::runtime_error("Version mismatch. You need to update APTyrian.");
+		if (aptyrianJSON.at("NetVersion") != APTYRIAN_NET_VERSION)
+			throw std::runtime_error("Version mismatch. You may need to update APTyrian.");
 
 		if (!tyrian2000detected && aptyrianJSON.at("Settings").at("RequireT2K") == true)
-			throw new std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
+			throw std::runtime_error("This seed requires data from Tyrian 2000.");
 
 		multiworldSeedName = aptyrianJSON.at("Seed").template get<std::string>();
 
@@ -1046,8 +1034,15 @@ bool Archipelago_StartLocalGame(FILE *file)
 			APAll_ParseStartState(resultJSON);			
 		}
 	}
-	catch (const std::exception&)
+	catch (const std::runtime_error& e)
 	{
+		std::cout << "Can't start game: " << e.what() << std::endl;
+		return false;
+	}
+	catch (...)
+	{
+		// Slot data JSON wasn't formed like expected to be
+		std::cout << "Can't start game: Invalid or corrupt data received." << std::endl;
 		return false;
 	}
 
@@ -1129,11 +1124,11 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 {
 	try
 	{
-		if (slot_data.at("NetVersion") > APTYRIAN_NET_VERSION)
-			throw new std::runtime_error("Version mismatch. You need to update APTyrian.");
+		if (slot_data.at("NetVersion") != APTYRIAN_NET_VERSION)
+			throw std::runtime_error("Version mismatch. You may need to update APTyrian.");
 
 		if (!tyrian2000detected && slot_data.at("Settings").at("RequireT2K") == true)
-			throw new std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
+			throw std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
 
 		multiworldSeedName = slot_data.at("Seed").template get<std::string>();
 
@@ -1170,15 +1165,15 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			APAll_ParseStartState(resultJSON);
 		}
 	}
-	catch (const json::out_of_range&)
+	catch (std::runtime_error& e)
+	{
+		APRemote_FatalError(e.what());
+		return;
+	}
+	catch (...)
 	{
 		// Slot data JSON wasn't formed like expected to be
 		APRemote_FatalError("Invalid or corrupt data received.");
-		return;
-	}
-	catch (const std::runtime_error& e)
-	{
-		APRemote_FatalError(e.what());
 		return;
 	}
 
@@ -1195,7 +1190,7 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 	Archipelago_ResendAllChecks();
 
 	// Init other data.
-	APRemote_InitLocationsPerRegion();
+	locationsPerRegion.clear(); // Will be properly init later (after data package is received)
 }
 
 // ----------------------------------------------------------------------------
