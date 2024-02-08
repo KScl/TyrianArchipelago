@@ -69,6 +69,7 @@ static void level_loadEvents(FILE *level_f)
 // ----------------------------------------------------------------------------
 
 int currentLevelID = 0;
+bool lastLevelCompleted = false;
 
 leveldata_t allLevelData[LEVELDATA_COUNT] = {
 	{1,  0,     9, 15,  1, 18,      0, 1000,    "TYRIAN   ", "Tyrian"},

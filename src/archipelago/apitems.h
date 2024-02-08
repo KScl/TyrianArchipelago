@@ -123,35 +123,35 @@ static const char *const apitems_AllNames[1000] = {
 	"", "", "", "", "", "", "", "", "", "", // 489
 	"", "", "", "", "", "", "", "", "", "", // 499
 	// ------------------------------------------------------------------------
-	"Pulse-Cannon",           // 500
-	"Multi-Cannon",           // 501
-	"Mega Cannon",            // 502
-	"Laser",                  // 503
-	"Zica Laser",             // 504
-	"Protron Z",              // 505
-	"Vulcan Cannon",          // 506
-	"Lightning Cannon",       // 507
-	"Protron",                // 508
-	"Missile Launcher",       // 509
-	"Mega Pulse",             // 510
-	"Heavy Missile Launcher", // 511
-	"Banana Blast",           // 512
-	"HotDog",                 // 513
-	"Hyper Pulse",            // 514
-	"Guided Bombs",           // 515
-	"Shuruiken Field",        // 516
-	"Poison Bomb",            // 517
-	"Protron Wave",           // 518
-	"The Orange Juicer",      // 519
-	"NortShip Super Pulse",   // 520
-	"Atomic RailGun",         // 521
-	"Widget Beam",            // 522
-	"Sonic Impulse",          // 523
-	"RetroBall",              // 524
-	"Needle Laser",           // 525
-	"Pretzel Missile",        // 526
-	"Dragon Frost",           // 527
-	"Dragon Flame",           // 528
+	"Pulse-Cannon",                   // 500
+	"Multi-Cannon (Front)",           // 501
+	"Mega Cannon",                    // 502
+	"Laser",                          // 503
+	"Zica Laser",                     // 504
+	"Protron Z",                      // 505
+	"Vulcan Cannon (Front)",          // 506
+	"Lightning Cannon",               // 507
+	"Protron (Front)",                // 508
+	"Missile Launcher",               // 509
+	"Mega Pulse (Front)",             // 510
+	"Heavy Missile Launcher (Front)", // 511
+	"Banana Blast (Front)",           // 512
+	"HotDog (Front)",                 // 513
+	"Hyper Pulse",                    // 514
+	"Guided Bombs",                   // 515
+	"Shuruiken Field",                // 516
+	"Poison Bomb",                    // 517
+	"Protron Wave",                   // 518
+	"The Orange Juicer",              // 519
+	"NortShip Super Pulse",           // 520
+	"Atomic RailGun",                 // 521
+	"Widget Beam",                    // 522
+	"Sonic Impulse",                  // 523
+	"RetroBall",                      // 524
+	"Needle Laser",                   // 525
+	"Pretzel Missile",                // 526
+	"Dragon Frost",                   // 527
+	"Dragon Flame",                   // 528
 	// ------------------------------------------------------------------------
 	"",                                     // 529
 	"", "", "", "", "", "", "", "", "", "", // 539

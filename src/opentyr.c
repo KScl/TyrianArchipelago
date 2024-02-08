@@ -793,8 +793,11 @@ int main(int argc, char *argv[])
 		printf("Tyrian 2000 data files detected.");
 
 	/* Default Options */
-	youAreCheating = false;
 	smoothScroll = true;
+
+#ifdef LEVEL_CHEATS
+	youAreCheating = false;
+#endif
 
 	if (!audio_disabled)
 	{
@@ -840,13 +843,11 @@ int main(int argc, char *argv[])
 	for (; ; )
 	{
 		JE_initPlayerData();
-		//JE_sortHighScores();
 
 		play_demo = false;
 		stopped_demo = false;
 
 		gameLoaded = false;
-		jumpSection = false;
 
 #ifdef WITH_NETWORK
 		if (isNetworkGame)

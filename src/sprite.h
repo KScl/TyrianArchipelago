@@ -142,4 +142,11 @@ void sprites_loadMainShapeTables(bool xmas);
 void sprites_freeInterfaceSprites(void);
 void sprites_freeMainShapeTables(void);
 
+// ----------------------------------------------------------------------------
+
+void sprites_blitArchipelagoIcon(SDL_Surface *surface, int x, int y, Uint16 icon);
+
+// Gets icon for you and calls the above function
+void sprites_blitArchipelagoItem(SDL_Surface *surface, int x, int y, Uint16 item);
+
 #endif // SPRITE_H

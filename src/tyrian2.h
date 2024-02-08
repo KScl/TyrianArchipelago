@@ -47,8 +47,6 @@ uint JE_makeEnemy(struct JE_SingleEnemyType *enemy, Uint16 eDatI, Sint16 uniqueS
 
 void JE_eventJump(JE_word jump);
 
-//void JE_whoa(void);
-
 Sint16 JE_newEnemy(int enemyOffset, Uint16 eDatI, Sint16 uniqueShapeTableI);
 void JE_drawEnemy(int enemyOffset);
 void JE_starShowVGA(void);
@@ -60,12 +58,6 @@ void JE_loadMapShapes(FILE *level_f, JE_char char_shapeFile);
 #ifdef WITH_NETWORK
 void networkStartScreen(void);
 #endif
-//bool titleScreen(void);
-//bool newGame(void);
-//bool newSuperArcadeGame(unsigned int i);
-//void newSuperTyrianGame(void);
-void JE_readTextSync(void);
-void JE_displayText(void);
 
 bool JE_searchFor(JE_byte PLType, JE_byte* out_index);
 void JE_eventSystem(void);

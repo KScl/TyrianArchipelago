@@ -217,13 +217,12 @@ JE_byte    superArcadePowerUp;
 JE_real linkGunDirec;
 JE_byte inputDevice[2] = { 1, 2 }; // 0:any  1:keyboard  2:mouse  3+:joystick
 
-JE_byte secretHint;
+//JE_byte secretHint;
 JE_byte background3over;
 JE_byte background2over;
 JE_byte gammaCorrection;
 JE_boolean superPause = false;
 JE_boolean explosionTransparent,
-           youAreCheating,
            displayScore,
            background2, smoothScroll, wild, superWild, starActive,
            topEnemyOver,
@@ -237,10 +236,9 @@ JE_boolean pentiumMode;
 JE_byte    gameSpeed;
 JE_byte    processorType;  /* 1=386 2=486 3=Pentium Hyper */
 
-//JE_SaveFilesType saveFiles; /*array[1..saveLevelnum] of savefiletype;*/
-//JE_SaveGameTemp saveTemp;
-
-//JE_word editorLevel;   /*Initial value 800*/
+#ifdef LEVEL_CHEATS
+JE_boolean youAreCheating;
+#endif
 
 Config opentyrian_config;  // implicitly initialized
 

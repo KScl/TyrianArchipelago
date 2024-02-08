@@ -65,6 +65,8 @@ void Archipelago_Disconnect(void);
 archipelago_connectionstat_t Archipelago_ConnectionStatus(void);
 const char* Archipelago_GetConnectionError(void);
 
+void Archipelago_GoalComplete(void);
+
 // ----------------------------------------------------------------------------
 // Items and Checks
 // ----------------------------------------------------------------------------
@@ -91,11 +93,13 @@ typedef struct {
 	apweapon_t RearPort;
 	apweapon_t Special;
 	apweapon_t Sidekick[2];
+	bool       RearMode2;
 } apitemchoice_t;
 
 // Stats of the player's game / ship
 typedef struct {
 	Uint32 Clears[5]; // One bit per level, per episode
+	Uint8  RestGoalEpisodes; // See APSeedSettings.GoalEpisodes - when 0, game is complete
 
 	Uint8  PowerMaxLevel; // 0 - 10; +1 per "Maximum Power Up"
 	Uint8  GeneratorLevel; // 1 - 6; +1 per "Progressive Generator"
@@ -108,6 +112,14 @@ typedef struct {
 	Uint64 Cash; // Definitive cash total for the player
 } apstat_t;
 
+// Player's time in game/deaths/etc
+typedef struct {
+	Uint64 TimeInLevel; // Tracked with SDL_GetTicks64
+	Uint64 TimeInMenu; // Tracked with SDL_GetTicks64
+
+	Uint16 Deaths;
+} applaydata_t;
+
 // Request C side to update / redraw
 typedef struct {
 	Uint8 Armor;
@@ -116,6 +128,7 @@ typedef struct {
 
 extern apitem_t APItems;
 extern apstat_t APStats;
+extern applaydata_t APPlayData;
 extern apitemchoice_t APItemChoices;
 
 extern apupdatereq_t APUpdateRequest;
@@ -126,6 +139,8 @@ bool Archipelago_CheckHasProgression(int checkID);
 
 int Archipelago_GetRegionCheckCount(int firstCheckID);
 Uint32 Archipelago_GetRegionWasCheckedList(int firstCheckID);
+int Archipelago_GetTotalCheckCount(void);
+int Archipelago_GetTotalWasCheckedCount(void);
 
 // ----------------------------------------------------------------------------
 // Shops

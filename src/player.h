@@ -135,7 +135,7 @@ bool player_overrideItemChoice(int section, Uint16 itemID, Uint8 powerLevel);
 
 // ----------------------------------------------------------------------------
 
-Uint16 player_getPortConfigCount(void);
+Uint16 player_getPortConfigCount(uint player_index);
 void player_drawPortConfigButtons(void);
 
 void player_wipeShieldArmorBars(void);

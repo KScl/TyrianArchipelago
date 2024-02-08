@@ -23,6 +23,8 @@
 #include "video.h"
 #include "varz.h"
 
+#include "archipelago/apitems.h" // AP Icons
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -966,4 +968,23 @@ void sprites_freeMainShapeTables(void)
 
 	if (tyrian2000detected)
 		free_sprite2s(&spriteSheet13);
+}
+
+// ------------------------------------------------------------------
+
+void sprites_blitArchipelagoIcon(SDL_Surface *surface, int x, int y, Uint16 icon)
+{
+	if (icon > 9000)
+		blit_sprite2x2(surface, x, y, archipelagoSpriteSheet, icon - 9000);
+	else if (icon > 2000)
+		blit_sprite2x2(surface, x, y, spriteSheet11, icon - 2000);
+	else if (icon > 1000)
+		blit_sprite2x2(surface, x, y, spriteSheet10, icon - 1000);
+	else if (icon > 0)
+		blit_sprite2x2(surface, x, y, shopSpriteSheet, icon);
+}
+
+void sprites_blitArchipelagoItem(SDL_Surface *surface, int x, int y, Uint16 itemID)
+{
+	sprites_blitArchipelagoIcon(surface, x, y, apitems_AllIcons[itemID]);
 }

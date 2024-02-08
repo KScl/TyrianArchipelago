@@ -102,6 +102,9 @@ static std::unordered_map<Uint16, Uint16> shopPrices;
 // Local weapon ID: Base cost to upgrade weapon.
 static std::unordered_map<Uint16, Uint16> upgradePrices;
 
+// Total number of locations available to check. Used for endgame stats.
+static int totalLocationCount = -1;
+
 // ----------------------------------------------------------------------------
 // Data -- Stored In Save Game
 // ----------------------------------------------------------------------------
@@ -109,6 +112,7 @@ static std::unordered_map<Uint16, Uint16> upgradePrices;
 // These are C structs that are available C side.
 apitem_t APItems; // Weapons, levels; One time collectibles, etc.
 apstat_t APStats; // Cash, Armor, Power, etc. Upgradable stats.
+applaydata_t APPlayData; // Time, deaths, other tracked things
 apitemchoice_t APItemChoices; // APItems chosen to use
 
 // ------------------------------------------------------------------
@@ -172,6 +176,24 @@ const char *Archipelago_GetUUID(void)
 
 // ------------------------------------------------------------------
 
+static void APAll_FreshInit(void)
+{
+	memset(&APItems, 0, sizeof(APItems));
+	memset(&APStats, 0, sizeof(APStats));
+	memset(&APPlayData, 0, sizeof(APPlayData));
+	memset(&APItemChoices, 0, sizeof(APItemChoices));
+
+	allLocationsChecked.clear();
+	scoutedShopLocations.clear();
+	lastItemIndex = -1;
+
+	APStats.RestGoalEpisodes = APSeedSettings.GoalEpisodes;
+	// Initting of item choices is handled when parsing start state,
+	// because we don't have knowledge of available items at this point
+}
+
+// ------------------------------------------------------------------
+
 void Archipelago_Save(void)
 {
 	json saveData;
@@ -186,6 +208,7 @@ void Archipelago_Save(void)
 
 	for (int i = 0; i < 5; ++i)
 		saveData["APStats"] += APStats.Clears[i];
+	saveData["APStats"] += APStats.RestGoalEpisodes;
 	saveData["APStats"] += APStats.PowerMaxLevel;
 	saveData["APStats"] += APStats.GeneratorLevel;
 	saveData["APStats"] += APStats.ArmorLevel;
@@ -193,8 +216,15 @@ void Archipelago_Save(void)
 	saveData["APStats"] += APStats.Cash;
 	// QueuedSuperBombs is not saved
 
-	saveData["APItemChoices"] += APItemChoices.FrontPort.Item | (APItemChoices.FrontPort.PowerLevel << 10);
-	saveData["APItemChoices"] += APItemChoices.RearPort.Item | (APItemChoices.RearPort.PowerLevel << 10);
+	saveData["APPlayData"] += APPlayData.TimeInLevel;
+	saveData["APPlayData"] += APPlayData.TimeInMenu;
+	saveData["APPlayData"] += APPlayData.Deaths;
+
+	saveData["APItemChoices"] += APItemChoices.FrontPort.Item
+		| (APItemChoices.FrontPort.PowerLevel << 10);
+	saveData["APItemChoices"] += APItemChoices.RearPort.Item
+		| (APItemChoices.RearPort.PowerLevel << 10)
+		| (APItemChoices.RearMode2 ? 0x8000 : 0);
 	saveData["APItemChoices"] += APItemChoices.Special.Item;
 	saveData["APItemChoices"] += APItemChoices.Sidekick[0].Item;
 	saveData["APItemChoices"] += APItemChoices.Sidekick[1].Item;
@@ -222,12 +252,7 @@ void Archipelago_Save(void)
 
 static bool Archipelago_Load(void)
 {
-	// Clear out everything first
-	memset(&APItems, 0, sizeof(APItems));
-	memset(&APStats, 0, sizeof(APStats));
-	allLocationsChecked.clear();
-	scoutedShopLocations.clear();
-	lastItemIndex = -1;
+	APAll_FreshInit();
 
 	std::stringstream saveFileName;
 	saveFileName << get_user_directory() << "/AP" << multiworldSeedName << ".sav";
@@ -255,15 +280,23 @@ static bool Archipelago_Load(void)
 
 		for (int i = 0; i < 5; ++i)
 			APStats.Clears[i] = saveData["APStats"].at(i).template get<Uint32>();
-		APStats.PowerMaxLevel = saveData["APStats"].at(5).template get<Uint8>();
-		APStats.GeneratorLevel = saveData["APStats"].at(6).template get<Uint8>();
-		APStats.ArmorLevel = saveData["APStats"].at(7).template get<Uint8>();
-		APStats.ShieldLevel = saveData["APStats"].at(8).template get<Uint8>();
-		APStats.Cash = saveData["APStats"].at(9).template get<Uint64>();
+		APStats.RestGoalEpisodes = saveData["APStats"].at(5).template get<Uint8>();
+		APStats.PowerMaxLevel = saveData["APStats"].at(6).template get<Uint8>();
+		APStats.GeneratorLevel = saveData["APStats"].at(7).template get<Uint8>();
+		APStats.ArmorLevel = saveData["APStats"].at(8).template get<Uint8>();
+		APStats.ShieldLevel = saveData["APStats"].at(9).template get<Uint8>();
+		APStats.Cash = saveData["APStats"].at(10).template get<Uint64>();
 		if (APStats.ShieldLevel & 0x80)
 		{
 			APStats.SolarShield = true;
 			APStats.ShieldLevel &= 0x7F;
+		}
+
+		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 3)
+		{			
+			APPlayData.TimeInLevel = saveData["APPlayData"].at(0).template get<Uint64>();
+			APPlayData.TimeInMenu = saveData["APPlayData"].at(1).template get<Uint64>();
+			APPlayData.Deaths = saveData["APPlayData"].at(2).template get<Uint16>();
 		}
 
 		APItemChoices.FrontPort.Item = saveData["APItemChoices"].at(0).template get<Uint16>();
@@ -274,7 +307,8 @@ static bool Archipelago_Load(void)
 
 		APItemChoices.FrontPort.PowerLevel = APItemChoices.FrontPort.Item >> 10;
 		APItemChoices.FrontPort.Item &= 0x3FF;
-		APItemChoices.RearPort.PowerLevel = APItemChoices.RearPort.Item >> 10;
+		APItemChoices.RearMode2 = (APItemChoices.RearPort.Item & 0x8000) ? true : false;
+		APItemChoices.RearPort.PowerLevel = (APItemChoices.RearPort.Item >> 10) & 0xF;
 		APItemChoices.RearPort.Item &= 0x3FF;
 
 		if (saveData.contains("Checked"))
@@ -303,11 +337,7 @@ static bool Archipelago_Load(void)
 		std::cout << "Couldn't load save file " << multiworldSeedName << ".sav; starting new game" << std::endl;
 
 		// Clear everything AGAIN so we start on a fresh slate...
-		memset(&APItems, 0, sizeof(APItems));
-		memset(&APStats, 0, sizeof(APStats));
-		allLocationsChecked.clear();
-		scoutedShopLocations.clear();
-		lastItemIndex = -1;
+		APAll_FreshInit();
 		return false;
 	}
 
@@ -620,10 +650,7 @@ static void APAll_ParseStartState(json &j)
 	APStats.SolarShield = j.value<bool>("SolarShield", false);
 	APStats.Cash = j.value<int64_t>("Credits", 0);
 
-	// While we're here, also set up player's chosen items to a known state (empty)
-	memset(&APItemChoices, 0, sizeof(APItemChoices));
-
-	// And default the player's front port to whatever they've started with.
+	// Default the player's front port to whatever they've started with.
 	// If they started with multiple (via starting_inventory), use the first one in ID order.
 	for (int i = 0; i < 64; ++i)
 	{
@@ -699,6 +726,7 @@ static void APLocal_ReceiveItem(int64_t locationID)
 	if (allLocationData.count(locationID - ARCHIPELAGO_BASE_ID) == 0)
 		return;
 
+	++lastItemIndex;
 	Uint16 itemID = allLocationData[locationID - ARCHIPELAGO_BASE_ID];
 	APAll_ResolveItem(itemID);
 
@@ -709,8 +737,7 @@ static void APLocal_ReceiveItem(int64_t locationID)
 
 	std::cout << "You got your "
 	          << APLocal_BuildANSIString(itemID, flags)
-	          << " (" << allLocationsChecked.size() << "/" << allLocationData.size() << ")"
-	          << std::endl;
+	          << " (" << lastItemIndex + 1 << "/" << totalLocationCount << ")" << std::endl;
 }
 
 // ----------------------------------------------------------------------------
@@ -837,6 +864,16 @@ Uint32 Archipelago_GetRegionWasCheckedList(int firstCheckID)
 			checkList |= (1 << i);
 	}
 	return checkList;
+}
+
+int Archipelago_GetTotalCheckCount(void)
+{
+	return totalLocationCount;
+}
+
+int Archipelago_GetTotalWasCheckedCount(void)
+{
+	return allLocationsChecked.size();
 }
 
 // ============================================================================
@@ -1111,6 +1148,8 @@ bool Archipelago_StartLocalGame(FILE *file)
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APLocal_ParseLocationData(resultJSON);
 
+		totalLocationCount = allLocationData.size();
+
 		// Attempt to load old game first
 		if (!Archipelago_Load())
 		{
@@ -1230,6 +1269,8 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		APSeedSettings.Christmas = slot_data["Settings"].at("Christmas").template get<bool>();
 		APSeedSettings.DeathLink = slot_data["Settings"].at("DeathLink").template get<bool>();
 
+		totalLocationCount = slot_data.at("LocationMax").template get<int>();
+
 		std::string obfuscated;
 		json resultJSON;
 
@@ -1253,6 +1294,10 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 			APAll_ParseStartState(resultJSON);
 		}
+
+		// If all goals are already completed, pre-emptively change our status to "Goal Complete"
+		if (!APStats.RestGoalEpisodes)
+			ap->StatusUpdate(APClient::ClientStatus::GOAL);
 	}
 	catch (std::runtime_error& e)
 	{
@@ -1395,4 +1440,15 @@ archipelago_connectionstat_t Archipelago_ConnectionStatus(void)
 const char* Archipelago_GetConnectionError(void)
 {
 	return connection_error_desc.c_str();
+}
+
+void Archipelago_GoalComplete(void)
+{
+	if (!ap)
+	{
+		std::cout << "Your goal has been completed." << std::endl;
+		return;
+	}
+
+	ap->StatusUpdate(APClient::ClientStatus::GOAL);
 }

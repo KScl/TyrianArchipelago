@@ -129,9 +129,19 @@ void player_updateItemChoices(void)
 		{
 			player[0].items.weapon[REAR_WEAPON].id = apitems_RearPorts[APItemChoices.RearPort.Item - 600];
 			player[0].items.weapon[REAR_WEAPON].power = APItemChoices.RearPort.PowerLevel + 1;
+			if (player_getPortConfigCount(0) == 1)
+			{
+				player[0].weapon_mode = 1;
+				APItemChoices.RearMode2 = false;
+			}
+			else
+				player[0].weapon_mode = APItemChoices.RearMode2 ? 2 : 1;
 		}
 		else
+		{
 			APItemChoices.RearPort.Item = 0;
+			APItemChoices.RearMode2 = false;
+		}
 	}
 
 	if (APItemChoices.Special.Item)
@@ -218,6 +228,10 @@ bool player_overrideItemChoice(int section, Uint16 itemID, Uint8 powerLevel)
 			{
 				player[0].items.weapon[REAR_WEAPON].id = apitems_RearPorts[itemID - 600];
 				player[0].items.weapon[REAR_WEAPON].power = powerLevel + 1;
+				if (player_getPortConfigCount(0) == 1)
+					player[0].weapon_mode = 1;
+				else
+					player[0].weapon_mode = APItemChoices.RearMode2 ? 2 : 1;
 				return true;
 			}
 			return false;
@@ -260,9 +274,8 @@ bool player_overrideItemChoice(int section, Uint16 itemID, Uint8 powerLevel)
 
 // ---------------------------------------------------------------------------
 
-Uint16 player_getPortConfigCount(void) // JE_portConfigs
+Uint16 player_getPortConfigCount(uint player_index) // JE_portConfigs
 {
-	const uint player_index = twoPlayerMode ? 1 : 0;
 	return weaponPort[player[player_index].items.weapon[REAR_WEAPON].id].opnum;
 }
 
@@ -327,15 +340,6 @@ void player_drawShield(void)
 
 void player_drawArmor(void)
 {
-	// This is a very silly place to have this cap but it was here originally, so...
-	//for (uint i = 0; i < COUNTOF(player); ++i)
-	//	if (player[i].armor > 28)
-	//		player[i].armor = 28;
-
-	// So you know what why not join the silliness
-	//if (APSeedSettings.ExcessArmor && player[0].armor > APStats.ArmorLevel)
-	//	player[0].armor = APStats.ArmorLevel;
-
 	if (twoPlayerMode && !galagaMode)
 	{
 		for (uint i = 0; i < COUNTOF(player); ++i)
@@ -360,7 +364,11 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 	// a hit to their armor in certain situations
 	int takenArmorDamage = 0;
 
+#ifdef LEVEL_CHEATS
 	if (!this_player->is_alive || youAreCheating)
+#else
+	if (!this_player->is_alive)
+#endif
 		return 0;
 
 	soundQueue[7] = S_SHIELD_HIT;
@@ -403,6 +411,7 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 		{
 			// Through armor, player is dead
 			Archipelago_SendDeathLink(damageType);
+			++APPlayData.Deaths;
 
 			this_player->armor = 0;
 			levelTimer = false;

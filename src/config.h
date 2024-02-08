@@ -74,6 +74,7 @@ typedef JE_byte JE_PItemsType[12]; /* [1..12] */
 
 typedef JE_byte JE_EditorItemAvailType[100]; /* [1..100] */
 
+#if 0
 typedef struct
 {
 	JE_word       encode;
@@ -103,6 +104,7 @@ typedef struct
 
 typedef JE_SaveFileType JE_SaveFilesType[SAVE_FILES_NUM]; /* [1..savefilesnum] */
 typedef JE_byte JE_SaveGameTemp[SAVE_FILES_SIZE + 4 + 100]; /* [1..sizeof(savefilestype) + 4 + 100] */
+#endif
 
 extern const JE_byte cryptKey[10];
 //extern const DosKeySettings defaultDosKeySettings;  // fka defaultKeySettings
@@ -151,11 +153,11 @@ extern JE_byte superArcadeMode;
 extern JE_byte superArcadePowerUp;
 extern JE_real linkGunDirec;
 extern JE_byte inputDevice[2];
-extern JE_byte secretHint;
+//extern JE_byte secretHint;
 extern JE_byte background3over;
 extern JE_byte background2over;
 extern JE_byte gammaCorrection;
-extern JE_boolean superPause, explosionTransparent, youAreCheating, displayScore, background2, smoothScroll, wild, superWild, starActive, topEnemyOver, skyEnemyOverAll, background2notTransparent;
+extern JE_boolean superPause, explosionTransparent, displayScore, background2, smoothScroll, wild, superWild, starActive, topEnemyOver, skyEnemyOverAll, background2notTransparent;
 extern JE_byte fastPlay;
 extern JE_boolean pentiumMode;
 extern JE_byte gameSpeed;
@@ -163,6 +165,10 @@ extern JE_byte processorType;
 //extern JE_SaveFilesType saveFiles;
 //extern JE_SaveGameTemp saveTemp;
 //extern JE_word editorLevel;
+
+#ifdef LEVEL_CHEATS
+extern JE_boolean youAreCheating; // invulnerability
+#endif
 
 extern Config opentyrian_config;
 

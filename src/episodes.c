@@ -213,6 +213,23 @@ void JE_loadItemDat(FILE *f)
 		fread_s16_die(&enemyDat[i].value,         1, f);
 		fread_u16_die(&enemyDat[i].eenemydie,     1, f);
 	}
+
+	// Weapons which were designed for Super Arcade Mode all have very low poweruse settings,
+	// because Super Arcade mode does not use generator power. So we set some more reasonable
+	// values here, based on their damage output and rate of fire.
+	weaponPort[ 6].poweruse =  80; // Protron Z
+	weaponPort[23].poweruse =  50; // Banana Blast (Front)
+	weaponPort[24].poweruse =  80; // Banana Blast (Rear)
+	weaponPort[31].poweruse =  80; // Guided Bombs
+	weaponPort[32].poweruse = 100; // Shuruiken Field
+	weaponPort[33].poweruse = 180; // Poison Bomb
+	weaponPort[34].poweruse =  50; // Protron Wave
+	weaponPort[35].poweruse =  60; // The Orange Juicer
+	weaponPort[36].poweruse =  80; // NortShip Super Pulse
+	weaponPort[37].poweruse =  80; // NortShip Spreader
+	weaponPort[38].poweruse =  80; // NortShip Spreader B
+	weaponPort[39].poweruse = 110; // Atomic RailGun
+	weaponPort[37].opnum = 1; // Normally unused mode switch to Spreader B from Spreader A removed
 }
 
 void JE_initEpisode(JE_byte newEpisode)

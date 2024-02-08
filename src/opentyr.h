@@ -60,6 +60,17 @@ extern bool tyrian2000detected;
 
 void setupMenu(void);
 
+// ------------------------------------------------------------------
+// Debugging Cheats
+// ------------------------------------------------------------------
+
+// Enables "Unbounded" speed option for quickly advancing.
 #define UNBOUNDED_SPEED
+
+// Enables F-key cheats in menus to manipulate items.
+#define ITEM_CHEATS
+
+// Enables F-key cheats in level for invulnerability, skip level, etc.
+#define LEVEL_CHEATS
 
 #endif /* OPENTYR_H */
