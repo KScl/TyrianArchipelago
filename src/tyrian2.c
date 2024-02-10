@@ -3762,7 +3762,7 @@ void JE_eventSystem(void)
 		break;
 
 	case 45: /* arcade-only enemy from other enemies */
-#if 1
+#if 0
 		for (temp = 0; temp < 100; temp++)
 		{
 			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)

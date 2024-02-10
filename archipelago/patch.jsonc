@@ -134,7 +134,8 @@
 			{ "time":6068, "event": 12, /* NewEnemy_Ground4x4Custom */ "linknum":99, "type":573, "ex":174, "bg":4 },
 			{ "time":6068, "event":201, /* AP_CheckFromEnemy */ "ap_id": 44, "linknum":99, "movement":"static" }
 		],
-		"394:APPEND": { "time":7160, "event":201, /* AP_CheckFromEnemy */ "ap_id":45, "linknum":2, "movement":"falling", "backup":392 }
+		"394:APPEND": { "time":7160, "event":201, /* AP_CheckFromEnemy */ "ap_id":45, "linknum": 2, "movement":"falling", "backup":392 },
+		"429:APPEND": { "time":7552, "event":201, /* AP_CheckFromEnemy */ "ap_id":46, "linknum":69, "movement":"swaying", "is_boss":true }
 	},
 
 	"Episode1 ASTEROID2": {
@@ -149,7 +150,7 @@
 			{ "time":6824, "event": 12, /* NewEnemy_Ground4x4Custom */ "linknum":16, "type":573, "ex":186, "bg":4 },
 			{ "time":6824, "event":201, /* AP_CheckFromEnemy */ "ap_id": 56, "linknum":16, "movement":"static" }
 		],
-		"725:REPLACE": { "time":7482, "event":201, /* AP_CheckFromEnemy */ "ap_id":57, "linknum":45, "movement":"swaying", "is_boss":true },
+		"723:REPLACE": { "time":7482, "event":201, /* AP_CheckFromEnemy */ "ap_id":57, "linknum":44, "movement":"swaying", "backup":397, "is_boss":true },
 
 		// We actually move one of the secret events a little bit back so there's slightly more time to get the relevant check,
 		// so we should no-op the old powerup drop event, too
@@ -192,10 +193,11 @@
 
 	"Episode1 WINDY": {
 		// Addition of Archipelago Item(s...?)
-		"273:APPEND": { "time":850, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":80, "movement":"static" }
+		"273:APPEND": { "time":850, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":80, "movement":"static", "backup":399 }
 	},
 
 	"Episode1 SAVARA Easy": {
+		// Addition of Archipelago Items
 		"38:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":90, "linknum": 19, "movement":"falling" },
 		"171:REPLACE": { "time":1690, "event":201, /* AP_CheckFromEnemy */ "ap_id":91, "linknum": 10, "movement":"falling" },
 		"227:REPLACE": { "time":2270, "event":201, /* AP_CheckFromEnemy */ "ap_id":92, "linknum": 19, "movement":"falling" },
@@ -206,6 +208,7 @@
 	},
 
 	"Episode1 SAVARA Hard": {
+		// Addition of Archipelago Items
 		"118:REPLACE": { "time": 760, "event":201, /* AP_CheckFromEnemy */ "ap_id":100, "linknum": 13, "movement":"falling" },
 		"200:REPLACE": { "time":1150, "event":201, /* AP_CheckFromEnemy */ "ap_id":101, "linknum":  7, "movement":"falling" },
 		"303:REPLACE": { "time":1800, "event":201, /* AP_CheckFromEnemy */ "ap_id":102, "linknum":  8, "movement":"static" },
@@ -227,6 +230,7 @@
 	},
 
 	"Episode1 DELIANI": {
+		// Addition of Archipelago Items
 		"109:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":130, "linknum": 1, "movement":"falling" },
 		"119:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":131, "linknum": 4, "movement":"falling" },
 		"216:REPLACE": { "time":1647, "event":201, /* AP_CheckFromEnemy */ "ap_id":132, "linknum":61, "movement":"falling" },
@@ -255,6 +259,7 @@
 	},
 
 	"Episode1 ASSASSIN": {
+		// Addition of Archipelago Item (on boss)
 		"717:APPEND": { "time":3099, "event":201, /* AP_CheckFromEnemy */ "ap_id":150, "linknum":142, "movement":"swaying", "is_boss":true }
 	},
 
