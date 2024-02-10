@@ -28,7 +28,7 @@
     <IntDir>$(SolutionDir)..\obj\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)-$(Platform)-$(Configuration)</TargetName>
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -57,18 +57,15 @@
       <CompileAs>CompileAsC</CompileAs>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(SDL2BaseDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories Condition="'$(WITH_NETWORK)'=='true'">$(SDL2netBaseDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>TARGET_WIN32;_CRT_SECURE_NO_WARNINGS;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(OPENTYRIAN_VERSION)'!=''">OPENTYRIAN_VERSION="$(OPENTYRIAN_VERSION)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(WITH_NETWORK)'=='true'">WITH_NETWORK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(TYRIAN_DIR)'!=''">TYRIAN_DIR=$(TYRIAN_DIR);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4018;4061;4204;4210;4242;4244;4245;4267;4305;4456;4457;4459;4668;4710;4711;4738;4820;5045;26451</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4061;4204;4210;4242;4244;4245;4267;4305;4365;4456;4457;4459;4514;4623;4625;4626;4668;4710;4711;4738;4820;4866;5027;5045;5262;26451</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(WITH_NETWORK)'=='true'">SDL2_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;libssl.lib;libcrypto.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -96,43 +93,64 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
     <ClCompile>
+      <AdditionalIncludeDirectories>$(OpenSSLBaseDir)\x86\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SDL2BaseDir)\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories Condition="'$(WITH_NETWORK)'=='true'">$(SDL2netBaseDir)\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SDL2BaseDir)\lib\x86;$(OpenSSLBaseDir)\x86\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <ClCompile>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdcpp17</LanguageStandard>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
     <ClCompile>
+      <AdditionalIncludeDirectories>$(OpenSSLBaseDir)\x64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SDL2BaseDir)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories Condition="'$(WITH_NETWORK)'=='true'">$(SDL2netBaseDir)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SDL2BaseDir)\lib\x64;$(OpenSSLBaseDir)\x64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <ClCompile>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp17</LanguageStandard>
+    </ClCompile>
+    <ClCompile>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp17</LanguageStandard>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\animlib.c" />
+    <ClCompile Include="..\src\apmenu.c" />
+    <ClCompile Include="..\src\apmsg.c" />
+    <ClCompile Include="..\src\archipelago\apconnect.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\valijson\include;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ASIO_STANDALONE;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="..\src\archipelago\patcher.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\valijson\include;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ASIO_STANDALONE;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="..\src\arg_parse.c" />
     <ClCompile Include="..\src\backgrnd.c" />
     <ClCompile Include="..\src\config.c" />
     <ClCompile Include="..\src\config_file.c" />
-    <ClCompile Include="..\src\destruct.c" />
-    <ClCompile Include="..\src\editship.c" />
     <ClCompile Include="..\src\episodes.c" />
     <ClCompile Include="..\src\file.c" />
     <ClCompile Include="..\src\font.c" />
     <ClCompile Include="..\src\fonthand.c" />
-    <ClCompile Include="..\src\game_menu.c" />
     <ClCompile Include="..\src\helptext.c" />
     <ClCompile Include="..\src\joystick.c" />
     <ClCompile Include="..\src\jukebox.c" />
     <ClCompile Include="..\src\keyboard.c" />
     <ClCompile Include="..\src\lds_play.c" />
+    <ClCompile Include="..\src\levelend.c" />
     <ClCompile Include="..\src\loudness.c" />
-    <ClCompile Include="..\src\lvllib.c" />
     <ClCompile Include="..\src\lvlmast.c" />
     <ClCompile Include="..\src\mainint.c" />
-    <ClCompile Include="..\src\menus.c" />
     <ClCompile Include="..\src\mouse.c" />
     <ClCompile Include="..\src\mtrand.c" />
     <ClCompile Include="..\src\musmast.c" />
@@ -146,6 +164,7 @@
     <ClCompile Include="..\src\pcxload.c" />
     <ClCompile Include="..\src\pcxmast.c" />
     <ClCompile Include="..\src\picload.c" />
+    <ClCompile Include="..\src\planet.c" />
     <ClCompile Include="..\src\player.c" />
     <ClCompile Include="..\src\shots.c" />
     <ClCompile Include="..\src\sizebuf.c" />
@@ -159,31 +178,31 @@
     <ClCompile Include="..\src\video.c" />
     <ClCompile Include="..\src\video_scale.c" />
     <ClCompile Include="..\src\video_scale_hqNx.c" />
-    <ClCompile Include="..\src\xmas.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\animlib.h" />
+    <ClInclude Include="..\src\apmenu.h" />
+    <ClInclude Include="..\src\apmsg.h" />
+    <ClInclude Include="..\src\archipelago\apconnect.h" />
+    <ClInclude Include="..\src\archipelago\apitems.h" />
+    <ClInclude Include="..\src\archipelago\patcher.h" />
     <ClInclude Include="..\src\arg_parse.h" />
     <ClInclude Include="..\src\backgrnd.h" />
     <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\config_file.h" />
-    <ClInclude Include="..\src\destruct.h" />
-    <ClInclude Include="..\src\editship.h" />
     <ClInclude Include="..\src\episodes.h" />
     <ClInclude Include="..\src\file.h" />
     <ClInclude Include="..\src\font.h" />
     <ClInclude Include="..\src\fonthand.h" />
-    <ClInclude Include="..\src\game_menu.h" />
     <ClInclude Include="..\src\helptext.h" />
     <ClInclude Include="..\src\joystick.h" />
     <ClInclude Include="..\src\jukebox.h" />
     <ClInclude Include="..\src\keyboard.h" />
     <ClInclude Include="..\src\lds_play.h" />
+    <ClInclude Include="..\src\levelend.h" />
     <ClInclude Include="..\src\loudness.h" />
-    <ClInclude Include="..\src\lvllib.h" />
     <ClInclude Include="..\src\lvlmast.h" />
     <ClInclude Include="..\src\mainint.h" />
-    <ClInclude Include="..\src\menus.h" />
     <ClInclude Include="..\src\mouse.h" />
     <ClInclude Include="..\src\mtrand.h" />
     <ClInclude Include="..\src\musmast.h" />
@@ -198,6 +217,7 @@
     <ClInclude Include="..\src\pcxload.h" />
     <ClInclude Include="..\src\pcxmast.h" />
     <ClInclude Include="..\src\picload.h" />
+    <ClInclude Include="..\src\planet.h" />
     <ClInclude Include="..\src\player.h" />
     <ClInclude Include="..\src\shots.h" />
     <ClInclude Include="..\src\sizebuf.h" />
@@ -210,7 +230,6 @@
     <ClInclude Include="..\src\vga_palette.h" />
     <ClInclude Include="..\src\video.h" />
     <ClInclude Include="..\src\video_scale.h" />
-    <ClInclude Include="..\src\xmas.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources.rc" />
@@ -218,14 +237,14 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ItemGroup Condition="'$(Platform)'=='Win32'">
     <Dependency Include="$(SDL2BaseDir)\lib\x86\*.dll" />
-    <Dependency Condition="$(WITH_NETWORK)=='true'" Include="$(SDL2netBaseDir)\lib\x86\*.dll" />
+    <Dependency Include="$(OpenSSLBaseDir)\x86\bin\*.dll" />
   </ItemGroup>
   <ItemGroup Condition="'$(Platform)'=='x64'">
     <Dependency Include="$(SDL2BaseDir)\lib\x64\*.dll" />
-    <Dependency Condition="$(WITH_NETWORK)=='true'" Include="$(SDL2netBaseDir)\lib\x64\*.dll" />
+    <Dependency Include="$(OpenSSLBaseDir)\x64\bin\*.dll" />
   </ItemGroup>
   <PropertyGroup>
-    <BuildDependsOn>CopyPropsTemplates;EnsureSDLExists;$(BuildDependsOn)</BuildDependsOn>
+    <BuildDependsOn>CopyPropsTemplates;EnsureSDLExists;EnsureOpenSSLExists;$(BuildDependsOn)</BuildDependsOn>
   </PropertyGroup>
   <Target Name="CopyPropsTemplates">
     <Copy SourceFiles="opentyrian.props.template" DestinationFiles="opentyrian.props" Condition="!Exists('opentyrian.props')" />
@@ -233,7 +252,9 @@
   </Target>
   <Target Name="EnsureSDLExists">
     <Error Condition="!Exists($(SDL2BaseDir))" Text="Set 'SDL2BaseDir' in 'sdl_paths.props' to the directory where SDL2 is located." />
-    <Error Condition="'$(WITH_NETWORK)'=='true' AND !Exists($(SDL2netBaseDir))" Text="Set 'SDL2netBaseDir' in 'sdl_paths.props' to the directory where SDL2_net is located." />
+  </Target>
+  <Target Name="EnsureOpenSSLExists">
+    <Error Condition="!Exists($(OpenSSLBaseDir))" Text="Set 'OpenSSLBaseDir' in 'sdl_paths.props' to the directory where SDL2 is located." />
   </Target>
   <Target Name="CopyDependencies" AfterTargets="Build">
     <Copy SourceFiles="@(Dependency)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />

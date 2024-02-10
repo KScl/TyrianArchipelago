@@ -18,10 +18,39 @@
 //#define APCLIENT_DEBUG
 
 // Silence warnings from apclient/wswrap
+#if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#elif defined(_MSC_VER)
+#pragma warning (push)
+#pragma warning (disable:4100)
+#pragma warning (disable:4127)
+#pragma warning (disable:4191)
+#pragma warning (disable:4355)
+#pragma warning (disable:4371)
+#pragma warning (disable:4619)
+#pragma warning (disable:4623)
+#pragma warning (disable:4625)
+#pragma warning (disable:4626)
+#pragma warning (disable:4800)
+#pragma warning (disable:4840)
+#pragma warning (disable:4996)
+#pragma warning (disable:5026)
+#pragma warning (disable:5027)
+#pragma warning (disable:5031)
+#pragma warning (disable:5039)
+#pragma warning (disable:5204)
+#pragma warning (disable:5220)
+#pragma warning (disable:5267)
+#endif
+
 #include <apclient.hpp>
+
+#if defined(__GNUC__)
 #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning (pop)
+#endif
 
 extern "C" {
 	// Function definitions that go out C side need to not be mangled by C++
@@ -668,7 +697,7 @@ static void APAll_ParseStartState(json &j)
 	// If they started with multiple (via starting_inventory), use the first one in ID order.
 	for (int i = 0; i < 64; ++i)
 	{
-		if (APItems.FrontPorts & (1 << i))
+		if (APItems.FrontPorts & (1ull << i))
 		{
 			APItemChoices.FrontPort.Item = 500 + i;
 			break;
@@ -682,7 +711,7 @@ static void APAll_ParseStartState(json &j)
 	{
 		for (int i = 0; i < 64; ++i)
 		{
-			if (APItems.Specials & (1 << i))
+			if (APItems.Specials & (1ull << i))
 			{
 				APItemChoices.Special.Item = 700 + i;
 				break;
@@ -1141,7 +1170,7 @@ bool Archipelago_StartLocalGame(FILE *file)
 		APSeedSettings.Difficulty = aptyrianJSON["Settings"].at("Difficulty").template get<int>();
 
 		APSeedSettings.ShopMenu = aptyrianJSON["Settings"].at("ShopMenu").template get<int>();
-		APSeedSettings.SpecialMenu = aptyrianJSON["Settings"].at("SpecialMenu").template get<int>();
+		APSeedSettings.SpecialMenu = aptyrianJSON["Settings"].at("SpecialMenu").template get<bool>();
 		APSeedSettings.HardContact = aptyrianJSON["Settings"].at("HardContact").template get<bool>();
 		APSeedSettings.ExcessArmor = aptyrianJSON["Settings"].at("ExcessArmor").template get<bool>();
 		APSeedSettings.TwiddleInputs = aptyrianJSON["Settings"].at("ShowTwiddles").template get<bool>();
@@ -1278,7 +1307,7 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		APSeedSettings.Difficulty = slot_data["Settings"].at("Difficulty").template get<int>();
 
 		APSeedSettings.ShopMenu = slot_data["Settings"].at("ShopMenu").template get<int>();
-		APSeedSettings.SpecialMenu = slot_data["Settings"].at("SpecialMenu").template get<int>();
+		APSeedSettings.SpecialMenu = slot_data["Settings"].at("SpecialMenu").template get<bool>();
 		APSeedSettings.HardContact = slot_data["Settings"].at("HardContact").template get<bool>();
 		APSeedSettings.ExcessArmor = slot_data["Settings"].at("ExcessArmor").template get<bool>();
 		APSeedSettings.TwiddleInputs = slot_data["Settings"].at("ShowTwiddles").template get<bool>();

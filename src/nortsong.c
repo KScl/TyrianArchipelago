@@ -166,7 +166,7 @@ die:
 	exit(EXIT_FAILURE);
 }
 
-void nortsong_loadSoundFiles()
+void nortsong_loadSoundFiles(void)
 {
 	loadSndFile("tyrian.snd", S_WEAPON_1, false);
 	loadSndFile("voices.snd", V_CLEARED_PLATFORM, true);

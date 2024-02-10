@@ -1,6 +1,7 @@
 
 #include <cstdarg>
 #include <iostream>
+#include <sstream>
 #include <list>
 
 #define JSON_USE_IMPLICIT_CONVERSIONS 0
@@ -356,7 +357,7 @@ Uint16 Patcher_DoPatch(Uint16 *idx)
 	if (eventCount > patchEvents.front())
 	{
 		std::cout << "error: Patch events within an earlier replacement (noticed at " << eventCount << ")" << std::endl;
-		throw std::logic_error("Patch events within earlier replacement");
+		exit(1);
 	}
 	patchEvents.pop_front();
 

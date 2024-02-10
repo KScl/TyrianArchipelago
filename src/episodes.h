@@ -19,6 +19,8 @@
 #ifndef EPISODES_H
 #define EPISODES_H
 
+#include <stdio.h>
+
 #include "opentyr.h"
 
 #include "lvlmast.h"

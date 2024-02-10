@@ -882,7 +882,7 @@ void sprites_loadInterfaceSprites(void)
 	fclose(f);
 
 	// Load Archipelago images too, since they're global
-	f = dir_fopen_die("archipelago", "apitem.shp", "r");
+	f = dir_fopen_die("archipelago", "apitem.shp", "rb");
 	archipelagoSpriteSheet.size = ftell_eof(f);
 	JE_loadCompShapesB(&archipelagoSpriteSheet, f);
 	fclose(f);

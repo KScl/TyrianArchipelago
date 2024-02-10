@@ -113,7 +113,7 @@ void player_updateItemChoices(void)
 	if (APItemChoices.FrontPort.Item)
 	{
 		if (APItemChoices.FrontPort.Item >= 500 && APItemChoices.FrontPort.Item < 500 + 64
-			&& (APItems.FrontPorts & (1 << (APItemChoices.FrontPort.Item - 500))))
+			&& (APItems.FrontPorts & (1ull << (APItemChoices.FrontPort.Item - 500))))
 		{
 			player[0].items.weapon[FRONT_WEAPON].id = apitems_FrontPorts[APItemChoices.FrontPort.Item - 500];
 			player[0].items.weapon[FRONT_WEAPON].power = APItemChoices.FrontPort.PowerLevel + 1;
@@ -125,7 +125,7 @@ void player_updateItemChoices(void)
 	if (APItemChoices.RearPort.Item)
 	{
 		if (APItemChoices.RearPort.Item >= 600 && APItemChoices.RearPort.Item < 600 + 64
-			&& (APItems.RearPorts & (1 << (APItemChoices.RearPort.Item - 600))))
+			&& (APItems.RearPorts & (1ull << (APItemChoices.RearPort.Item - 600))))
 		{
 			player[0].items.weapon[REAR_WEAPON].id = apitems_RearPorts[APItemChoices.RearPort.Item - 600];
 			player[0].items.weapon[REAR_WEAPON].power = APItemChoices.RearPort.PowerLevel + 1;
@@ -147,7 +147,7 @@ void player_updateItemChoices(void)
 	if (APItemChoices.Special.Item)
 	{
 		if (APItemChoices.Special.Item >= 700 && APItemChoices.Special.Item < 700 + 64
-			&& (APItems.Specials & (1 << (APItemChoices.Special.Item - 700))))
+			&& (APItems.Specials & (1ull << (APItemChoices.Special.Item - 700))))
 		{
 			player[0].items.special = apitems_Specials[APItemChoices.Special.Item - 700];
 		}
@@ -214,7 +214,7 @@ bool player_overrideItemChoice(int section, Uint16 itemID, Uint8 powerLevel)
 	{
 		case 0: // Front Weapon
 			if ((itemID >= 500 && itemID < 500 + 64)
-				&& (APItems.FrontPorts & (1 << (itemID - 500))))
+				&& (APItems.FrontPorts & (1ull << (itemID - 500))))
 			{
 				player[0].items.weapon[FRONT_WEAPON].id = apitems_FrontPorts[itemID - 500];
 				player[0].items.weapon[FRONT_WEAPON].power = powerLevel + 1;
@@ -224,7 +224,7 @@ bool player_overrideItemChoice(int section, Uint16 itemID, Uint8 powerLevel)
 
 		case 1: // Rear Weapon
 			if ((itemID >= 600 && itemID < 600 + 64)
-				&& (APItems.RearPorts & (1 << (itemID - 600))))
+				&& (APItems.RearPorts & (1ull << (itemID - 600))))
 			{
 				player[0].items.weapon[REAR_WEAPON].id = apitems_RearPorts[itemID - 600];
 				player[0].items.weapon[REAR_WEAPON].power = powerLevel + 1;
@@ -260,7 +260,7 @@ bool player_overrideItemChoice(int section, Uint16 itemID, Uint8 powerLevel)
 
 		case 4: // Special
 			if ((itemID >= 700 && itemID < 700 + 64)
-				&& (APItems.Specials & (1 << (itemID - 700))))
+				&& (APItems.Specials & (1ull << (itemID - 700))))
 			{
 				player[0].items.special = apitems_Specials[itemID - 700];
 				return true;

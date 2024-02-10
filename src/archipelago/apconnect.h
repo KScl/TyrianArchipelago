@@ -73,7 +73,7 @@ void Archipelago_GoalComplete(void);
 // Items and Checks
 // ----------------------------------------------------------------------------
 
-#define AP_BITSET(var, bit) ((var) & (1 << (bit)))
+#define AP_BITSET(var, bit) ((var) & (1ull << (bit)))
 
 typedef struct {
 	Uint16 Item;

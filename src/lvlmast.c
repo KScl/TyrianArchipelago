@@ -47,7 +47,7 @@ static void level_loadEvents(FILE *level_f)
 	while (x < maxEvent)
 	{
 		int skips;
-		if ((skips = Patcher_DoPatch(&x)))
+		if ((skips = Patcher_DoPatch(&x)) != 0)
 		{
 			fseek(level_f, 11*skips, SEEK_CUR);
 			continue;
