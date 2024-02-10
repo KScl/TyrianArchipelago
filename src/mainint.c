@@ -1328,7 +1328,7 @@ void JE_endLevelAni(void)
 	}
 	else
 	{
-		sprintf(tempStr, "%s %llu", miscText[28-1], APStats.Cash);
+		sprintf(tempStr, "%s %llu", miscText[28-1], (unsigned long long)APStats.Cash);
 		JE_outTextGlow(VGAScreenSeg, 30, 50, tempStr);
 	}
 
@@ -1442,7 +1442,7 @@ void JE_inGameDisplays(void)
 	JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
 
 	const Uint64 totalCash = APStats.Cash + player[0].cash;
-	snprintf(tempstr, sizeof(tempstr), "%llu", totalCash);
+	snprintf(tempstr, sizeof(tempstr), "%llu", (unsigned long long)totalCash);
 	if (smoothies[6-1]) // This is the same way Tyrian 2000 fixed this and it's good enough for me
 		JE_textShade(VGAScreen, 30, 175, tempstr, 8, 8, FULL_SHADE);
 	else

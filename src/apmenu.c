@@ -1901,7 +1901,7 @@ int apmenu_itemScreen(void)
 		itemSubMenus[currentSubMenu].runFunc();
 
 		// Always draw cash, over top everything
-		snprintf(string_buffer, sizeof(string_buffer), "%llu", APStats.Cash - tempMoneySub);
+		snprintf(string_buffer, sizeof(string_buffer), "%llu", (unsigned long long)(APStats.Cash - tempMoneySub));
 		JE_textShade(VGAScreen, 65, 173, string_buffer, 1, 6, DARKEN);
 
 		apmsg_manageQueueMenu(currentSubMenu != SUBMENU_MAIN);
