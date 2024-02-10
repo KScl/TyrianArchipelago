@@ -1,5 +1,5 @@
-#ifndef ARCHIPELAGO_APITEMS_H
-#define ARCHIPELAGO_APITEMS_H
+#ifndef CPP_APITEMS_H
+#define CPP_APITEMS_H
 
 static const char *const apitems_AllNames[1000] = {
 	"TYRIAN (Episode 1)",    // 0

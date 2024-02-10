@@ -12,6 +12,7 @@
 #include "nortsong.h"
 #include "nortvars.h"
 #include "palette.h"
+#include "pcxload.h"
 #include "picload.h"
 #include "planet.h"
 #include "shots.h"
@@ -1762,16 +1763,113 @@ static void sidebarSimulateShots(void)
 
 // ----------------------------------------------------------------------------
 
+static void apmenu_chatbox(void)
+{
+	Uint8 scrollbackPos = 1;
+	int lines = 1;
+
+	JE_playSampleNum(S_SPRING);
+
+	// Save old screen contents in VGAScreen2
+	// (we'll need to restore VGAScreen2 to base menu background after we're done)
+	memcpy(VGAScreen2->pixels, VGAScreen->pixels, VGAScreen->pitch * VGAScreen->h);
+
+	JE_barShade(VGAScreen, 0, 172, 319, 175);
+	pcxload_renderChatBox(VGAScreen, 174, 0, 26);
+	JE_mouseStart();
+	JE_showVGA();
+	JE_mouseReplace();
+	SDL_Delay(16);
+
+	// Animate upwards
+	for (; lines <= 16; lines++)
+	{
+		JE_barShade(VGAScreen, 0, 172 - (lines * 9), 319, 175 - (lines * 9));
+		pcxload_renderChatBox(VGAScreen, 174 - (lines * 9), 0, 6);
+		fill_rectangle_xy(VGAScreen, 0, 180 - (lines * 9), 319, 180, 228);
+		fill_rectangle_xy(VGAScreen, 307, 180 - (lines * 9), 310, 180, 227);
+		apmsg_drawScrollBack(scrollbackPos, lines);
+
+		JE_mouseStart();
+		JE_showVGA();
+		JE_mouseReplace();
+		SDL_Delay(16);
+	}
+	lines = 16;
+
+	service_SDL_events(true); // Get fresh events
+	while (true)
+	{
+		service_SDL_events(false);
+
+		if ((newkey && lastkey_scan == SDL_SCANCODE_PAGEUP) || mousewheel == MOUSEWHEEL_UP)
+			++scrollbackPos;
+		else if ((newkey && lastkey_scan == SDL_SCANCODE_PAGEDOWN) || mousewheel == MOUSEWHEEL_DOWN)
+			--scrollbackPos;
+		else if (newkey && lastkey_scan == SDL_SCANCODE_HOME)
+			scrollbackPos = 254 - lines;
+		else if (newkey && lastkey_scan == SDL_SCANCODE_END)
+			scrollbackPos = 1;
+
+		if (scrollbackPos >= 255 - lines)
+			scrollbackPos = 254 - lines;
+		else if (scrollbackPos == 0)
+			scrollbackPos = 1;
+
+		if (newkey && (lastkey_scan == SDL_SCANCODE_TAB || lastkey_scan == SDL_SCANCODE_ESCAPE))
+			break;
+
+		fill_rectangle_xy(VGAScreen, 0, 180 - (lines * 9), 319, 180, 228);
+		fill_rectangle_xy(VGAScreen, 307, 180 - (lines * 9), 310, 180, 227);
+		apmsg_drawScrollBack(scrollbackPos, lines);
+		blit_sprite2(VGAScreen, 303, 160 - (scrollbackPos >> 1), shopSpriteSheet, 247);
+
+		service_SDL_events(true);
+		JE_mouseStart();
+		JE_showVGA();
+		JE_mouseReplace();
+		SDL_Delay(16);
+	}
+
+	JE_playSampleNum(S_SPRING);
+
+	// Animate downwards
+	for (lines = 15; lines >= 0; lines--)
+	{
+		memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
+		pcxload_renderChatBox(VGAScreen, 174, 0, 26);
+		JE_barShade(VGAScreen, 0, 172 - (lines * 9), 319, 175 - (lines * 9));
+		pcxload_renderChatBox(VGAScreen, 174 - (lines * 9), 0, 6);
+		fill_rectangle_xy(VGAScreen, 0, 180 - (lines * 9), 319, 180, 228);
+		fill_rectangle_xy(VGAScreen, 307, 180 - (lines * 9), 310, 180, 227);
+		if (lines)
+			apmsg_drawScrollBack(scrollbackPos, lines);
+
+		JE_mouseStart();
+		JE_showVGA();
+		JE_mouseReplace();
+		SDL_Delay(16);
+	}
+
+	service_SDL_events(true); // Get fresh events upon exiting
+	JE_loadPic(VGAScreen2, 1, false);
+	pcxload_renderChatBox(VGAScreen2, 185, 11, 15);
+}
+
+// ----------------------------------------------------------------------------
+
 int apmenu_itemScreen(void)
 {
 	Uint64 menuStartTime = SDL_GetTicks64();
 	bool updatePalette = true;
 
 	play_song(DEFAULT_SONG_BUY);
+	pcxload_prepChatBox();
 
 	VGAScreen = VGAScreenSeg;
 
 	JE_loadPic(VGAScreen2, 1, false);
+	pcxload_renderChatBox(VGAScreen2, 185, 11, 15);
 	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 
 	JE_showVGA();
@@ -1806,7 +1904,14 @@ int apmenu_itemScreen(void)
 		snprintf(string_buffer, sizeof(string_buffer), "%lu", APStats.Cash - tempMoneySub);
 		JE_textShade(VGAScreen, 65, 173, string_buffer, 1, 6, DARKEN);
 
-		apmsg_manageQueue(false);
+		apmsg_manageQueueMenu(currentSubMenu != SUBMENU_MAIN);
+		if (currentSubMenu == SUBMENU_MAIN)
+		{
+			JE_outTextAndDarken(VGAScreen, 286, 187, "[TAB]", 14, 1, TINY_FONT);
+
+			if (newkey && lastkey_scan == SDL_SCANCODE_TAB)
+				apmenu_chatbox(); // Blocks until exited
+		}
 
 		// Back to previous menu
 		if ((newmouse && lastmouse_but == SDL_BUTTON_RIGHT)

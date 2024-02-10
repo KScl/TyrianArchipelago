@@ -243,6 +243,16 @@ void JE_outTextAndDarken(SDL_Surface * screen, int x, int y, const char *s, unsi
 			bright = (bright == 0) ? 4 : 0;
 			break;
 
+		case '<':
+			if (!s[i+1] || !s[i+2])
+				return;
+			i += 2;
+			break;
+
+		case '>':
+			bright = 0;
+			break;
+
 		default:
 			if (sprite_id != -1 && sprite_exists(TINY_FONT, sprite_id))
 			{
@@ -343,6 +353,10 @@ void fonthand_outTextColorize(SDL_Surface *screen, int x, int y, const char *s, 
 		{
 			case ' ': 
 				x += 6;
+				continue; // outer for loop
+
+			case '~':
+				val += (val > defaultVal) ? -4 : 4;
 				continue; // outer for loop
 
 			case '>':

@@ -72,6 +72,9 @@ void init_video(void)
 		exit(1);
 	}
 
+	char windowTitle[128];
+	snprintf(windowTitle, sizeof(windowTitle), "%s %s", opentyrian_str, opentyrian_version);
+
 	// Create the software surfaces that the game renders to. These are all 320x200x8 regardless
 	// of the window size or monitor resolution.
 	VGAScreen = VGAScreenSeg = SDL_CreateRGBSurface(0, vga_width, vga_height, 8, 0, 0, 0, 0);
@@ -88,7 +91,7 @@ void init_video(void)
 
 	// Create the window with a temporary initial size, hidden until we set up the
 	// scaler and find the true window size
-	main_window = SDL_CreateWindow("APTyrian",
+	main_window = SDL_CreateWindow(windowTitle,
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		vga_width, vga_height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
 

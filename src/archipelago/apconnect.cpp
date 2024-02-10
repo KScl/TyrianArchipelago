@@ -31,6 +31,8 @@ extern "C" {
 	#include "apitems.h"
 
 	// These are things from C side that we need here.
+	extern const char *opentyrian_str; // opentyr.h
+	extern const char *opentyrian_version; // opentyr.h
 	extern bool tyrian2000detected; // opentyr.h
 	extern const int font_ascii[256]; // fonthand.h
 
@@ -39,6 +41,7 @@ extern "C" {
 	void apmsg_enqueue(const char *);
 	void apmsg_playSFX(archipelago_sound_t);
 	void apmsg_setSpeed(Uint8 speed);
+	void apmsg_cleanQueue(void);
 
 	// These functions are needed for savegame support.
 	const char *get_user_directory(void); // config.h
@@ -190,6 +193,16 @@ static void APAll_FreshInit(void)
 	APStats.RestGoalEpisodes = APSeedSettings.GoalEpisodes;
 	// Initting of item choices is handled when parsing start state,
 	// because we don't have knowledge of available items at this point
+}
+
+static void APAll_InitMessageQueue(void)
+{
+	std::stringstream s;
+	s << opentyrian_str << " " << opentyrian_version << ", ready to play.";
+
+	std::string versionInfo = s.str();
+	apmsg_cleanQueue();
+	apmsg_enqueue(versionInfo.c_str());
 }
 
 // ------------------------------------------------------------------
@@ -415,9 +428,10 @@ static Uint8 APLocal_GetItemFlags(Uint16 localItemID, Uint16 localCheckID)
 	else switch (localItemID)
 	{
 		case 700: case 719: case 900: case 901: case 902:
+		case 903: case 904: case 905: case 906: case 907:
 			return 1;
 		case 503: case 504: case 521: case 721: case 805:
-		case 806: case 807: case 808: case 903: case 904:
+		case 806: case 807: case 808: case 908: case 909:
 			return 2;
 		default:
 			break;
@@ -723,11 +737,12 @@ static void APLocal_InitLocationsPerRegion(void)
 // Called in local games only to handle the results of a location check.
 static void APLocal_ReceiveItem(int64_t locationID)
 {
-	if (allLocationData.count(locationID - ARCHIPELAGO_BASE_ID) == 0)
+	locationID -= ARCHIPELAGO_BASE_ID;
+	if (allLocationData.count(locationID) == 0)
 		return;
 
 	++lastItemIndex;
-	Uint16 itemID = allLocationData[locationID - ARCHIPELAGO_BASE_ID];
+	Uint16 itemID = allLocationData[locationID];
 	APAll_ResolveItem(itemID);
 
 	Uint8 flags = APLocal_GetItemFlags(itemID, locationID);
@@ -1108,6 +1123,7 @@ bool Archipelago_StartLocalGame(FILE *file)
 	if (gameInProgress || ap)
 		return false;
 
+	APAll_InitMessageQueue();
 	try
 	{
 		json aptyrianJSON = json::parse(file);
@@ -1246,6 +1262,7 @@ static void APRemote_CB_SlotRefused(const std::list<std::string>& reasons)
 // This is where we get our slot_data and thus where most of the magic happens.
 static void APRemote_CB_SlotConnected(const json& slot_data)
 {
+	APAll_InitMessageQueue();
 	try
 	{
 		if (slot_data.at("NetVersion") != APTYRIAN_NET_VERSION)

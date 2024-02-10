@@ -21,6 +21,11 @@
 
 #include "opentyr.h"
 
+#include "SDL.h"
+
 void JE_loadPCX(const char *file);
+
+void pcxload_prepChatBox(void);
+void pcxload_renderChatBox(SDL_Surface *screen, int screen_y, int chatbox_y, int height);
 
 #endif /* PCXLOAD_H */

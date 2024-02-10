@@ -9,6 +9,16 @@
 extern "C" {
 	// Function definitions that go out C side need to not be mangled by C++
 	#include "patcher.h"
+
+	// things we need from C side
+	extern struct {
+		Uint16 eventtime;
+		Uint8  eventtype;
+		Sint16 eventdat, eventdat2;
+		Sint8  eventdat3, eventdat5, eventdat6;
+		Uint8  eventdat4;
+	} eventRec[2500];
+	extern Uint16 maxEvent;
 }
 
 using nlohmann::json;
@@ -186,7 +196,9 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			break;
 
 		case  26: // SmallEnemyAdjust
-			eventRec[x].eventdat = j.value<bool>("adjust", false) ? 1 : 0;
+		case  68: // RandomExplosions (TODO T2000 moved)
+		case  99: // RandomExplosions
+			eventRec[x].eventdat = j.value<bool>("enable", false) ? 1 : 0;
 			break;
 
 		case  27: // EnemyGlobal_AccelRev
@@ -211,13 +223,22 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat = j.value<Sint16>("song", 0);
 			break;
 
+		case  41: // RemoveEnemies
+			eventRec[x].eventdat = j.value<bool>("all", true) ? 0 : 1;
+			break;
+
 		case  38: // Jump_NoReturn
 		case  54: // Jump
 		case  57: // Jump_OnLinkNum254Kill
-			eventRec[x].eventdat = j.value<Sint16>("jump_to", 0);
+		commonjump_rejoin:
+			eventRec[x].eventdat = j.value<Sint16>("jump_time", 0);
 			break;
 
-		case  61: // Jump_IfFlagSet
+		case  53: // ForceEvents
+			eventRec[x].eventdat = j.value<bool>("enable", false) ? 0 : 99;
+			break;
+
+		case  61: // Skip_IfFlagSet
 			eventRec[x].eventdat3 = j.value<Sint8>("skip_events", 0);
 			// fall through
 		case  60: // EnemyAssignFlag
@@ -227,9 +248,13 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 
 		case  67: // SetLevelTimer
 			eventRec[x].eventdat  = j.value<bool>("enable", false) ? 1 : 0;
-			eventRec[x].eventdat2 = j.value<Sint16>("jump_to", 0);
+			eventRec[x].eventdat2 = j.value<Sint16>("jump_time", 0);
 			eventRec[x].eventdat3 = j.value<Sint8> ("value", 0);
 			break;
+
+		case  71: // Jump_IfMapPositionUnder
+			eventRec[x].eventdat2 = j.value<Sint16>("position", 0);
+			goto commonjump_rejoin;
 
 		case  79: // SetBossBar
 			if (!j.contains("linknum"))

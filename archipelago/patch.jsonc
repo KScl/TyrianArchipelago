@@ -227,22 +227,35 @@
 	},
 
 	"Episode1 DELIANI": {
-		"109:REPLACE": {"time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":130, "linknum": 1, "movement":"falling" },
-		"119:REPLACE": {"time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":131, "linknum": 4, "movement":"falling" },
-		"216:REPLACE": {"time":1647, "event":201, /* AP_CheckFromEnemy */ "ap_id":132, "linknum":61, "movement":"falling" },
-		"266:REPLACE": {"time":2000, "event":201, /* AP_CheckFromEnemy */ "ap_id":133, "linknum":11, "movement":"falling" },
-		"276:REPLACE": {"time":2100, "event":201, /* AP_CheckFromEnemy */ "ap_id":134, "linknum":14, "movement":"falling" },
-		"313:APPEND":  {"time":2740, "event":201, /* AP_CheckFromEnemy */ "ap_id":135, "linknum": 5, "movement":"falling" },
-		"468:REPLACE": {"time":4010, "event":201, /* AP_CheckFromEnemy */ "ap_id":136, "linknum": 5, "movement":"falling" },
-		"535:APPEND":  {"time":4780, "event":201, /* AP_CheckFromEnemy */ "ap_id":137, "linknum":10, "movement":"swaying", "is_boss":true }
+		"109:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":130, "linknum": 1, "movement":"falling" },
+		"119:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":131, "linknum": 4, "movement":"falling" },
+		"216:REPLACE": { "time":1647, "event":201, /* AP_CheckFromEnemy */ "ap_id":132, "linknum":61, "movement":"falling" },
+		"266:REPLACE": { "time":2000, "event":201, /* AP_CheckFromEnemy */ "ap_id":133, "linknum":11, "movement":"falling" },
+		"276:REPLACE": { "time":2100, "event":201, /* AP_CheckFromEnemy */ "ap_id":134, "linknum":14, "movement":"falling" },
+		"313:APPEND":  { "time":2740, "event":201, /* AP_CheckFromEnemy */ "ap_id":135, "linknum": 5, "movement":"falling" },
+		"468:REPLACE": { "time":4010, "event":201, /* AP_CheckFromEnemy */ "ap_id":136, "linknum": 5, "movement":"falling" },
+		"535:APPEND":  { "time":4780, "event":201, /* AP_CheckFromEnemy */ "ap_id":137, "linknum":10, "movement":"swaying", "is_boss":true }
 	},
 
 	"Episode1 SAVARA V": {
+		// Addition of Archipelago Items
+		"122:APPEND":  { "time": 610, "event":201, /* AP_CheckFromEnemy */ "ap_id":140, "linknum": 15, "movement":"sky_falling" },
+		"299:REPLACE": { "time":1320, "event":201, /* AP_CheckFromEnemy */ "ap_id":141, "linknum":  5, "movement":"sky_falling" },
+		"405:REPLACE": { "time":2060, "event":201, /* AP_CheckFromEnemy */ "ap_id":142, "linknum":  4, "movement":"sky_falling" },
+		"548:REPLACE": { "time":2920, "event":201, /* AP_CheckFromEnemy */ "ap_id":143, "linknum":  5, "movement":"sky_falling" },
+		"590:REPLACE": { "time":3114, "event":201, /* AP_CheckFromEnemy */ "ap_id":144, "linknum": 11, "movement":"falling" },
+		"706:REPLACE": { "time":3501, "event":201, /* AP_CheckFromEnemy */ "ap_id":145, "linknum":143, "movement":"swaying", "is_boss":true },
+		"895:REPLACE": { "time":4464, "event":201, /* AP_CheckFromEnemy */ "ap_id":146, "linknum":254, "movement":"swaying", "is_boss":true },
 
+		// Continue boss's attack pattern indefinitely instead of letting it stop when the background ends.
+		"965:REPLACE": { "time":5401, "event": 54, /* Jump */ "jump_time":4590 },
+
+		// Don't unconditionally end level, allow for the AP item to drop.
+		"1000:REPLACE": { "time":7050, "event": 36 /* ReadyToEndLevel(True) */ }
 	},
 
 	"Episode1 ASSASSIN": {
-
+		"717:APPEND": { "time":3099, "event":201, /* AP_CheckFromEnemy */ "ap_id":150, "linknum":142, "movement":"swaying", "is_boss":true }
 	},
 
 	// -------------------------------------------------------------------------------------------
@@ -310,7 +323,7 @@
 		// These patches adjust the timer to give enough time for the relevant events to be reached,
 		// and also changes some event logic to stop the game from advancing immediately, so the player
 		// has time to pick up the generated gems.
-		"797:REPLACE": { "time": 5100, "event":67, /* SetLevelTimer */ "enable":true, "value":20, "jump_to":10000 },
+		"797:REPLACE": { "time": 5100, "event":67, /* SetLevelTimer */ "enable":true, "value":20, "jump_time":10000 },
 		"905:APPEND": { "time": 7000, "event":60, /* EnemyAssignFlag */ "linknum":254, "flag":1, "value":1 },
 		"908:REPLACE": { "time": 8000, "event":0 /* NoOp */ },
 		"908:APPEND": [
@@ -339,7 +352,8 @@
 			"13": "Episode1 SOH JIN",
 			"14": "Episode1 WINDY",
 			"15": "Episode1 TYRIAN Hard",
-			"16": "Episode1 ASSASSIN"
+			"16": "Episode1 ASSASSIN",
+			"17": "Episode1 SAVARA V"
 		},
 		"Episode 2": {
 			"2":  "Episode2 GYGES",

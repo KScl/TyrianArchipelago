@@ -913,6 +913,7 @@ start_level_first:
 	JE_getShipInfo();
 
 	player_resetDeathLink();
+	player_updateItemChoices(); // sync AP items with internal items
 	memset(&APUpdateRequest, 0, sizeof(APUpdateRequest));
 
 	for (uint i = 0; i < COUNTOF(player); ++i)
@@ -990,17 +991,8 @@ start_level_first:
 	/* Setup Armor/Shield Data */
 	shieldWait = 1;
 
-	for (uint i = 0; i < COUNTOF(player); ++i)
-	{
-		player[i].shield     = shields[player[i].items.shield].mpwr;
-		//player[i].shield_max = player[i].shield * 2;
-	}
-
 	player_drawShield();
 	player_drawArmor();
-
-	for (uint i = 0; i < COUNTOF(player); ++i)
-		player[i].superbombs = 0;
 
 	/* Set cubes to 0 */
 	cubeMax = 0;
@@ -1247,12 +1239,13 @@ level_loop:
 		play_song(levelSong - 1);
 	}
 
+	// Message bar moved into apmsg_manageQueueInGame
+	// We also always draw it, even in endLevel
+	apmsg_manageQueueInGame();
+
 	if (!endLevel) // draw HUD
 	{
 		VGAScreen = VGAScreenSeg; /* side-effect of game_screen */
-
-		// Message bar moved into apmsg_manageQueue:
-		apmsg_manageQueue(true);
 
 		// Give player queued superbombs if we can.
 		if (player[0].superbombs < 10 && APStats.QueuedSuperBombs)
@@ -1758,68 +1751,66 @@ level_loop:
 							if ((temp == 254) && (superEnemy254Jump > 0))
 								JE_eventJump(superEnemy254Jump);
 
-							for (temp2 = 0; temp2 < 100; temp2++)
+							for (int other_enemy = 0; other_enemy < 100; other_enemy++)
 							{
-								if (enemyAvail[temp2] != 1)
+								if (enemyAvail[other_enemy] == 1)
+									continue;
+
+								const int other_linknum = enemy[other_enemy].linknum;
+								if ((other_enemy == b) || (temp == 254)
+									|| ((temp != 255) && ((temp == other_linknum) || (temp - 100 == other_linknum)
+									|| ((other_linknum > 40) && (other_linknum / 20 == temp / 20) && (other_linknum <= temp)))))
 								{
-									temp3 = enemy[temp2].linknum;
-									if ((temp2 == b) || (temp == 254) ||
-									    ((temp != 255) && ((temp == temp3) || (temp - 100 == temp3) ||
-									                       ((temp3 > 40) && (temp3 / 20 == temp / 20) && (temp3 <= temp)))))
+
+									int enemy_screen_x = enemy[other_enemy].ex + enemy[other_enemy].mapoffset;
+
+									// Bugfix: Don't destroy scoreitems (most often happens when linknum 254 gets killed)
+									if (enemyAvail[other_enemy] == 2 && enemy[other_enemy].scoreitem)
+										continue;
+
+									if (enemy[other_enemy].special)
 									{
+										assert((unsigned int) enemy[other_enemy].flagnum-1 < COUNTOF(globalFlags));
+										globalFlags[enemy[other_enemy].flagnum-1] = enemy[other_enemy].setto;
+									}
 
-										int enemy_screen_x = enemy[temp2].ex + enemy[temp2].mapoffset;
+									if (enemy[other_enemy].enemydie > 0)
+										tyrian_enemyDieItem(other_enemy);
 
-										if (enemy[temp2].special)
-										{
-											assert((unsigned int) enemy[temp2].flagnum-1 < COUNTOF(globalFlags));
-											globalFlags[enemy[temp2].flagnum-1] = enemy[temp2].setto;
-										}
+									// Note: > 1 because == 1 used to silently award a data cube (why???)
+									if (enemy[other_enemy].evalue > 1 && enemy[other_enemy].evalue < 10000)
+									{
+										// in galaga mode player 2 is sidekick, so give cash to player 1
+										player[galagaMode ? 0 : playerNum - 1].cash += enemy[other_enemy].evalue;
+									}
 
-										if (enemy[temp2].enemydie > 0)
-											tyrian_enemyDieItem(temp2);
+									if ((enemy[other_enemy].edlevel == -1) && (temp == other_linknum))
+									{
+										enemy[other_enemy].edlevel = 0;
+										enemyAvail[other_enemy] = 2;
+										enemy[other_enemy].egr[1-1] = enemy[other_enemy].edgr;
+										enemy[other_enemy].ani = 1;
+										enemy[other_enemy].aniactive = 0;
+										enemy[other_enemy].animax = 0;
+										enemy[other_enemy].animin = 1;
+										enemy[other_enemy].edamaged = true;
+										enemy[other_enemy].enemycycle = 1;
+									}
+									else
+									{
+										enemyAvail[other_enemy] = 1;
+										enemyKilled++;
+									}
 
-										if ((enemy[temp2].evalue > 0) && (enemy[temp2].evalue < 10000))
-										{
-											if (enemy[temp2].evalue == 1)
-											{
-												cubeMax++;
-											}
-											else
-											{
-												// in galaga mode player 2 is sidekick, so give cash to player 1
-												player[galagaMode ? 0 : playerNum - 1].cash += enemy[temp2].evalue;
-											}
-										}
-
-										if ((enemy[temp2].edlevel == -1) && (temp == temp3))
-										{
-											enemy[temp2].edlevel = 0;
-											enemyAvail[temp2] = 2;
-											enemy[temp2].egr[1-1] = enemy[temp2].edgr;
-											enemy[temp2].ani = 1;
-											enemy[temp2].aniactive = 0;
-											enemy[temp2].animax = 0;
-											enemy[temp2].animin = 1;
-											enemy[temp2].edamaged = true;
-											enemy[temp2].enemycycle = 1;
-										}
-										else
-										{
-											enemyAvail[temp2] = 1;
-											enemyKilled++;
-										}
-
-										if (enemyDat[enemy[temp2].enemytype].esize == 1)
-										{
-											JE_setupExplosionLarge(enemy[temp2].enemyground, enemy[temp2].explonum, enemy_screen_x, enemy[temp2].ey);
-											soundQueue[6] = S_EXPLOSION_9;
-										}
-										else
-										{
-											JE_setupExplosion(enemy_screen_x, enemy[temp2].ey, 0, 1, false, false);
-											soundQueue[6] = S_EXPLOSION_8;
-										}
+									if (enemyDat[enemy[other_enemy].enemytype].esize == 1)
+									{
+										JE_setupExplosionLarge(enemy[other_enemy].enemyground, enemy[other_enemy].explonum, enemy_screen_x, enemy[other_enemy].ey);
+										soundQueue[6] = S_EXPLOSION_9;
+									}
+									else
+									{
+										JE_setupExplosion(enemy_screen_x, enemy[other_enemy].ey, 0, 1, false, false);
+										soundQueue[6] = S_EXPLOSION_8;
 									}
 								}
 							}
@@ -2973,6 +2964,9 @@ uint JE_makeEnemy(struct JE_SingleEnemyType *enemy, Uint16 eDatI, Sint16 uniqueS
 
 	enemy->filter = 0x00;
 
+#if 0
+	// Scale pickup point values by difficulty
+	// I don't really like this behavior, so it's commented out
 	int tempValue = 0;
 	if (enemyDat[eDatI].value > 1 && enemyDat[eDatI].value < 10000)
 	{
@@ -3015,6 +3009,9 @@ uint JE_makeEnemy(struct JE_SingleEnemyType *enemy, Uint16 eDatI, Sint16 uniqueS
 	{
 		enemy->evalue = enemyDat[eDatI].value;
 	}
+#else
+	enemy->evalue = enemyDat[eDatI].value;
+#endif
 
 	int tempArmor = 1;
 	if (enemyDat[eDatI].armor > 0)

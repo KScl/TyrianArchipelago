@@ -44,7 +44,7 @@ void apmsg_enqueue(const char *msg)
 		dst_p = dst_p_begin;
 
 		cur_width = 0;
-		while (*src_p && cur_width < 216 && dst_p - dst_p_begin < 73)
+		while (*src_p && cur_width < 228 && dst_p - dst_p_begin < 73)
 		{
 			if (*src_p == '\n')
 				break;
@@ -148,19 +148,42 @@ void apmsg_setSpeed(Uint8 speed)
 		mq_speed = speed;
 }
 
+// Initialize the message queue.
+void apmsg_cleanQueue(void)
+{
+	memset(messageQueue, 0, sizeof(messageQueue));
+	mq_cur = 0;
+	mq_head = 0;
+	mq_speed = 70;
+}
+
 // ----------------------------------------------------------------------------
 
-void apmsg_manageQueue(bool ingame)
+void apmsg_drawScrollBack(Uint8 dist, Uint8 count)
 {
-	if (!ingame)
-	{
-		mq_cur = mq_head - 1;
-		mq_speed = 70;
-		fonthand_outTextColorize(VGAScreen, 10, 187, messageQueue[mq_cur], 14, 1, true);
-		mq_cur = mq_head;
-		return;
-	}
+	Uint8 current = mq_head - dist;
+	int y = 172;
 
+	for (; current != mq_head && count; --count, --current)
+	{
+		fonthand_outTextColorize(VGAScreen, 10, y, messageQueue[current], 14, 1, true);
+		y -= 9;
+	}
+}
+
+void apmsg_manageQueueMenu(bool stripColor)
+{
+	mq_cur = mq_head - 1;
+	mq_speed = 70;
+	if (stripColor)
+		JE_outTextAndDarken(VGAScreen, 10, 187, messageQueue[mq_cur], 14, 1, TINY_FONT);
+	else
+		fonthand_outTextColorize(VGAScreen, 10, 187, messageQueue[mq_cur], 14, 1, true);
+	mq_cur = mq_head;
+}
+
+void apmsg_manageQueueInGame(void)
+{
 	if (textErase > 0 && --textErase == 0)
 		blit_sprite(VGAScreenSeg, 16, 189, OPTION_SHAPES, 36);  // in-game message area		
 

@@ -1,3 +1,5 @@
+#ifndef CPP_APCONNECT_H
+#define CPP_APCONNECT_H
 
 #include "SDL_types.h"
 
@@ -180,3 +182,5 @@ extern bool APDeathLinkReceived;
 
 void Archipelago_SendDeathLink(damagetype_t source);
 void Archipelago_UpdateDeathLinkState(void);
+
+#endif

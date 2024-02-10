@@ -74,3 +74,50 @@ void JE_loadPCX(const char *file) // this is only meant to load tshp2.pcx
 	
 	fclose(f);
 }
+
+// ------------------------------------------------------------------
+
+static Uint8 chatboxPixels[320 * 26] = {0};
+
+void pcxload_prepChatBox(void)
+{
+	if (chatboxPixels[0] != 0)
+		return;
+
+	FILE *f = dir_fopen_die("archipelago", "chatbox.pcx", "rb");
+	fseek(f, 128, SEEK_SET);
+
+	Uint8 *s = chatboxPixels;
+	for (size_t i = 0; i < sizeof(chatboxPixels); )
+	{
+		Uint8 p;
+		fread_u8_die(&p, 1, f);
+		if ((p & 0xc0) == 0xc0)
+		{
+			Uint8 temp;
+			fread_u8_die(&temp, 1, f);
+			memset(s, temp, (p & 0x3f));
+			i += (p & 0x3f);
+			s += (p & 0x3f);
+		}
+		else
+		{
+			++i;
+			*s++ = p;
+		}
+	}
+
+	fclose(f);
+}
+
+void pcxload_renderChatBox(SDL_Surface *screen, int screen_y, int chatbox_y, int height)
+{
+	Uint8 *dest_s = (Uint8 *)screen->pixels + (screen->pitch * screen_y);
+	Uint8 *src_s = chatboxPixels + (320 * chatbox_y);
+	for (; height; --height)
+	{
+		memcpy(dest_s, src_s, 320);
+		dest_s += screen->pitch;
+		src_s += 320;
+	}
+}

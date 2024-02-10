@@ -357,9 +357,13 @@ void JE_getShipInfo(void)
 #else
 	shipGr = ships[player[0].items.ship].shipgraphic;
 	player[0].armor = APStats.ArmorLevel;
+	player[0].shield = (APStats.ShieldLevel >> 1); // start at half max shield
+	player[0].superbombs = 0;
 
 	shipGr2 = 0;
-	player[1].armor = 10;
+	player[1].armor = APStats.ArmorLevel;
+	player[1].shield = (APStats.ShieldLevel >> 1); // start at half max shield
+	player[1].superbombs = 0;
 #endif
 
 	for (uint i = 0; i < COUNTOF(player); ++i)

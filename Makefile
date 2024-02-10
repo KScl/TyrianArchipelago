@@ -19,7 +19,7 @@ CXX ?= g++
 INSTALL ?= install
 PKG_CONFIG ?= pkg-config
 
-VCS_IDREV ?= (git describe --tags || git rev-parse --short HEAD)
+VCS_IDREV ?= (git describe --tags --abbrev=0 --always)
 
 INSTALL_PROGRAM ?= $(INSTALL)
 INSTALL_DATA ?= $(INSTALL) -m 644

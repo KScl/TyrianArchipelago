@@ -1651,7 +1651,7 @@ void JE_pauseGame(void)
 		}
 #endif
 
-		apmsg_manageQueue(true);
+		apmsg_manageQueueInGame();
 		JE_showVGA();
 		wait_delay();
 	} while (!done);

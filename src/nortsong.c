@@ -267,7 +267,7 @@ void JE_changeVolume(JE_word *music, int music_delta, JE_word *sample, int sampl
 
 // ----------------------------------------------------------------------------
 
-static Uint8 priorityChannel = 8;
+static Uint8 priorityChannel = 12;
 
 void nortsong_playPrioritySound(JE_byte samplenum)
 {
@@ -276,7 +276,7 @@ void nortsong_playPrioritySound(JE_byte samplenum)
 		            priorityChannel, fxPlayVol);
 
 	if (++priorityChannel >= 15)
-		priorityChannel = 8;
+		priorityChannel = 12;
 }
 
 void nortsong_playVoice(JE_byte samplenum)
