@@ -1,4 +1,5 @@
 version: CI-{build}
+image: Visual Studio 2022
 branches:
   only:
   - main
@@ -41,6 +42,7 @@ before_build:
 
     ${env:OPENTYRIAN_VERSION} = git describe --tags --abbrev=0 --always
 build:
+  project: c:\projects\aptyrian\visualc\opentyrian.sln
   verbosity: minimal
 after_build:
 - ps: >-
