@@ -5,8 +5,6 @@ branches:
 clone_folder: c:\projects\aptyrian
 environment:
   Configuration: Release
-  SDLVersion: 2.0.30
-  OpenSSLVersion: 3.2.1
   matrix:
   - Platform: x86
   - Platform: x64
@@ -20,17 +18,21 @@ install:
 
     $ErrorActionPreference = "Stop"
 
+    ${env:RETRIEVE_SDL_VERSION} = '2.0.30'
+
+    ${env:RETRIEVE_OPENSSL_VERSION} = '3.2.1'
+
     cd C:\projects\
 
-    Start-FileDownload "https://www.libsdl.org/release/SDL2-devel-${env:SDLVERSION}-VC.zip"
+    Start-FileDownload "https://www.libsdl.org/release/SDL2-devel-${env:RETRIEVE_SDL_VERSION}-VC.zip"
 
-    7z x "SDL2-devel-${env:SDLVERSION}-VC.zip"
+    7z x "SDL2-devel-${env:RETRIEVE_SDL_VERSION}-VC.zip"
 
-    Move-Item "SDL2-${env:SDLVERSION}" "SDL2"
+    Move-Item "SDL2-${env:RETRIEVE_SDL_VERSION}" "SDL2"
 
-    Start-FileDownload "https://download.firedaemon.com/FireDaemon-OpenSSL/openssl-${env:OPENSSLVERSION}.zip"
+    Start-FileDownload "https://download.firedaemon.com/FireDaemon-OpenSSL/openssl-${env:RETRIEVE_OPENSSL_VERSION}.zip"
 
-    7z x "openssl-${env:OPENSSLVERSION}.zip"
+    7z x "openssl-${env:RETRIEVE_OPENSSL_VERSION}.zip"
 
     Move-Item "openssl-3" "OpenSSL"
 before_build:
