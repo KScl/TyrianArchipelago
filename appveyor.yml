@@ -12,11 +12,10 @@ environment:
   - Platform: x64
 install:
 - ps: >-
-    $ErrorActionPreference = "Stop"
-
     cd C:\projects\aptyrian\
-
     git submodule update --init --recursive
+
+    $ErrorActionPreference = "Stop"
 
     cd C:\projects\
 
