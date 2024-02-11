@@ -772,7 +772,7 @@ int main(int argc, char *argv[])
 
 	JE_scanForEpisodes();
 
-	FILE *patch_f = dir_fopen_die("archipelago", "patch.jsonc", "r");
+	FILE *patch_f = dir_fopen_die("apdata", "patch.jsonc", "r");
 	if (!Patcher_SystemInit(patch_f))
 	{
 		printf("Couldn't initialize the patching system, aborting.\n");

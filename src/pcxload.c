@@ -84,7 +84,7 @@ void pcxload_prepChatBox(void)
 	if (chatboxPixels[0] != 0)
 		return;
 
-	FILE *f = dir_fopen_die("archipelago", "chatbox.pcx", "rb");
+	FILE *f = dir_fopen_die("apdata", "chatbox.pcx", "rb");
 	fseek(f, 128, SEEK_SET);
 
 	Uint8 *s = chatboxPixels;
