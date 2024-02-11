@@ -13,6 +13,7 @@ environment:
 install:
 - ps: >-
     cd C:\projects\aptyrian\
+
     git submodule update --init --recursive
 
     $ErrorActionPreference = "Stop"
@@ -20,11 +21,15 @@ install:
     cd C:\projects\
 
     Start-FileDownload "https://www.libsdl.org/release/SDL2-devel-${env:SDLVERSION}-VC.zip"
+
     7z x "SDL2-devel-${env:SDLVERSION}-VC.zip"
+
     Move-Item "SDL2-${env:SDLVERSION}" "SDL2"
 
     Start-FileDownload "https://download.firedaemon.com/FireDaemon-OpenSSL/openssl-${env:OPENSSLVERSION}.zip"
+
     7z x "openssl-${env:OPENSSLVERSION}.zip"
+
     Move-Item "openssl-3" "OpenSSL"
 before_build:
 - ps: >-
@@ -42,17 +47,23 @@ after_build:
     cd C:\projects\aptyrian\
 
     New-Item "aptyrian" -ItemType Directory | Out-Null
+
     New-Item "aptyrian\apdata\" -ItemType Directory | Out-Null
 
     Copy-Item "opentyrian-*-${env:CONFIGURATION}.exe" "aptyrian\aptyrian-${env:OPENTYRIAN_VERSION}.exe"
+
     Copy-Item "apdata\*.*" "aptyrian\apdata\"
+
     Copy-Item "docs\UserReadme.txt" "aptyrian\README.txt"
 
     Copy-Item "..\SDL2\lib\${env:PLATFORM}\SDL2.dll" "aptyrian\"
+
     Copy-Item "..\OpenSSL\${env:PLATFORM}\bin\*.dll" "aptyrian\"
 
     Copy-Item "COPYING" "aptyrian\LICENSE-APTyrian.txt"
+
     Copy-Item "..\SDL2\COPYING.txt" "aptyrian\LICENSE-SDL2.txt"
+
     Copy-Item "..\OpenSSL\LICENSE.txt" "aptyrian\LICENSE-OpenSSL.txt"
 
     7z a "aptyrian-${env:PLATFORM}-${env:CONFIGURATION}.zip" "aptyrian"
