@@ -28,10 +28,13 @@
 #pragma warning (disable:4191)
 #pragma warning (disable:4355)
 #pragma warning (disable:4371)
+#pragma warning (disable:4582)
+#pragma warning (disable:4583)
 #pragma warning (disable:4619)
 #pragma warning (disable:4623)
 #pragma warning (disable:4625)
 #pragma warning (disable:4626)
+#pragma warning (disable:4643)
 #pragma warning (disable:4800)
 #pragma warning (disable:4840)
 #pragma warning (disable:4996)
@@ -43,6 +46,11 @@
 #pragma warning (disable:5220)
 #pragma warning (disable:5267)
 #endif
+
+// For some reason, when building x86, websocketpp seems to think that some C++11 features
+// are not available. Since we require C++17, this is obviously incorrect, so we tell
+// websocketpp to skip its tests and assume the entirety of C++11 is available.
+#define _WEBSOCKETPP_CPP11_STRICT_
 
 #include <apclient.hpp>
 
