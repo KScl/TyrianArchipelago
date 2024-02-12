@@ -1,5 +1,5 @@
 version: CI-{build}
-image: Ubuntu2004
+image: Ubuntu2204
 branches:
   only:
   - main
@@ -8,10 +8,12 @@ install:
     sudo apt update -qq
 
     sudo apt install -qqy -o DPkg::Progress-Fancy=0 --no-install-recommends libsdl2-dev libssl-dev
-build_script:
-- sh: >-
-    make
 
+    git submodule update --init -recursive
+build_script:
+- sh: make
+test_script:
+- sh: >-
     mkdir aptyrian
 
     mkdir aptyrian/apdata
