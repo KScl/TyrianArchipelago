@@ -1,0 +1,28 @@
+version: CI-{build}
+image: Ubuntu2004
+branches:
+  only:
+  - main
+install:
+- sh: >-
+    sudo apt update -qq
+
+    sudo apt install -qqy -o DPkg::Progress-Fancy=0 --no-install-recommends libsdl2-dev libssl-dev
+build_script:
+- sh: >-
+    make
+
+    mkdir aptyrian
+
+    mkdir aptyrian/apdata
+
+    cp opentyrian aptyrian/aptyrian
+
+    cp COPYING aptyrian/
+
+    cp apdata/* aptyrian/apdata/
+
+    7za a "aptyrian-Linux-Release.zip" "aptyrian"
+artifacts:
+- path: '*.zip'
+

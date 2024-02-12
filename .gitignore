@@ -39,3 +39,6 @@ tyrian.sav
 # Save data
 /save/
 *.aptyrian
+
+# Removed code kept around for later perusal
+/src/to_remove/
