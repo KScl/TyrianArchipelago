@@ -80,17 +80,6 @@ const JE_byte optionSelect[16][3][2] /* [0..15, 1..3, 1..2] */ =
 	{ {15,15},{15,16},{15,16} }   /*Post-It*/
 };
 
-const JE_word PGR[21] /* [1..21] */ =
-{
-	4,
-	1,2,3,
-	41-21,57-21,73-21,89-21,105-21,
-	121-21,137-21,153-21,
-	151,151,151,151,73-21,73-21,1,2,4
-	/*151,151,151*/
-};
-const JE_byte PAni[21] /* [1..21] */ = {1,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1};
-
 const JE_word linkGunWeapons[38] /* [1..38] */ =
 {
 	0,0,0,0,0,0,0,0,444,445,446,447,0,448,449,0,0,0,0,0,450,451,0,506,0,564,
@@ -237,17 +226,17 @@ JE_word    levelTimerCountdown;
 JE_word    levelTimerJumpTo;
 JE_boolean randomExplosions;
 
-JE_boolean editShip1, editShip2;
+//JE_boolean editShip1, editShip2;
 
 JE_boolean globalFlags[10]; /* [1..10] */
 JE_byte levelSong;
 
 /* MapView Data */
-JE_word mapOrigin, mapPNum;
-JE_byte mapPlanet[5], mapSection[5]; /* [1..5] */
+//JE_word mapOrigin, mapPNum;
+//JE_byte mapPlanet[5], mapSection[5]; /* [1..5] */
 
 /* Interface Constants */
-JE_boolean moveTyrianLogoUp;
+//JE_boolean moveTyrianLogoUp;
 JE_boolean skipStarShowVGA;
 
 /*EnemyData*/
@@ -883,7 +872,7 @@ void JE_setupExplosion(signed int x, signed int y, signed int delta_y, unsigned 
 		JE_word sprite;
 		JE_byte ttl;
 		Sprite2_array *sheet; // Added for AP
-	} explosion_data[54] /* [1..53] */ = {
+	} explosion_data[55] /* [1..53] */ = {
 		{ 144,  7, &explosionSpriteSheet },
 		{ 120, 12, &explosionSpriteSheet },
 		{ 190, 12, &explosionSpriteSheet },
@@ -937,6 +926,7 @@ void JE_setupExplosion(signed int x, signed int y, signed int delta_y, unsigned 
 		{ 246, 14, &explosionSpriteSheet },
 		{ 227, 14, &explosionSpriteSheet },
 		{ 265, 14, &explosionSpriteSheet },
+		{  96,  3, &explosionSpriteSheet },  /* Tyrian 2000 */
 		{  10, 14, &archipelagoSpriteSheet }   /* AP Item */
 	};
 

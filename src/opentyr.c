@@ -790,7 +790,9 @@ int main(int argc, char *argv[])
 	sprites_loadInterfaceSprites();
 
 	if (tyrian2000detected)
-		printf("Tyrian 2000 data files detected.");
+		printf("Tyrian 2000 data files detected.\n");
+	else
+		printf("Tyrian 2.1 data files detected.\n");
 
 	/* Default Options */
 	smoothScroll = true;

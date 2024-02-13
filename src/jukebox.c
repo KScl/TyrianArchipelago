@@ -145,12 +145,22 @@ void jukebox(void)  // FKA Setup.jukeboxGo
 				fx = !fx;
 				break;
 			case SDL_SCANCODE_COMMA:
-				if (fx && --fx_num < 0)
-					fx_num = SOUND_COUNT - 1;
+				if (!fx)
+					break;
+				do
+				{
+					if (--fx_num < 0)
+						fx_num = SOUND_COUNT - 1;
+				} while (!soundSampleCount[fx_num]);
 				break;
 			case SDL_SCANCODE_PERIOD:
-				if (fx && ++fx_num >= SOUND_COUNT)
-					fx_num = 0;
+				if (!fx)
+					break;
+				do
+				{
+					if (++fx_num >= SOUND_COUNT)
+						fx_num = 0;					
+				} while (!soundSampleCount[fx_num]);
 				break;
 			case SDL_SCANCODE_SEMICOLON:
 				if (fx)

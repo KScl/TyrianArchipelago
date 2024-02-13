@@ -22,6 +22,10 @@
 #include "file.h"
 #include "lvlmast.h"
 #include "opentyr.h"
+#include "varz.h"
+
+// Removed (unreferenced) item types
+//JE_ShieldType  shields; // Replaced with "Shield Up" item
 
 /* MAIN Weapons Data */
 JE_WeaponPortType weaponPort;
@@ -31,7 +35,6 @@ JE_WeaponType     weapons[WEAP_NUM + 1]; /* [0..weapnum] */
 JE_PowerType   powerSys;
 JE_ShipType    ships;
 JE_OptionType  options[OPTION_NUM + 1]; /* [0..optionnum] */
-JE_ShieldType  shields;
 JE_SpecialType special;
 
 /* Enemy data */
@@ -68,35 +71,64 @@ void JE_loadItemDat(FILE *f)
 	}
 #endif
 
-	JE_word itemNum[7]; /* [1..7] */
-	fread_u16_die(itemNum, 7, f);
+	enum {
+		ITEMNUM_WEAPSHOT = 0,
+		ITEMNUM_PORT,
+		ITEMNUM_GENERATOR,
+		ITEMNUM_SHIP,
+		ITEMNUM_OPTION,
+		ITEMNUM_SHIELD,
+		ITEMNUM_ENEMY,
+		ITEMNUM_SPECIAL,
+		COUNT_ITEMNUM
+	};
 
-	for (int i = 0; i < WEAP_NUM + 1; ++i)
+	JE_word itemNum[COUNT_ITEMNUM]; /* [1..7] */
+	fread_u16_die(itemNum, COUNT_ITEMNUM - 1, f);
+
+	bool isTyrian2000 = (itemNum[ITEMNUM_WEAPSHOT] == 818 && itemNum[ITEMNUM_PORT] == 60);
+	if (tyrian2000detected != isTyrian2000)
 	{
-		fread_u16_die(&weapons[i].drain,           1, f);
-		fread_u8_die( &weapons[i].shotrepeat,      1, f);
-		fread_u8_die( &weapons[i].multi,           1, f);
-		fread_u16_die(&weapons[i].weapani,         1, f);
-		fread_u8_die( &weapons[i].max,             1, f);
-		fread_u8_die( &weapons[i].tx,              1, f);
-		fread_u8_die( &weapons[i].ty,              1, f);
-		fread_u8_die( &weapons[i].aim,             1, f);
-		fread_u8_die(  weapons[i].attack,          8, f);
-		fread_u8_die(  weapons[i].del,             8, f);
-		fread_s8_die(  weapons[i].sx,              8, f);
-		fread_s8_die(  weapons[i].sy,              8, f);
-		fread_s8_die(  weapons[i].bx,              8, f);
-		fread_s8_die(  weapons[i].by,              8, f);
-		fread_u16_die( weapons[i].sg,              8, f);
-		fread_s8_die( &weapons[i].acceleration,    1, f);
-		fread_s8_die( &weapons[i].accelerationx,   1, f);
-		fread_u8_die( &weapons[i].circlesize,      1, f);
-		fread_u8_die( &weapons[i].sound,           1, f);
-		fread_u8_die( &weapons[i].trail,           1, f);
-		fread_u8_die( &weapons[i].shipblastfilter, 1, f);
+		fprintf(stderr, "Data file version mismatch detected.");
+		JE_tyrianHalt(1);
+	}
+
+	// Special item count isn't in data files, and does differ between versions
+	itemNum[ITEMNUM_SPECIAL] = isTyrian2000 ? 54 : 46; 
+
+	// Tyrian 2000 splits weapon shot types into 2 sections
+	for (int section_num = 0; section_num < (isTyrian2000 ? 2 : 1); ++section_num)
+	{
+		const int section_start = section_num * 1000;
+		const int section_end = section_start + itemNum[ITEMNUM_WEAPSHOT] + 1;
+
+		for (int i = section_start; i < section_end; ++i)
+		{
+			fread_u16_die(&weapons[i].drain,           1, f);
+			fread_u8_die( &weapons[i].shotrepeat,      1, f);
+			fread_u8_die( &weapons[i].multi,           1, f);
+			fread_u16_die(&weapons[i].weapani,         1, f);
+			fread_u8_die( &weapons[i].max,             1, f);
+			fread_u8_die( &weapons[i].tx,              1, f);
+			fread_u8_die( &weapons[i].ty,              1, f);
+			fread_u8_die( &weapons[i].aim,             1, f);
+			fread_u8_die(  weapons[i].attack,          8, f);
+			fread_u8_die(  weapons[i].del,             8, f);
+			fread_s8_die(  weapons[i].sx,              8, f);
+			fread_s8_die(  weapons[i].sy,              8, f);
+			fread_s8_die(  weapons[i].bx,              8, f);
+			fread_s8_die(  weapons[i].by,              8, f);
+			fread_u16_die( weapons[i].sg,              8, f);
+			fread_s8_die( &weapons[i].acceleration,    1, f);
+			fread_s8_die( &weapons[i].accelerationx,   1, f);
+			fread_u8_die( &weapons[i].circlesize,      1, f);
+			fread_u8_die( &weapons[i].sound,           1, f);
+			fread_u8_die( &weapons[i].trail,           1, f);
+			fread_u8_die( &weapons[i].shipblastfilter, 1, f);
+		}
 	}
 	
-	for (int i = 0; i < PORT_NUM + 1; ++i)
+	for (int i = 0; i < itemNum[ITEMNUM_PORT] + 1; ++i)
 	{
 		Uint8 nameLen;
 		fread_u8_die( &nameLen,                   1, f);
@@ -110,7 +142,7 @@ void JE_loadItemDat(FILE *f)
 		fread_u16_die(&weaponPort[i].poweruse,    1, f);
 	}
 
-	for (int i = 0; i < SPECIAL_NUM + 1; ++i)
+	for (int i = 0; i < itemNum[ITEMNUM_SPECIAL] + 1; ++i)
 	{
 		Uint8 nameLen;
 		fread_u8_die( &nameLen,                1, f);
@@ -122,7 +154,7 @@ void JE_loadItemDat(FILE *f)
 		fread_u16_die(&special[i].wpn,         1, f);
 	}
 
-	for (int i = 0; i < POWER_NUM + 1; ++i)
+	for (int i = 0; i < itemNum[ITEMNUM_GENERATOR] + 1; ++i)
 	{
 		Uint8 nameLen;
 		fread_u8_die( &nameLen,                 1, f);
@@ -134,7 +166,7 @@ void JE_loadItemDat(FILE *f)
 		fread_u16_die(&powerSys[i].cost,        1, f);
 	}
 
-	for (int i = 0; i < SHIP_NUM + 1; ++i)
+	for (int i = 0; i < itemNum[ITEMNUM_SHIP] + 1; ++i)
 	{
 		Uint8 nameLen;
 		fread_u8_die( &nameLen,                 1, f);
@@ -149,7 +181,7 @@ void JE_loadItemDat(FILE *f)
 		fread_u8_die( &ships[i].bigshipgraphic, 1, f);
 	}
 
-	for (int i = 0; i < OPTION_NUM + 1; ++i)
+	for (int i = 0; i < itemNum[ITEMNUM_OPTION] + 1; ++i)
 	{
 		Uint8 nameLen;
 		fread_u8_die(  &nameLen,                1, f);
@@ -170,7 +202,8 @@ void JE_loadItemDat(FILE *f)
 		fread_u8_die(  &options[i].icongr,      1, f);
 	}
 
-	for (int i = 0; i < SHIELD_NUM + 1; ++i)
+#if 0
+	for (int i = 0; i < itemNum[ITEMNUM_SHIELD] + 1; ++i)
 	{
 		Uint8 nameLen;
 		fread_u8_die( &nameLen,                1, f);
@@ -181,37 +214,48 @@ void JE_loadItemDat(FILE *f)
 		fread_u16_die(&shields[i].itemgraphic, 1, f);
 		fread_u16_die(&shields[i].cost,        1, f);
 	}
-	
-	for (int i = 0; i < ENEMY_NUM + 1; ++i)
+#else
+	// Skip shields (replaced by "Shield Up" item)
+	fseek(f, 37 * (itemNum[ITEMNUM_SHIELD] + 1), SEEK_CUR);
+#endif
+
+	// Tyrian 2000 splits enemies into two sections
+	for (int section_num = 0; section_num < (isTyrian2000 ? 2 : 1); ++section_num)
 	{
-		fread_u8_die( &enemyDat[i].ani,           1, f);
-		fread_u8_die(  enemyDat[i].tur,           3, f);
-		fread_u8_die(  enemyDat[i].freq,          3, f);
-		fread_s8_die( &enemyDat[i].xmove,         1, f);
-		fread_s8_die( &enemyDat[i].ymove,         1, f);
-		fread_s8_die( &enemyDat[i].xaccel,        1, f);
-		fread_s8_die( &enemyDat[i].yaccel,        1, f);
-		fread_s8_die( &enemyDat[i].xcaccel,       1, f);
-		fread_s8_die( &enemyDat[i].ycaccel,       1, f);
-		fread_s16_die(&enemyDat[i].startx,        1, f);
-		fread_s16_die(&enemyDat[i].starty,        1, f);
-		fread_s8_die( &enemyDat[i].startxc,       1, f);
-		fread_s8_die( &enemyDat[i].startyc,       1, f);
-		fread_u8_die( &enemyDat[i].armor,         1, f);
-		fread_u8_die( &enemyDat[i].esize,         1, f);
-		fread_u16_die( enemyDat[i].egraphic,     20, f);
-		fread_u8_die( &enemyDat[i].explosiontype, 1, f);
-		fread_u8_die( &enemyDat[i].animate,       1, f);
-		fread_u8_die( &enemyDat[i].shapebank,     1, f);
-		fread_s8_die( &enemyDat[i].xrev,          1, f);
-		fread_s8_die( &enemyDat[i].yrev,          1, f);
-		fread_u16_die(&enemyDat[i].dgr,           1, f);
-		fread_s8_die( &enemyDat[i].dlevel,        1, f);
-		fread_s8_die( &enemyDat[i].dani,          1, f);
-		fread_u8_die( &enemyDat[i].elaunchfreq,   1, f);
-		fread_u16_die(&enemyDat[i].elaunchtype,   1, f);
-		fread_s16_die(&enemyDat[i].value,         1, f);
-		fread_u16_die(&enemyDat[i].eenemydie,     1, f);
+		const int section_start = section_num * 1001;
+		const int section_end = section_start + itemNum[ITEMNUM_ENEMY] + 1;
+
+		for (int i = section_start; i < section_end; ++i)
+		{
+			fread_u8_die( &enemyDat[i].ani,           1, f);
+			fread_u8_die(  enemyDat[i].tur,           3, f);
+			fread_u8_die(  enemyDat[i].freq,          3, f);
+			fread_s8_die( &enemyDat[i].xmove,         1, f);
+			fread_s8_die( &enemyDat[i].ymove,         1, f);
+			fread_s8_die( &enemyDat[i].xaccel,        1, f);
+			fread_s8_die( &enemyDat[i].yaccel,        1, f);
+			fread_s8_die( &enemyDat[i].xcaccel,       1, f);
+			fread_s8_die( &enemyDat[i].ycaccel,       1, f);
+			fread_s16_die(&enemyDat[i].startx,        1, f);
+			fread_s16_die(&enemyDat[i].starty,        1, f);
+			fread_s8_die( &enemyDat[i].startxc,       1, f);
+			fread_s8_die( &enemyDat[i].startyc,       1, f);
+			fread_u8_die( &enemyDat[i].armor,         1, f);
+			fread_u8_die( &enemyDat[i].esize,         1, f);
+			fread_u16_die( enemyDat[i].egraphic,     20, f);
+			fread_u8_die( &enemyDat[i].explosiontype, 1, f);
+			fread_u8_die( &enemyDat[i].animate,       1, f);
+			fread_u8_die( &enemyDat[i].shapebank,     1, f);
+			fread_s8_die( &enemyDat[i].xrev,          1, f);
+			fread_s8_die( &enemyDat[i].yrev,          1, f);
+			fread_u16_die(&enemyDat[i].dgr,           1, f);
+			fread_s8_die( &enemyDat[i].dlevel,        1, f);
+			fread_s8_die( &enemyDat[i].dani,          1, f);
+			fread_u8_die( &enemyDat[i].elaunchfreq,   1, f);
+			fread_u16_die(&enemyDat[i].elaunchtype,   1, f);
+			fread_s16_die(&enemyDat[i].value,         1, f);
+			fread_u16_die(&enemyDat[i].eenemydie,     1, f);
+		}
 	}
 
 	// Weapons which were designed for Super Arcade Mode all have very low poweruse settings,

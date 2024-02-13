@@ -318,7 +318,11 @@
 
 	},
 
-	"Episode4 ?TUNNEL?": {
+	"Episode4 ?TUNNEL? ver2.1": {
+		// Replace random explosions events with their T2K versions.
+		"664:REPLACE": { "time":4010, "event":99, /* RandomExplosions */ "enable":true  },
+		"907:REPLACE": { "time":7000, "event":99, /* RandomExplosions */ "enable":false },
+
 		// Replace a raw "Danger!" sample with the proper "Danger!" callout event.
 		"716:REPLACE": { "time":4300, "event":16, /* VoicedCallout */ "output":"** Danger! **" },
 
@@ -368,7 +372,7 @@
 			"12": "Episode3 MACES"
 		},
 		"Episode 4": {
-			"11": "Episode4 ?TUNNEL?"
+			"11": "Episode4 ?TUNNEL? ver2.1"
 		}
 	},
 	"Tyrian 2000": {

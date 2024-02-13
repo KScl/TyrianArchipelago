@@ -21,11 +21,11 @@
 
 #include "opentyr.h"
 
-#define PCX_NUM 13
+#define PCX_MAX 14
 
-typedef JE_longint JE_pcxpostype[PCX_NUM + 1]; /* [1..PCXnum + 1] */
+typedef JE_longint JE_pcxpostype[PCX_MAX + 1]; /* [1..PCXnum + 1] */
 
-extern const JE_byte pcxpal[PCX_NUM];    /* [1..PCXnum] */
+extern const JE_byte pcxpal[PCX_MAX];    /* [1..PCXnum] */
 extern const JE_byte facepal[12];       /* [1..12] */
 extern JE_pcxpostype pcxpos;
 

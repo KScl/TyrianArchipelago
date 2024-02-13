@@ -3116,7 +3116,7 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 					enemyAvail[z] = 1;
 					nortsong_playVoice(V_DATA_CUBE);
 					Archipelago_SendCheck(evalue - 28000);
-					JE_setupExplosion(enemy_screen_x, enemy[z].ey, 0, 53, true, false);
+					JE_setupExplosion(enemy_screen_x, enemy[z].ey, 0, 54, true, false);
 				}
 				else if (evalue > 20000)
 				{

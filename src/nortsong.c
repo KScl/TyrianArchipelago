@@ -119,11 +119,11 @@ static void loadSndFile(const char *file, size_t start, bool trimData)
 	FILE *f = dir_fopen_die(data_dir(), file, "rb");
 
 	Uint16 sfxCount;
-	Uint32 sfxPositions[SFX_COUNT + 1];
+	Uint32 sfxPositions[SOUND_MAXPERFILE + 1];
 
 	// Read number of sounds.
 	fread_u16_die(&sfxCount, 1, f);
-	if (sfxCount > SFX_COUNT)
+	if (sfxCount > SOUND_MAXPERFILE)
 		goto die; // Allow handling less samples (voices)
 
 	// Read positions of sounds.
@@ -282,6 +282,6 @@ void nortsong_playPrioritySound(JE_byte samplenum)
 void nortsong_playVoice(JE_byte samplenum)
 {
 	if (APSeedSettings.Christmas)
-		samplenum += 9;
+		samplenum |= 0x20;
 	multiSamplePlay(soundSamples[samplenum-1], soundSampleCount[samplenum-1], 15, fxPlayVol);
 }

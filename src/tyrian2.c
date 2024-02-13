@@ -1161,8 +1161,8 @@ start_level_first:
 	optionAttachmentMove  = 0;    /*Launch the Attachments!*/
 	optionAttachmentLinked = true;
 
-	editShip1 = false;
-	editShip2 = false;
+	//editShip1 = false;
+	//editShip2 = false;
 
 	memset(smoothies, 0, sizeof(smoothies));
 
@@ -2235,7 +2235,9 @@ draw_player_shot_loop_end:
 		}
 
 		JE_textShade (VGAScreen, 140, 6, miscText[66], 7, (levelTimerCountdown % 20) / 3, FULL_SHADE);
-		sprintf(buffer, "%.1f", levelTimerCountdown / 100.0f);
+
+		// Don't use floats due to rounding.
+		sprintf(buffer, "%d.%d", levelTimerCountdown / 100, (levelTimerCountdown / 10) % 10);
 		JE_dString (VGAScreen, 100, 2, buffer, SMALL_FONT_SHAPES);
 	}
 
@@ -2757,8 +2759,6 @@ void networkStartScreen(void)
 
 void intro_logos(void)
 {
-	moveTyrianLogoUp = true;
-
 	SDL_FillRect(VGAScreen, NULL, 0);
 
 	fade_white(25);
@@ -2852,8 +2852,18 @@ uint JE_makeEnemy(struct JE_SingleEnemyType *enemy, Uint16 eDatI, Sint16 uniqueS
 
 	enemy->launchfreq = enemyDat[eDatI].elaunchfreq;
 	enemy->launchwait = enemyDat[eDatI].elaunchfreq;
-	enemy->launchtype = enemyDat[eDatI].elaunchtype % 1000;
-	enemy->launchspecial = enemyDat[eDatI].elaunchtype / 1000;
+
+	// Account for the second enemy bank only if we're creating something from it
+	if (eDatI > 1000)
+	{
+		enemy->launchtype = enemyDat[eDatI].elaunchtype;
+		enemy->launchspecial = 0;
+	}
+	else
+	{
+		enemy->launchtype = enemyDat[eDatI].elaunchtype % 1000;
+		enemy->launchspecial = enemyDat[eDatI].elaunchtype / 1000;
+	}
 
 	enemy->xaccel = enemyDat[eDatI].xaccel;
 	enemy->yaccel = enemyDat[eDatI].yaccel;
@@ -3108,6 +3118,10 @@ void JE_createNewEventEnemy(JE_byte enemyTypeOfs, JE_word enemyOffset, Sint16 un
 
 	enemyAvail[b-1] = JE_makeEnemy(&enemy[b-1], tempW, uniqueShapeTableI);
 
+	// Tyrian 2000 random X position
+	if (eventRec[eventLoc-1].eventdat2 == -200)
+		eventRec[eventLoc-1].eventdat2 = (mt_rand() % 208) + 24;
+
 	if (eventRec[eventLoc-1].eventdat2 != -99)
 	{
 		switch (enemyOffset)
@@ -3251,6 +3265,7 @@ void JE_eventSystem(void)
 		break;
 
 	case 4:
+	case 83: // Tyrian 2000: duplicate MapStop event
 		stopBackgrounds = true;
 		switch (eventRec[eventLoc-1].eventdat)
 		{
@@ -3762,7 +3777,8 @@ void JE_eventSystem(void)
 		break;
 
 	case 45: /* arcade-only enemy from other enemies */
-#if 0
+	case 85: // T2K_TimeBattle_EnemyFromOtherEnemy
+#if 1
 		for (temp = 0; temp < 100; temp++)
 		{
 			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
@@ -3941,9 +3957,7 @@ void JE_eventSystem(void)
 		levelTimerJumpTo   = eventRec[eventLoc-1].eventdat2;
 		break;
 
-	case 68:
-		randomExplosions = (eventRec[eventLoc-1].eventdat == 1);
-		break;
+	// 68: Random Explosions -- that's event 99 in Tyrian 2000!
 
 	case 69:
 		for (uint i = 0; i < COUNTOF(player); ++i)
@@ -4087,7 +4101,47 @@ void JE_eventSystem(void)
 		shotRepeat[SHOT_SPECIAL2] = 0;
 		break;
 
-	// AP
+	// ===== Tyrian 2000 ======================================================
+
+	case 58: // Set enemy launch type
+		for (temp = 0; temp < 100; temp++)
+		{
+			if (eventRec[eventLoc-1].eventdat4 == 99 || enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
+				enemy[temp].launchtype = eventRec[eventLoc-1].eventdat;
+		}
+		break;
+
+	case 59: // Replace enemy
+	case 68: // Duplicate event, replaces original Random Explosions event
+		for (temp = 0; temp < 100; temp++)
+		{
+			if (!(eventRec[eventLoc-1].eventdat4 == 0 || enemy[temp].linknum == eventRec[eventLoc-1].eventdat4))
+				continue;
+
+			const int enemy_offset = temp - (temp % 25);
+			b = JE_newEnemy(enemy_offset, eventRec[eventLoc-1].eventdat, 0);
+			if (b != 0)
+			{
+				enemy[b-1].ex = enemy[temp].ex;
+				enemy[b-1].ey = enemy[temp].ey;
+			}
+
+			enemyAvail[temp] = 1;
+		}			
+		break;
+
+	// 83: T2K_MapStop: See case 4
+
+	case 84: // T2K_TimeBattleParams
+		// Not unknown, but we ingore timed battle events.
+		break;
+
+	case 99: // Random Explosions (post-T2K)
+		randomExplosions = (eventRec[eventLoc-1].eventdat == 1);
+		break;
+
+	// ===== Archipelago Tyrian ===============================================
+
 	case 200: // AP_CheckFreestanding
 		if (ARCHIPELAGO_ITEM + apCheckCount > ARCHIPELAGO_ITEM_MAX)
 			break; // ???

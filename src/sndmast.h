@@ -21,9 +21,8 @@
 
 #include "opentyr.h"
 
-#define SFX_COUNT 29
-#define VOICE_COUNT 9
-#define SOUND_COUNT (SFX_COUNT + VOICE_COUNT*2) // We load both regular and xmas voices simultaneously
+#define SOUND_MAXPERFILE  32
+#define SOUND_COUNT      128 // Maximum number of sounds that can be loaded at once (0x00-0x7F)
 
 enum
 {
@@ -58,24 +57,28 @@ enum
 	S_SHIELD_HIT       = 27,
 	S_CURSOR           = 28,
 	S_POWERUP          = 29,
-	V_CLEARED_PLATFORM = 30,  // "Cleared enemy platform."
-	V_BOSS             = 31,  // "Large enemy approaching."
-	V_ENEMIES          = 32,  // "Enemies ahead."
-	V_GOOD_LUCK        = 33,  // "Good luck."
-	V_LEVEL_END        = 34,  // "Level completed."
-	V_DANGER           = 35,  // "Danger."
-	V_SPIKES           = 36,  // "Warning: spikes ahead."
-	V_DATA_CUBE        = 37,  // "Data acquired."
-	V_ACCELERATE       = 38,  // "Unexplained speed increase."
-	V_XMASVOICE1       = 39,
-	V_XMASVOICE2       = 40,
-	V_XMASVOICE3       = 41,
-	V_XMASVOICE4       = 42,
-	V_XMASVOICE5       = 43,
-	V_XMASVOICE6       = 44,
-	V_XMASVOICE7       = 45,
-	V_XMASVOICE8       = 46,
-	V_XMASVOICE9       = 47,
+	S_MARS3            = 30,
+	S_NEEDLE2          = 31,
+
+	V_CLEARED_PLATFORM = 0x40,  // "Cleared enemy platform."
+	V_BOSS             = 0x41,  // "Large enemy approaching."
+	V_ENEMIES          = 0x42,  // "Enemies ahead."
+	V_GOOD_LUCK        = 0x43,  // "Good luck."
+	V_LEVEL_END        = 0x44,  // "Level completed."
+	V_DANGER           = 0x45,  // "Danger."
+	V_SPIKES           = 0x46,  // "Warning: spikes ahead."
+	V_DATA_CUBE        = 0x47,  // "Data acquired."
+	V_ACCELERATE       = 0x48,  // "Unexplained speed increase."
+
+	V_XMASVOICE1       = 0x60,
+	V_XMASVOICE2       = 0x61,
+	V_XMASVOICE3       = 0x62,
+	V_XMASVOICE4       = 0x63,
+	V_XMASVOICE5       = 0x64,
+	V_XMASVOICE6       = 0x65,
+	V_XMASVOICE7       = 0x66,
+	V_XMASVOICE8       = 0x67,
+	V_XMASVOICE9       = 0x68,
 };
 
 extern const char soundTitle[SOUND_COUNT][9];
