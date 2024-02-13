@@ -20,7 +20,6 @@
 
 #include "joystick.h"
 #include "mouse.h"
-#include "network.h"
 #include "opentyr.h"
 #include "varz.h"
 #include "video.h"

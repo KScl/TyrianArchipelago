@@ -7,14 +7,149 @@
 #include "helptext.h"
 #include "keyboard.h"
 #include "loudness.h"
+#include "lvlmast.h"
 #include "mainint.h"
 #include "nortsong.h"
 #include "nortvars.h"
 #include "pcxmast.h"
 #include "picload.h"
+#include "varz.h"
 #include "video.h"
 
 #include "archipelago/apconnect.h"
+
+// ============================================================================
+// Level End
+// ============================================================================
+
+void levelend_doLevelStats(void) // fka JE_endLevelAni
+{
+	char string_buffer[96];
+
+	// TODO? Can probably find a better place to do rank manipulation
+	//adjust_difficulty();
+
+	// Mark completion
+	const Uint16 episode = allLevelData[currentLevelID].episodeNum - 1;
+	const Uint16 levelID = allLevelData[currentLevelID].episodeLevelID;
+	APStats.Clears[episode] |= (1 << levelID);
+	lastLevelCompleted = true;
+
+	// Scout for new shop checks that just opened
+	Archipelago_ScoutShopItems(allLevelData[currentLevelID].shopStart);
+
+	// Add obtained cash to AP cash total
+	APStats.Cash += player[0].cash;
+	player[0].cash = 0;
+
+	player[0].last_items = player[0].items;
+	strcpy(lastLevelName, levelName);
+
+	JE_wipeKey();
+	frameCountMax = 3;
+	textGlowFont = SMALL_FONT_SHAPES;
+
+	SDL_Color white = { 255, 255, 255 };
+	set_colors(white, 254, 254);
+
+	if (!levelTimer || levelTimerCountdown > 0)
+		nortsong_playVoice(V_LEVEL_END);
+	else
+		play_song(21);
+
+	// ----- Completed: LEvELNAME -----------------------------------
+	const char *levelAction = (levelTimer && levelTimerCountdown <= 0) ? "Failed:" : "Completed:";
+	snprintf(string_buffer, sizeof(string_buffer), "%s %s", levelAction, levelName);
+	JE_outTextGlow(VGAScreenSeg, 20, 20, string_buffer);
+
+	// ----- Total Score: 0000000 -----------------------------------
+	// Even in a theoretical two player mode, cash would be shared between players.
+	snprintf(string_buffer, sizeof(string_buffer),  "%s %llu", miscText[28-1], (unsigned long long)APStats.Cash);
+	JE_outTextGlow(VGAScreenSeg, 30, 50, string_buffer);
+
+	// ----- Destruction: 00% ---------------------------------------
+	const int destruction = (totalEnemy == 0) ? 0 : roundf(enemyKilled * 100 / totalEnemy);
+	snprintf(string_buffer, sizeof(string_buffer),  "%s %d%%", miscText[63-1], destruction);
+	JE_outTextGlow(VGAScreenSeg, 40, 90, string_buffer);
+
+#if 0
+	JE_outTextGlow(VGAScreenSeg, 30, 120, miscText[4-1]);   /*Cubes*/
+
+	if (cubeMax > 0)
+	{
+		if (cubeMax > 4)
+			cubeMax = 4;
+
+		if (frameCountMax != 0)
+			frameCountMax = 1;
+
+		for (temp = 1; temp <= cubeMax; temp++)
+		{
+			JE_playSampleNum(S_ITEM);
+			x = 20 + 30 * temp;
+			y = 135;
+			JE_drawCube(VGAScreenSeg, x, y, 9, 0);
+			JE_showVGA();
+
+			for (i = -15; i <= 10; i++)
+			{
+				setDelay(frameCountMax);
+
+				blit_sprite_hv(VGAScreenSeg, x, y, OPTION_SHAPES, 25, 0x9, i);
+
+				if (JE_anyButton())
+					frameCountMax = 0;
+
+				JE_showVGA();
+
+				wait_delay();
+			}
+			for (i = 10; i >= 0; i--)
+			{
+				setDelay(frameCountMax);
+
+				blit_sprite_hv(VGAScreenSeg, x, y, OPTION_SHAPES, 25, 0x9, i);
+
+				if (JE_anyButton())
+					frameCountMax = 0;
+
+				JE_showVGA();
+
+				wait_delay();
+			}
+		}
+	}
+	else
+	{
+		JE_outTextGlow(VGAScreenSeg, 50, 135, miscText[15-1]);
+	}
+#endif
+
+	// ----- Press a key --------------------------------------------
+	bool skipped_already = (frameCountMax == 0);
+	if (!skipped_already)
+		frameCountMax = 4;
+
+	JE_outTextGlow(VGAScreenSeg, 90, 160, miscText[5-1]);
+
+	//if (!constantPlay)
+	//{
+	do
+	{
+		JE_showVGA();
+		SDL_Delay(16);
+	} while (!(JE_anyButton() || (!skipped_already && frameCountMax == 0)));
+	//}
+
+	wait_noinput(false, false, true); // TODO: should up the joystick repeat temporarily instead
+
+	fade_black(15);
+	JE_clr256(VGAScreen);
+}
+
+// ============================================================================
+// Episode End
+// ============================================================================
 
 typedef enum
 {

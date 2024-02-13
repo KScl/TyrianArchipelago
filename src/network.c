@@ -597,11 +597,7 @@ int network_connect(void)
 
 	Uint16 episodes = 0, episodes_local = 0;
 	assert(EPISODE_MAX <= 16);
-	for (int i = EPISODE_MAX - 1; i >= 0; i--)
-	{
-		episodes <<= 1;
-		episodes |= (episodeAvail[i] != 0);
-	}
+	episodes = 0x1F;
 	episodes_local = episodes;
 
 	assert(NET_PACKET_SIZE - 12 >= 20 + 1);
@@ -656,10 +652,12 @@ connect_again:
 	}
 
 	episodes = SDLNet_Read16(&packet_in[0]->data[8]);
+#if 0
 	for (int i = 0; i < EPISODE_MAX; i++) {
 		episodeAvail[i] &= (episodes & 1);
 		episodes >>= 1;
 	}
+#endif
 
 	network_opponent_name = malloc(packet_in[0]->len - 12 + 1);
 	strcpy(network_opponent_name, (char *)&packet_in[0]->data[12]);

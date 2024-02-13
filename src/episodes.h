@@ -29,7 +29,6 @@
 
 #define FIRST_LEVEL 1
 #define EPISODE_MAX 5
-#define EPISODE_AVAILABLE 4
 
 typedef struct
 {
@@ -159,16 +158,10 @@ extern JE_OptionType options[OPTION_NUM + 1]; /* [0..optionnum] */
 extern JE_SpecialType special;
 extern JE_EnemyDatType enemyDat;
 extern JE_byte initial_episode_num, episodeNum;
-extern JE_boolean episodeAvail[EPISODE_MAX];
-
-extern char episode_file[13], cube_file[13];
 
 extern JE_boolean bonusLevel;
-extern JE_boolean jumpBackToEpisode1;
 
 void JE_loadItemDat(FILE *f);
 void JE_initEpisode(JE_byte newEpisode);
-unsigned int JE_findNextEpisode(void);
-void JE_scanForEpisodes(void);
 
 #endif /* EPISODES_H */

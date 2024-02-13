@@ -20,8 +20,6 @@
 
 #include "opentyr.h"
 
-JE_byte songBuy;
-
 const char musicTitle[MUSIC_NUM][48] =
 {
 	"Asteroid Dance Part 2",

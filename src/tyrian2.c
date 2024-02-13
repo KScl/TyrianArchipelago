@@ -784,7 +784,7 @@ start_level:
 		if ((!all_players_dead() || normalBonusLevelCurrent || bonusLevelCurrent) && !playerEndLevel)
 		{
 			mainLevel = nextLevel;
-			JE_endLevelAni();
+			levelend_doLevelStats();
 
 			fade_song();
 		}
@@ -2483,9 +2483,6 @@ draw_player_shot_loop_end:
 bool JE_loadMap(void)
 {
 	lastCubeMax = cubeMax;
-
-	/*Defaults*/
-	songBuy = DEFAULT_SONG_BUY;  /*Item Screen default song*/
 
 	/* Load LEVELS.DAT - Section = MAINLEVEL */
 	saveLevel = mainLevel;

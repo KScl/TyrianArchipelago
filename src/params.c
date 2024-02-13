@@ -22,7 +22,6 @@
 #include "file.h"
 #include "joystick.h"
 #include "loudness.h"
-#include "network.h"
 #include "opentyr.h"
 #include "varz.h"
 

@@ -42,8 +42,6 @@ JE_EnemyDatType enemyDat;
 
 /* EPISODE variables */
 JE_byte    initial_episode_num, episodeNum = 0;
-JE_boolean episodeAvail[EPISODE_MAX]; /* [1..episodemax] */
-char       episode_file[13], cube_file[13];
 
 /* Tells the game whether the level currently loaded is a bonus level. */
 JE_boolean bonusLevel;
@@ -282,10 +280,6 @@ void JE_initEpisode(JE_byte newEpisode)
 		return;
 	
 	episodeNum = newEpisode;
-	
-	//snprintf(levelFile,    sizeof(levelFile),    "tyrian%d.lvl",  episodeNum);
-	snprintf(cube_file,    sizeof(cube_file),    "cubetxt%d.dat", episodeNum);
-	snprintf(episode_file, sizeof(episode_file), "levels%d.dat",  episodeNum);
 
 	// Temporary: We need to load items at least once
 	Sint32 filePosition;
@@ -294,40 +288,4 @@ void JE_initEpisode(JE_byte newEpisode)
 	fseek(f, filePosition, SEEK_SET);
 	JE_loadItemDat(f);
 	fclose(f);
-}
-
-void JE_scanForEpisodes(void)
-{
-	for (int i = 0; i < EPISODE_MAX; ++i)
-	{
-		char ep_file[20];
-		snprintf(ep_file, sizeof(ep_file), "tyrian%d.lvl", i + 1);
-		episodeAvail[i] = dir_file_exists(data_dir(), ep_file);
-	}
-}
-
-unsigned int JE_findNextEpisode(void)
-{
-	unsigned int newEpisode = episodeNum;
-	
-	jumpBackToEpisode1 = false;
-	
-	while (true)
-	{
-		newEpisode++;
-		
-		if (newEpisode > EPISODE_MAX)
-		{
-			newEpisode = 1;
-			jumpBackToEpisode1 = true;
-			gameHasRepeated = true;
-		}
-		
-		if (episodeAvail[newEpisode-1] || newEpisode == episodeNum)
-		{
-			break;
-		}
-	}
-	
-	return newEpisode;
 }

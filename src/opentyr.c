@@ -770,8 +770,6 @@ int main(int argc, char *argv[])
 
 	JE_paramCheck(argc, argv);
 
-	JE_scanForEpisodes();
-
 	FILE *patch_f = dir_fopen_die("apdata", "patch.jsonc", "r");
 	if (!Patcher_SystemInit(patch_f))
 	{
