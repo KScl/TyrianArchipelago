@@ -19,6 +19,15 @@
 	// Episode 1 - Escape
 	// -------------------------------------------------------------------------------------------
 
+	// These levels are patch-compatible between 2.1 and 2000:
+	// TYRIAN-easy (unrelated changes to boss's pattern only)
+	// TYRIAN-hard (unchanged)
+	// WINDY (unchanged)
+	// SAVARA-hard (unchanged)
+	// BONUS (unchanged)
+	// MINES (unchanged)
+	// ASSASSIN (unchanged)
+
 	"Episode1 TYRIAN Hard": {
 		// Addition of Archipelago Items
 		"18:REPLACE":   { "time": 160, "event":201, /* AP_CheckFromEnemy */ "ap_id":0, "linknum": 1, "movement":"falling" },
@@ -40,13 +49,13 @@
 			{ "time":1868, "event":6, /* NewEnemy_Ground */ "linknum":30, "type":517, "ex":282, "ey":-28 },
 			{ "time":1868, "event":6, /* NewEnemy_Ground */ "linknum":30, "type":516, "ex":258, "ey":-28 }
 		],
-		"419:PREPEND": { "time":1868, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":3, "movement":"static", "align_x":6, "align_y":7 }, // BUBBLES Warp Rock
+		"419:PREPEND": { "time":1868, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":3, "movement":"static", "align_x":6, "align_y":7 },
 
 		// Additional callouts for contact_bypasses_shields
 		"606:APPEND": { "time":2573, "event":116, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
 	},
 
-	"Episode1 BUBBLES": {
+	"Episode1 BUBBLES ver2.1": {
 		// Addition of Archipelago Items
 		"11:REPLACE":  { "time":  50, "event":201, /* AP_CheckFromEnemy */ "ap_id": 10, "linknum":125, "movement":"static", "backup":476 },
 		"108:REPLACE": { "time": 710, "event":201, /* AP_CheckFromEnemy */ "ap_id": 11, "linknum": 45, "movement":"static", "backup":474 },
@@ -267,6 +276,10 @@
 	// Episode 2 - Treachery
 	// -------------------------------------------------------------------------------------------
 
+	// All levels are patch-compatible except:
+	// MISTAKES
+	// BOTANY A
+
 	"Episode2 GYGES": {
 		// Addition of Archipelago Items
 		"8:REPLACE":   { "time":   2, "event":201, /* AP_CheckFromEnemy */ "ap_id":170, "linknum":  1, "movement":"falling" },
@@ -310,12 +323,39 @@
 	// Episode 4 - An End To Fate
 	// -------------------------------------------------------------------------------------------
 
+	// Patch compatible levels:
+	// SURFACE (maybe? only some event reorganization)
+	// WINDY
+	// LAVA RUN (unchanged)
+	// SIDE EXIT
+	// DESERTRUN (unchanged)
+	// HARVEST (unchanged)
+	// APPROACH
+	// DREAD-NOT (unchanged)
+	// EYESPY
+	// BRAINIAC (only change is random explosions event ID)
+
+
 	"Episode4 SURFACE": {
 
 	},
 
 	"Episode4 LAVA RUN": {
 
+	},
+
+	"Episode4 CORE ver2.1": {
+		// Random explosion events changed
+		"653:REPLACE": { "time": 9999, "event":99, /* RandomExplosions */ "enable":true },
+		"657:REPLACE": { "time":10000, "event":99, /* RandomExplosions */ "enable":true }
+	},
+
+	"Episode4 CORE ver2000": {
+		// When changing random explosion events from 68 to 99, they forgot to change these!
+		// And because there's an extra ReadyToEndLevel inserted earlier in the level,
+		// we can't just use the same patch!
+		"654:REPLACE": { "time": 9999, "event":99, /* RandomExplosions */ "enable":true },
+		"658:REPLACE": { "time":10000, "event":99, /* RandomExplosions */ "enable":true }
 	},
 
 	"Episode4 ?TUNNEL? ver2.1": {
@@ -341,6 +381,71 @@
 			{ "time": 9000, "event":67, /* SetLevelTimer */ "enable":false },
 			{ "time": 9000, "event":36 /* ReadyToEndLevel */ }
 		]
+	},
+
+	// -------------------------------------------------------------------------------------------
+	// Episode 5 - Hazudra Fodder
+	// -------------------------------------------------------------------------------------------
+
+	"Episode5 ASTEROIDS": {
+		"73:REPLACE":  { "time": 350, "event":201, /* AP_CheckFromEnemy */ "ap_id":580, "linknum":  8, "movement":"sky_falling" },
+		"154:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":581, "linknum":  1, "movement":"sky_falling" },
+		"233:REPLACE": { "time":1300, "event":201, /* AP_CheckFromEnemy */ "ap_id":582, "linknum":  2, "movement":"sky_falling" },
+		"249:REPLACE": { "time":1450, "event":201, /* AP_CheckFromEnemy */ "ap_id":583, "linknum":  1, "movement":"sky_falling" },
+		"402:REPLACE": { "time":2600, "event":201, /* AP_CheckFromEnemy */ "ap_id":584, "linknum":  4, "movement":"sky_falling" },
+		"433:APPEND":  { "time":2800, "event":201, /* AP_CheckFromEnemy */ "ap_id":585, "linknum":254, "movement":"swaying", "is_boss":true},
+
+		// Give time for the AP item to drop. (Expect to see a lot of patching to do this in Episode 5.)
+		"514:PREPEND": [
+			{ "time": 5040, "event": 36 /* ReadyToEndLevel */ },
+			{ "time":60000, "event":  0 /* NoOp */ }
+		]
+	},
+
+	"Episode5 MINERS": {
+		"861:REPLACE": {"time":3050, "event":201, /* AP_CheckFromEnemy */ "ap_id":999, "linknum":19, "movement":534}
+	},
+
+	"Episode5 SAVARA": {
+		"81:REPLACE":  {"time": 330, "event":201, /* AP_CheckFromEnemy */ "ap_id":999, "linknum":18, "movement":"sky_falling" },
+		"299:REPLACE": {"time":1505, "event":201, /* AP_CheckFromEnemy */ "ap_id":999, "linknum":19, "movement":"sky_falling" },
+		"675:REPLACE": {"time":3230, "event":201, /* AP_CheckFromEnemy */ "ap_id":999, "linknum":18, "movement":"sky_falling" }
+	},
+
+	"Episode5 CORAL": {
+		// We need to completely replace the ending sequence to deal with handing out an item for defeating the boss.
+		"894:PREPEND": [
+			{ "time": 9940, "event": 36 /* ReadyToEndLevel */ },
+			{ "time": 9940, "event": 99, /* RandomExplosions */ "enable":true },
+			{ "time": 9940, "event": 19, /* EnemyGlobal_Move */ "linknum":9, "eyc":-2 },
+			{ "time": 9940, "event":200, /* AP_CheckFreestanding */ "ap_id":620, "movement":"swaying", "ex":120 },
+			{ "time":10040, "event": 99, /* RandomExplosions */ "enable":false },
+			{ "time":10080, "event": 19, /* EnemyGlobal_Move */ "linknum":9, "eyc":-64 },
+			{ "time":10440, "event": 11 /* EndLevel */ },
+			{ "time":60000, "event":  0 /* NoOp */ }
+		]
+	},
+
+	"Episode5 STATION": {
+		"12:REPLACE":  { "time":  20, "event":201, /* AP_CheckFromEnemy */ "ap_id":630, "linknum": 13, "movement":"sky_falling" },
+		"66:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":631, "linknum": 13, "movement":"sky_falling" },
+		"104:REPLACE": { "time": 520, "event":201, /* AP_CheckFromEnemy */ "ap_id":632, "linknum": 14, "movement":"sky_falling" },
+		"215:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":633, "linknum": 15, "movement":"sky_falling" }, 
+		"255:REPLACE": { "time":1120, "event":201, /* AP_CheckFromEnemy */ "ap_id":634, "linknum": 20, "movement":"sky_falling" },
+		"356:REPLACE": { "time":1850, "event":201, /* AP_CheckFromEnemy */ "ap_id":635, "linknum":  8, "movement":"sky_falling" },
+		"480:REPLACE": { "time":2500, "event":201, /* AP_CheckFromEnemy */ "ap_id":636, "linknum": 59, "movement":"sky_falling" },
+		"527:REPLACE": { "time":2620, "event":201, /* AP_CheckFromEnemy */ "ap_id":637, "linknum": 13, "movement":"sky_falling" },
+		"585:REPLACE": { "time":2820, "event":201, /* AP_CheckFromEnemy */ "ap_id":638, "linknum": 13, "movement":"sky_falling" },
+		"723:APPEND":  { "time":3350, "event":201, /* AP_CheckFromEnemy */ "ap_id":639, "linknum":254, "movement":"swaying", "is_boss":true },
+
+		// Give time for the AP item to drop.
+		"1000:PREPEND": [
+			{ "time":10000, "event": 36 /* ReadyToEndLevel */ },
+			{ "time":60000, "event":  0 /* NoOp */ }
+		],
+
+		// Additional callouts for contact_bypasses_shields
+		"780:REPLACE": { "time":3600, "event":116, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
 	}
 },
 
@@ -350,7 +455,7 @@
 			"1":  "Episode1 ASTEROID1",
 			"2":  "Episode1 ASTEROID2",
 			"3":  "Episode1 ASTEROID?",
-			"4":  "Episode1 BUBBLES",
+			"4":  "Episode1 BUBBLES ver2.1",
 			"5":  "Episode1 DELIANI",
 			"6":  "Episode1 MINEMAZE",
 			"7":  "Episode1 MINES",
@@ -372,6 +477,7 @@
 			"12": "Episode3 MACES"
 		},
 		"Episode 4": {
+			"5":  "Episode4 CORE ver2.1",
 			"11": "Episode4 ?TUNNEL? ver2.1"
 		}
 	},
@@ -386,10 +492,13 @@
 
 		},
 		"Episode 4": {
-
+			"5":  "Episode4 CORE ver2000"
 		},
 		"Episode 5": {
-
+			"3": "Episode5 STATION",
+			"4": "Episode5 SAVARA",
+			"5": "Episode5 ASTEROIDS",
+			"7": "Episode5 CORAL"
 		}
 	}
 }

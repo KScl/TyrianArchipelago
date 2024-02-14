@@ -188,7 +188,8 @@ void JE_HBox(SDL_Surface *screen, int x, int y, unsigned int  messagenum, unsign
 void JE_loadHelpText(void)
 {
 	const unsigned int menuInt_entries[MENU_MAX + 1] = { -1, 7, 9, 8, -1, -1, 11, -1, -1, -1, 6, 4, 6, 7, 5 };
-	
+	unsigned int real_count;
+
 	FILE *f = dir_fopen_die(data_dir(), "tyrian.hdt", "rb");
 	fseek(f, sizeof(Sint32), SEEK_CUR); // skip unused episode1DataLoc
 
@@ -206,13 +207,15 @@ void JE_loadHelpText(void)
 
 	/*Miscellaneous text*/
 	skip_pascal_string(f);
-	for (unsigned int i = 0; i < COUNTOF(miscText); ++i)
+	real_count = (tyrian2000detected ? 72 : 68);
+	for (unsigned int i = 0; i < real_count; ++i)
 		read_encrypted_pascal_string(miscText[i], sizeof(miscText[i]), f);
 	skip_pascal_string(f);
 
 	/*Little Miscellaneous text*/
 	skip_pascal_string(f);
-	for (unsigned int i = 0; i < COUNTOF(miscTextB); ++i)
+	real_count = (tyrian2000detected ? 8 : 5);
+	for (unsigned int i = 0; i < real_count; ++i)
 		read_encrypted_pascal_string(miscTextB[i], sizeof(miscTextB[i]), f);
 	skip_pascal_string(f);
 
@@ -242,7 +245,8 @@ void JE_loadHelpText(void)
 
 	/*Main Menu Help*/
 	skip_pascal_string(f);
-	for (unsigned int i = 0; i < COUNTOF(mainMenuHelp); ++i)
+	real_count = (tyrian2000detected ? 37 : 34);
+	for (unsigned int i = 0; i < real_count; ++i)
 		read_encrypted_pascal_string(mainMenuHelp[i], sizeof(mainMenuHelp[i]), f);
 	skip_pascal_string(f);
 
@@ -260,7 +264,8 @@ void JE_loadHelpText(void)
 
 	/*Menu 3 - Options*/
 	skip_pascal_string(f);
-	for (unsigned int i = 0; i < menuInt_entries[3]; ++i)
+	real_count = (tyrian2000detected ? 9 : 8);
+	for (unsigned int i = 0; i < real_count; ++i)
 		read_encrypted_pascal_string(menuInt[3][i], sizeof(menuInt[3][i]), f);
 	skip_pascal_string(f);
 
@@ -315,7 +320,8 @@ void JE_loadHelpText(void)
 
 	/*Network text*/
 	skip_pascal_string(f);
-	for (unsigned int i = 0; i < COUNTOF(networkText); ++i)
+	real_count = (tyrian2000detected ? 5 : 4);
+	for (unsigned int i = 0; i < real_count; ++i)
 		read_encrypted_pascal_string(networkText[i], sizeof(networkText[i]), f);
 	skip_pascal_string(f);
 
@@ -351,12 +357,14 @@ void JE_loadHelpText(void)
 
 	/*SuperShips - For Super Arcade Mode*/
 	skip_pascal_string(f);
+	real_count = (tyrian2000detected ? 13 : 11);
 	for (unsigned int i = 0; i < COUNTOF(superShips); ++i)
 		read_encrypted_pascal_string(superShips[i], sizeof(superShips[i]), f);
 	skip_pascal_string(f);
 
 	/*SuperShips - For Super Arcade Mode*/
 	skip_pascal_string(f);
+	real_count = (tyrian2000detected ? 11 : 9);
 	for (unsigned int i = 0; i < COUNTOF(specialName); ++i)
 		read_encrypted_pascal_string(specialName[i], sizeof(specialName[i]), f);
 	skip_pascal_string(f);
@@ -381,6 +389,7 @@ void JE_loadHelpText(void)
 
 	/*NEW: Ship Info*/
 	skip_pascal_string(f);
+	real_count = (tyrian2000detected ? 20 : 13);
 	for (unsigned int i = 0; i < COUNTOF(shipInfo); ++i)
 	{
 		read_encrypted_pascal_string(shipInfo[i][0], sizeof(shipInfo[i][0]), f);
