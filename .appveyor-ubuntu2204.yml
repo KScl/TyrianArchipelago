@@ -1,0 +1,32 @@
+version: CI-{build}
+image: Ubuntu2204
+branches:
+  only:
+  - main
+install:
+- sh: >-
+    sudo cp /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
+
+    sudo apt update -qq
+
+    sudo apt install -qqy -o DPkg::Progress-Fancy=0 --no-install-recommends libsdl2-dev libssl-dev
+
+    git submodule update --init --recursive
+build_script:
+- sh: make
+test_script:
+- sh: >-
+    mkdir aptyrian
+
+    mkdir aptyrian/apdata
+
+    cp opentyrian aptyrian/aptyrian
+
+    cp COPYING aptyrian/
+
+    cp apdata/* aptyrian/apdata/
+
+    7za a "aptyrian-Ubuntu2204-Release.zip" "aptyrian"
+artifacts:
+- path: '*.zip'
+

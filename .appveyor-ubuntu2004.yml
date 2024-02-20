@@ -3,9 +3,6 @@ image: Ubuntu2004
 branches:
   only:
   - main
-# If using 22.04, you'll want to run this before running apt update:
-#   sudo cp /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
-# Appveyor's 22.04 image emits a lot of warnings otherwise.
 install:
 - sh: >-
     sudo apt update -qq
@@ -27,7 +24,7 @@ test_script:
 
     cp apdata/* aptyrian/apdata/
 
-    7za a "aptyrian-Linux-Release.zip" "aptyrian"
+    7za a "aptyrian-Ubuntu2004-Release.zip" "aptyrian"
 artifacts:
 - path: '*.zip'
 
