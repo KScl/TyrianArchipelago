@@ -228,7 +228,8 @@ JE_boolean randomExplosions;
 
 //JE_boolean editShip1, editShip2;
 
-JE_boolean globalFlags[10]; /* [1..10] */
+// No longer bool, but int (to be able to count events)
+JE_byte globalFlags[10]; /* [1..10] */
 JE_byte levelSong;
 
 /* MapView Data */

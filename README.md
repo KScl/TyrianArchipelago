@@ -11,17 +11,14 @@ and extract them to a subfolder called "data". Tyrian 2.1 data files will only
 work for seeds with "enable_tyrian_2000_support" turned OFF, whereas Tyrian 2000
 data files will work for all seeds.
 
-Tyrian 2.1:
-  https://www.camanis.net/tyrian/tyrian21.zip
-
-Tyrian 2000: (NOTE: Tyrian 2000 support has not been added as of 0.4.4-alpha1)
-  https://www.camanis.net/tyrian/tyrian2000.zip
+* [Tyrian 2.1](https://www.camanis.net/tyrian/tyrian21.zip)
+* [Tyrian 2000](https://www.camanis.net/tyrian/tyrian2000.zip)
 
 ### Important Notes (alpha1)
 
 The menu for choosing a server / slot name to connect to is currently
 unfinished. You will need to start APTyrian with the command line option:
-  --connect="<slot_name>@archipelago.gg:<port_number>"
+* `--connect="<slot_name>@archipelago.gg:<port_number>"`
 
 Then, after choosing "Start Game", press ENTER on the otherwise empty screen
 to start connecting to the Archipelago server.

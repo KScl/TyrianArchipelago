@@ -3027,6 +3027,24 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 						this_player->cash += evalue;
 					}
 					JE_setupExplosion(enemy_screen_x, enemy[z].ey, 0, enemyDat[enemy[z].enemytype].explosiontype, true, false);
+
+					// allow special (flag-setting) scoreitems
+					if (enemy[z].special)
+						mainint_handleEnemyFlag(&enemy[z]);
+
+					switch (enemy[z].special)
+					{
+						case ENEMYFLAG_SET:
+							globalFlags[enemy[z].flagnum-1] = enemy[z].setto;
+							break;
+						case ENEMYFLAG_INCREMENT:
+							globalFlags[enemy[z].flagnum-1] = enemy[z].setto;
+					}
+					if (enemy[z].special)
+					{
+						assert((unsigned int) enemy[z].flagnum-1 < COUNTOF(globalFlags));
+						globalFlags[enemy[z].flagnum-1] = enemy[z].setto;
+					}
 				}
 				else if (this_player->invulnerable_ticks == 0 && enemyAvail[z] == 0 &&
 				         (enemyDat[enemy[z].enemytype].explosiontype & 1) == 0) // explosiontype & 1 == 0: not ground enemy
@@ -3099,5 +3117,19 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 			}
 
 		}
+	}
+}
+
+void mainint_handleEnemyFlag(struct JE_SingleEnemyType *e)
+{
+	if (!e->special && !e->flagnum)
+		return;
+
+	assert((unsigned int)e->flagnum - 1 < COUNTOF(globalFlags));
+	switch (e->special)
+	{
+		case ENEMYFLAG_SET:       globalFlags[e->flagnum - 1] = e->setto;  break;
+		case ENEMYFLAG_INCREMENT: globalFlags[e->flagnum - 1] += e->setto; break;
+		default: /* Unknown ENEMYFLAG type */ break;
 	}
 }

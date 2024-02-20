@@ -19,6 +19,8 @@ typedef enum {
 } archipelago_sound_t;
 
 typedef struct {
+	bool Tyrian2000Mode;
+
 	int PlayEpisodes;
 	int GoalEpisodes;
 	int Difficulty;

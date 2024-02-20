@@ -1168,7 +1168,9 @@ bool Archipelago_StartLocalGame(FILE *file)
 		if (aptyrianJSON.at("NetVersion") != APTYRIAN_NET_VERSION)
 			throw std::runtime_error("Version mismatch. You may need to update APTyrian.");
 
-		if (!tyrian2000detected && aptyrianJSON.at("Settings").at("RequireT2K") == true)
+		APSeedSettings.Tyrian2000Mode = aptyrianJSON.at("Settings").at("RequireT2K").template get<bool>();
+
+		if (!tyrian2000detected && APSeedSettings.Tyrian2000Mode)
 			throw std::runtime_error("This seed requires data from Tyrian 2000.");
 
 		multiworldSeedName = aptyrianJSON.at("Seed").template get<std::string>();
@@ -1305,7 +1307,9 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		if (slot_data.at("NetVersion") != APTYRIAN_NET_VERSION)
 			throw std::runtime_error("Version mismatch. You may need to update APTyrian.");
 
-		if (!tyrian2000detected && slot_data.at("Settings").at("RequireT2K") == true)
+		APSeedSettings.Tyrian2000Mode = slot_data.at("Settings").at("RequireT2K").template get<bool>();
+
+		if (!tyrian2000detected && APSeedSettings.Tyrian2000Mode)
 			throw std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
 
 		multiworldSeedName = slot_data.at("Seed").template get<std::string>();

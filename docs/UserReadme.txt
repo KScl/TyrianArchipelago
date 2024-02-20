@@ -10,7 +10,7 @@ data files will work for all seeds.
 Tyrian 2.1:
   https://www.camanis.net/tyrian/tyrian21.zip
 
-Tyrian 2000: (NOTE: Tyrian 2000 support has not been added as of 0.4.4-alpha1)
+Tyrian 2000:
   https://www.camanis.net/tyrian/tyrian2000.zip
 
 == Important Notes =============================================================

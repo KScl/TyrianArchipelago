@@ -60,8 +60,8 @@ void tyrian_enemyDieItem(JE_byte enemyId);
 void tyrian_setupAPItemSpawn(Sint16 item, Sint16 apItemNum);
 #define ARCHIPELAGO_ITEM     900
 #define ARCHIPELAGO_ITEM_MAX 931
-static const Sint16 apBehaviorList[] = {512, 513, 628, 512, 513, 512, 513};
-static const Sint16 apEnemySection[] = { 25,  25,   0,   0,   0,  75,  75};
+static const Sint16 apBehaviorList[] = {512, 513, 628, 512, 513, 512, 513, 512, 513, 628};
+static const Sint16 apEnemySection[] = { 25,  25,   0,   0,   0,  75,  75,  50,  50,  50};
 
 struct {
 	Uint16 location;
@@ -869,6 +869,7 @@ start_level_first:
 	
 	JE_loadPic(VGAScreen, twoPlayerMode ? 6 : 3, false);
 
+	player_updateItemChoices(); // sync AP items with internal items
 	JE_drawOptions();
 
 	JE_outText(VGAScreen, 268, twoPlayerMode ? 76 : 118, levelName, 12, 4);
@@ -913,7 +914,6 @@ start_level_first:
 	JE_getShipInfo();
 
 	player_resetDeathLink();
-	player_updateItemChoices(); // sync AP items with internal items
 	memset(&APUpdateRequest, 0, sizeof(APUpdateRequest));
 
 	for (uint i = 0; i < COUNTOF(player); ++i)
@@ -1769,10 +1769,7 @@ level_loop:
 										continue;
 
 									if (enemy[other_enemy].special)
-									{
-										assert((unsigned int) enemy[other_enemy].flagnum-1 < COUNTOF(globalFlags));
-										globalFlags[enemy[other_enemy].flagnum-1] = enemy[other_enemy].setto;
-									}
+										mainint_handleEnemyFlag(&enemy[other_enemy]);
 
 									if (enemy[other_enemy].enemydie > 0)
 										tyrian_enemyDieItem(other_enemy);
@@ -2921,7 +2918,7 @@ uint JE_makeEnemy(struct JE_SingleEnemyType *enemy, Uint16 eDatI, Sint16 uniqueS
 	enemy->eyccwmax = enemy->eyccw;
 	enemy->exccadd = (enemy->excc > 0) ? 1 : -1;
 	enemy->eyccadd = (enemy->eycc > 0) ? 1 : -1;
-	enemy->special = false;
+	enemy->special = ENEMYFLAG_NONE;
 	enemy->iced = 0;
 
 	if (enemyDat[eDatI].xrev == 0)
@@ -3387,11 +3384,8 @@ void JE_eventSystem(void)
 		JE_createNewEventEnemy(0, 0, 0);
 		break;
 
-	case 116: // HardContactCallout
-		if (!APSeedSettings.HardContact)
-			break;
-		// fall through
 	case 16: // VoicedCallout
+	callout_rejoin:
 		if (eventRec[eventLoc-1].eventdat > 9)
 		{
 			fprintf(stderr, "warning: event 16: bad event data\n");
@@ -3461,6 +3455,10 @@ void JE_eventSystem(void)
 
 		for (int i = initial_i; i < max_i; i++)
 		{
+			// AP: If affecting all enemies, ignore scoreitems (so they don't behave erratically)
+			if (all_enemies && enemy[temp].scoreitem)
+				continue;
+
 			if (all_enemies || enemy[i].linknum == eventRec[eventLoc-1].eventdat4)
 			{
 				if (eventRec[eventLoc-1].eventdat != -99)
@@ -3488,8 +3486,14 @@ void JE_eventSystem(void)
 
 		for (temp = 0; temp < 100; temp++)
 		{
-			if (enemyAvail[temp] != 1 &&
-			    (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4 || eventRec[eventLoc-1].eventdat4 == 0))
+			if (enemyAvail[temp] == 1)
+				continue;
+
+			// AP: If linknum isn't set, ignore scoreitems (so they don't behave erratically)
+			if (eventRec[eventLoc-1].eventdat4 == 0 && enemy[temp].scoreitem)
+				continue;
+
+			if (eventRec[eventLoc-1].eventdat4 == 0 || enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
 			{
 				if (eventRec[eventLoc-1].eventdat != -99)
 				{
@@ -3907,7 +3911,7 @@ void JE_eventSystem(void)
 		{
 			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
 			{
-				enemy[temp].special = true;
+				enemy[temp].special = ENEMYFLAG_SET;
 				enemy[temp].flagnum = eventRec[eventLoc-1].eventdat;
 				enemy[temp].setto  = (eventRec[eventLoc-1].eventdat2 == 1);
 			}
@@ -4139,17 +4143,60 @@ void JE_eventSystem(void)
 
 	// ===== Archipelago Tyrian ===============================================
 
-	case 200: // AP_CheckFreestanding
+	case 100: // Skip_IfFlagNotEquals
+		if (globalFlags[eventRec[eventLoc-1].eventdat-1] != eventRec[eventLoc-1].eventdat2)
+			eventLoc += eventRec[eventLoc-1].eventdat3;
+		break;
+
+	case 101: // Skip_IfFlagLessThan
+		if (globalFlags[eventRec[eventLoc-1].eventdat-1] < eventRec[eventLoc-1].eventdat2)
+			eventLoc += eventRec[eventLoc-1].eventdat3;
+		break;
+
+	case 102: // Skip_IfFlagGreaterThan
+		if (globalFlags[eventRec[eventLoc-1].eventdat-1] > eventRec[eventLoc-1].eventdat2)
+			eventLoc += eventRec[eventLoc-1].eventdat3;
+		break;
+
+	case 110: // EnemyGlobal_IncrementFlag
+		for (temp = 0; temp < 100; temp++)
+		{
+			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
+			{
+				enemy[temp].special = ENEMYFLAG_INCREMENT;
+				enemy[temp].flagnum = eventRec[eventLoc-1].eventdat;
+				enemy[temp].setto   = eventRec[eventLoc-1].eventdat2;
+			}
+		}
+		break;
+
+	case 200:; // AP_CheckFreestanding
+		bool using_backup = false;
+
 		if (ARCHIPELAGO_ITEM + apCheckCount > ARCHIPELAGO_ITEM_MAX)
 			break; // ???
 
 		if (Archipelago_WasChecked(eventRec[eventLoc-1].eventdat))
-			break; // Location already checked, don't spawn
+		{
+			// Check for backup item spawn
+			if (!eventRec[eventLoc-1].eventdat6)
+				break;
 
-		temp = JE_newEnemy(
-			apEnemySection[eventRec[eventLoc-1].eventdat3],
-			apBehaviorList[eventRec[eventLoc-1].eventdat3],
-			0);
+			// We have a backup item, so spawn it instead
+			temp = JE_newEnemy(
+				apEnemySection[eventRec[eventLoc-1].eventdat3],
+				eventRec[eventLoc-1].eventdat6 + 450,
+				0);
+
+			using_backup = true;
+		}
+		else
+		{
+			temp = JE_newEnemy(
+				apEnemySection[eventRec[eventLoc-1].eventdat3],
+				apBehaviorList[eventRec[eventLoc-1].eventdat3],
+				0);			
+		}
 
 		if (temp != 0)
 		{
@@ -4170,11 +4217,15 @@ void JE_eventSystem(void)
 					enemy[temp-1].ey -= backMove3;
 					break;
 			}
-			enemy[temp-1].ey = -28;
+			enemy[temp-1].ey += eventRec[eventLoc-1].eventdat5;
+			enemy[temp-1].linknum = eventRec[eventLoc-1].eventdat4;
 
-			apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
-			apCheckData[apCheckCount].behavesAs = 0; // Already handled
-			tyrian_setupAPItemSpawn(temp, apCheckCount++);
+			if (!using_backup)
+			{
+				apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
+				apCheckData[apCheckCount].behavesAs = 0; // Already handled
+				tyrian_setupAPItemSpawn(temp, apCheckCount++);				
+			}
 		}
 		break;
 
@@ -4263,6 +4314,13 @@ void JE_eventSystem(void)
 		}
 		break;
 
+	case 216: // HardContactCallout
+		if ((eventRec[eventLoc-1].eventdat6 == 1 && APSeedSettings.HardContact)
+			|| (eventRec[eventLoc-1].eventdat6 == 2 && !APSeedSettings.HardContact))
+		{
+			break;
+		}
+		goto callout_rejoin;
 
 	default:
 		fprintf(stderr, "warning: ignoring unknown event %d\n", eventRec[eventLoc-1].eventtype);

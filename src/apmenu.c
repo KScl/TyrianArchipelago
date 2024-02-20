@@ -1398,7 +1398,7 @@ static const Uint16 baseItemList_Front[] = {
 	500, 501, 506, 508, 518, 509, 515, 513, 522, 523, 524, 504, 502, 507, 511, 512,
 	519, 514, 510, 505, 520, 516, 503, 517, 521,
 	// Tyrian 2000
-	//525, 526, 527, 528,
+	525, 526, 527, 528,
 	0xFFFF // End
 };
 
@@ -1406,7 +1406,16 @@ static const Uint16 baseItemList_Rear[] = {
 	0, // "None" available for this menu
 	601, 605, 600, 603, 611, 612, 610, 613, 602, 604, 606, 607, 609, 608, 614, 615,
 	// Tyrian 2000
-	//616,
+	616,
+	0xFFFF // End
+};
+
+static const Uint16 baseItemList_Special[] = {
+	0, // "None" available for this menu
+	700, 703, 704, 702, 701, 705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 715,
+	716, 717, 718, 719, 720, 721, 722,
+	// Tyrian 2000
+	723, 724,
 	0xFFFF // End
 };
 
@@ -1415,7 +1424,7 @@ static const Uint16 baseItemList_Sidekick[] = {
 	800, 801, 803, 829, 804, 802, 816, 811, 817, 812, 813, 814, 809, 810, 805, 806,
 	807, 808, 815, 828, 818, 820, 823, 819, 821, 825, 826, 827, 822, 824,
 	// Tyrian 2000
-	//830, 831, 
+	830, 831, 
 	0xFFFF // End
 };
 
@@ -1427,6 +1436,12 @@ static void assignItemList(const Uint16 *baseList)
 	{
 		if (currentSubMenu == SUBMENU_UP_LEFTSIDE && *baseList != 0
 			&& apitems_RightOnlySidekicks[*baseList - 800])
+		{
+			continue;
+		}
+
+		if (!APSeedSettings.Tyrian2000Mode && *baseList != 0
+			&& apitems_Tyrian2000Only[*baseList])
 		{
 			continue;
 		}
@@ -1483,16 +1498,7 @@ static void submenuUpSpecial_Init(void)
 	subMenuSelections[currentSubMenu] = 0;
 
 	mainChoice = &APItemChoices.Special;
-
-	itemCount = 24;
-	memset(itemList, 0, sizeof(itemList));
-	for (int i = 1; i < itemCount; ++i)
-	{
-		itemList[i].Item = (700 + i) - 1;
-
-		if (itemList[i].Item == mainChoice->Item)
-			subMenuSelections[currentSubMenu] = i;
-	}
+	assignItemList(baseItemList_Special);
 	submenuUpAll_Init();
 }
 

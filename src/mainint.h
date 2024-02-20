@@ -24,6 +24,7 @@
 #include "palette.h"
 #include "player.h"
 #include "sprite.h"
+#include "varz.h"
 
 extern bool button[4]; // fire, left fire, right fire, mode swap
 
@@ -62,5 +63,7 @@ void JE_mainGamePlayerFunctions(void);
 const char *JE_getName(JE_byte pnum);
 
 void JE_playerCollide(Player *this_player, JE_byte playerNum);
+
+void mainint_handleEnemyFlag(struct JE_SingleEnemyType *e);
 
 #endif /* MAININT_H */

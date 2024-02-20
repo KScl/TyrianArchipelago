@@ -89,7 +89,8 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 	eventRec[x].eventtype = j.at("event").template get<Uint8>();
 
 	// By default, since so many events use it
-	eventRec[x].eventdat4 = j.value<Uint8>("linknum", 0);
+	if (eventRec[x].eventtype != 39 && eventRec[x].eventtype != 79)
+		eventRec[x].eventdat4 = j.value<Uint8>("linknum", 0);
 
 	// Sint16 eventdat, eventdat2;
 	// Sint8  eventdat3, eventdat5, eventdat6;
@@ -138,7 +139,7 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			goto groundcustom_rejoin;
 
 		case  16: // VoicedCallout
-		case 116: // HardContactCallout
+		conditionalcallout_rejoin:
 			if (!j.contains("output"))
 				break;
 			if (j["output"].is_number())
@@ -224,6 +225,11 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat = j.value<Sint16>("song", 0);
 			break;
 
+		case  39: // EnemyGlobal_LinkNum
+			eventRec[x].eventdat  = j.value<Sint16>("linknum", 0);
+			eventRec[x].eventdat2 = j.value<Sint16>("new_linknum", 0);
+			break;
+
 		case  41: // RemoveEnemies
 			eventRec[x].eventdat = j.value<bool>("all", true) ? 0 : 1;
 			break;
@@ -239,12 +245,16 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat = j.value<bool>("enable", false) ? 0 : 99;
 			break;
 
-		case  61: // Skip_IfFlagSet
+		case  61: // Skip_IfFlagEquals
+		case 100: // Skip_IfFlagNotEquals
+		case 101: // Skip_IfFlagLessThan
+		case 102: // Skip_IfFlagGreaterThan
 			eventRec[x].eventdat3 = j.value<Sint8>("skip_events", 0);
 			// fall through
-		case  60: // EnemyAssignFlag
+		case  60: // EnemyGlobal_SetFlag
+		case 110: // EnemyGlobal_IncrementFlag
 			eventRec[x].eventdat  = j.value<Sint16>("flag", 0);
-			eventRec[x].eventdat2 = j.value<Sint16>("value", 0);
+			eventRec[x].eventdat2 = j.value<Sint16>("value", 1);
 			break;
 
 		case  67: // SetLevelTimer
@@ -268,6 +278,8 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 
 		case 200: // AP_CheckFreestanding
 			eventRec[x].eventdat2 = j.value<Sint16>("ex", 0);
+			eventRec[x].eventdat5 = j.value<Sint8> ("ey", 0);
+			eventRec[x].eventdat6 = (Sint8)(j.value<int>("backup", 450) - 450);
 			goto apfreestanding_rejoin;
 
 		case 201: // AP_CheckFromEnemy
@@ -286,6 +298,9 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 				else if (evStr == "sky_falling")  eventRec[x].eventdat3 = 4;
 				else if (evStr == "gnd2_static")  eventRec[x].eventdat3 = 5;
 				else if (evStr == "gnd2_falling") eventRec[x].eventdat3 = 6;
+				else if (evStr == "top_static")   eventRec[x].eventdat3 = 7;
+				else if (evStr == "top_falling")  eventRec[x].eventdat3 = 8;
+				else if (evStr == "top_swaying")  eventRec[x].eventdat3 = 9;
 			}
 			break;
 
@@ -293,6 +308,12 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat5 = j.value<Sint8>("align_x", 0);
 			eventRec[x].eventdat6 = j.value<Sint8>("align_y", 0);
 			goto aplast_rejoin;
+
+		case 216: // ConditionalVoicedCallout
+			if (j.contains("hard_contact"))
+				eventRec[x].eventdat6 = (j["hard_contact"].template get<bool>() ? 2 : 1);
+			goto conditionalcallout_rejoin;
+
 		default:
 			break;
 	}

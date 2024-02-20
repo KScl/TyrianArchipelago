@@ -42,6 +42,13 @@ enum
 	SA_ARCADE = 255
 };
 
+enum
+{
+	ENEMYFLAG_NONE = 0,
+	ENEMYFLAG_SET,
+	ENEMYFLAG_INCREMENT
+};
+
 #define ENEMY_SHOT_MAX  60 /* 60*/
 
 #define CURRENT_KEY_SPEED 1  /*Keyboard/Joystick movement rate*/
@@ -96,9 +103,9 @@ struct JE_SingleEnemyType
 	JE_word     mapoffset;
 	JE_boolean  scoreitem;
 
-	JE_boolean  special;
+	JE_byte     special;
 	JE_byte     flagnum;
-	JE_boolean  setto;
+	JE_byte     setto;
 
 	JE_byte     iced; /*Duration*/
 
@@ -261,7 +268,7 @@ extern JE_word levelTimerCountdown;
 extern JE_word levelTimerJumpTo;
 extern JE_boolean randomExplosions;
 //extern JE_boolean editShip1, editShip2;
-extern JE_boolean globalFlags[10];
+extern JE_byte globalFlags[10];
 extern JE_byte levelSong;
 //extern JE_word mapOrigin, mapPNum;
 //extern JE_byte mapPlanet[5], mapSection[5];

@@ -373,7 +373,7 @@ static const Uint16 episodeEndScenes[] =
 	/* 42 */ SCENECMD_BG_PIC     | 5,
 	/* 43 */ SCENECMD_RUN        | SCENE_E5S1,
 	/* 44 */ SCENECMD_FADE_WHITE,
-	/* 45 */ SCENECMD_MUSIC      | 31,
+	/* 45 */ SCENECMD_MUSIC      | 41,
 	/* 46 */ SCENECMD_BG_PIC     | 14,
 	/* 47 */ SCENECMD_RUN        | SCENE_E5S2,
 	/* 48 */ SCENECMD_END,

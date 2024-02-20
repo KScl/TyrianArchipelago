@@ -428,6 +428,120 @@ static const Uint16 apitems_AllIcons[1000] = {
 
 // ============================================================================
 
+static const bool apitems_Tyrian2000Only[1000] = {
+	false, false, false, false, false, false, false, false, false, false, //   0 -   9
+	false, false, false, false, false, false, false, false, false, false, //  10 -  19
+	false, false, false, false, false, false, false, false, false, false, //  20 -  29
+	false, false, false, false, false, false, false, false, false, false, //  30 -  39
+	false, false, false, false, false, false, false, false, false, false, //  40 -  49
+	false, false, false, false, false, false, false, false, false, false, //  50 -  59
+	false, false, false, false, false, false, false, false, false, false, //  60 -  69
+	false, false, false, false, false, false, false, false, false, false, //  70 -  79
+	false, false, false, false, false, false, false, false, false, false, //  80 -  89
+	false, false, false, false, false, false, false, false, false, false, //  90 -  99
+
+	false, false, false, false, false, false, false, false, false, false, // 100 - 109
+	false, false, false, false, false, false, false, false, false, false, // 110 - 119
+	false, false, false, false, false, false, false, false, false, false, // 120 - 129
+	false, false, false, false, false, false, false, false, false, false, // 130 - 139
+	false, false, false, false, false, false, false, false, false, false, // 140 - 149
+	false, false, false, false, false, false, false, false, false, false, // 150 - 159
+	false, false, false, false, false, false, false, false, false, false, // 160 - 169
+	false, false, false, false, false, false, false, false, false, false, // 170 - 179
+	false, false, false, false, false, false, false, false, false, false, // 180 - 189
+	false, false, false, false, false, false, false, false, false, false, // 190 - 199
+
+	false, false, false, false, false, false, false, false, false, false, // 200 - 209
+	false, false, false, false, false, false, false, false, false, false, // 210 - 219
+	false, false, false, false, false, false, false, false, false, false, // 220 - 229
+	false, false, false, false, false, false, false, false, false, false, // 230 - 239
+	false, false, false, false, false, false, false, false, false, false, // 240 - 249
+	false, false, false, false, false, false, false, false, false, false, // 250 - 259
+	false, false, false, false, false, false, false, false, false, false, // 260 - 269
+	false, false, false, false, false, false, false, false, false, false, // 270 - 279
+	false, false, false, false, false, false, false, false, false, false, // 280 - 289
+	false, false, false, false, false, false, false, false, false, false, // 290 - 299
+
+	false, false, false, false, false, false, false, false, false, false, // 300 - 309
+	false, false, false, false, false, false, false, false, false, false, // 310 - 319
+	false, false, false, false, false, false, false, false, false, false, // 320 - 329
+	false, false, false, false, false, false, false, false, false, false, // 330 - 339
+	false, false, false, false, false, false, false, false, false, false, // 340 - 349
+	false, false, false, false, false, false, false, false, false, false, // 350 - 359
+	false, false, false, false, false, false, false, false, false, false, // 360 - 369
+	false, false, false, false, false, false, false, false, false, false, // 370 - 379
+	false, false, false, false, false, false, false, false, false, false, // 380 - 389
+	false, false, false, false, false, false, false, false, false, false, // 390 - 399
+
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 400 - 409
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 410 - 419
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 420 - 429
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 430 - 439
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 440 - 449
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 450 - 459
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 460 - 469
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 470 - 479
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 480 - 489
+	 true,  true,  true,  true,  true,  true,  true,  true,  true,  true, // 490 - 499
+
+	false, false, false, false, false, false, false, false, false, false, // 500 - 509
+	false, false, false, false, false, false, false, false, false, false, // 510 - 519
+	false, false, false, false, false,  true,  true,  true,  true, false, // 520 - 529
+	false, false, false, false, false, false, false, false, false, false, // 530 - 539
+	false, false, false, false, false, false, false, false, false, false, // 540 - 549
+	false, false, false, false, false, false, false, false, false, false, // 550 - 559
+	false, false, false, false, false, false, false, false, false, false, // 560 - 569
+	false, false, false, false, false, false, false, false, false, false, // 570 - 579
+	false, false, false, false, false, false, false, false, false, false, // 580 - 589
+	false, false, false, false, false, false, false, false, false, false, // 590 - 599
+
+	false, false, false, false, false, false, false, false, false, false, // 600 - 609
+	false, false, false, false, false, false,  true, false, false, false, // 610 - 619
+	false, false, false, false, false, false, false, false, false, false, // 620 - 629
+	false, false, false, false, false, false, false, false, false, false, // 630 - 639
+	false, false, false, false, false, false, false, false, false, false, // 640 - 649
+	false, false, false, false, false, false, false, false, false, false, // 650 - 659
+	false, false, false, false, false, false, false, false, false, false, // 660 - 669
+	false, false, false, false, false, false, false, false, false, false, // 670 - 679
+	false, false, false, false, false, false, false, false, false, false, // 680 - 689
+	false, false, false, false, false, false, false, false, false, false, // 690 - 699
+
+	false, false, false, false, false, false, false, false, false, false, // 700 - 709
+	false, false, false, false, false, false, false, false, false, false, // 710 - 719
+	false, false, false,  true,  true, false, false, false, false, false, // 720 - 729
+	false, false, false, false, false, false, false, false, false, false, // 730 - 739
+	false, false, false, false, false, false, false, false, false, false, // 740 - 749
+	false, false, false, false, false, false, false, false, false, false, // 750 - 759
+	false, false, false, false, false, false, false, false, false, false, // 760 - 769
+	false, false, false, false, false, false, false, false, false, false, // 770 - 779
+	false, false, false, false, false, false, false, false, false, false, // 780 - 789
+	false, false, false, false, false, false, false, false, false, false, // 790 - 799
+
+	false, false, false, false, false, false, false, false, false, false, // 800 - 809
+	false, false, false, false, false, false, false, false, false, false, // 810 - 819
+	false, false, false, false, false, false, false, false, false, false, // 820 - 829
+	 true,  true, false, false, false, false, false, false, false, false, // 830 - 839
+	false, false, false, false, false, false, false, false, false, false, // 840 - 849
+	false, false, false, false, false, false, false, false, false, false, // 850 - 859
+	false, false, false, false, false, false, false, false, false, false, // 860 - 869
+	false, false, false, false, false, false, false, false, false, false, // 870 - 879
+	false, false, false, false, false, false, false, false, false, false, // 880 - 889
+	false, false, false, false, false, false, false, false, false, false, // 890 - 899
+
+	false, false, false, false, false, false, false, false, false, false, // 900 - 909
+	false, false, false, false, false, false, false, false, false, false, // 910 - 919
+	false, false, false, false, false, false, false, false, false, false, // 920 - 929
+	false, false, false, false, false, false, false, false, false, false, // 930 - 939
+	false, false, false, false, false, false, false, false, false, false, // 940 - 949
+	false, false, false, false, false, false, false, false, false, false, // 950 - 959
+	false, false, false, false, false, false, false, false, false, false, // 960 - 969
+	false, false, false, false, false, false, false, false, false, false, // 970 - 979
+	false, false, false, false, false, false, false, false, false, false, // 980 - 989
+	false, false, false, false, false, false, false, false, false, false, // 990 - 999
+};
+
+// ============================================================================
+
 // Map from item ID 500+ to internal ports
 static const Uint8 apitems_FrontPorts[64] = {
 	1, // Pulse-Cannon
