@@ -717,7 +717,11 @@ draw_enemy_end:
 
 void JE_main(void)
 {
+#if SDL_VERSION_ATLEAST(2, 0, 18)
 	Uint64 levelStartTime = 0;
+#else
+	Uint32 levelStartTime = 0;
+#endif
 
 	char buffer[256];
 
@@ -814,7 +818,13 @@ start_level:
 	 // Player cash is cleared between levels (added to APStats.Cash on level completion)
 	player[0].cash = 0;
 	if (levelStartTime) // Increment total time spent in levels
-		APPlayData.TimeInLevel += SDL_GetTicks64() - levelStartTime;
+	{
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+		APPlayData.TimeInMenu += SDL_GetTicks64() - levelStartTime;
+#else
+		APPlayData.TimeInMenu += SDL_GetTicks() - levelStartTime;
+#endif
+	}
 
 
 start_level_first:
@@ -831,7 +841,11 @@ start_level_first:
 	if (JE_loadMap() == 0)  // if quit itemscreen
 		return;          // back to titlescreen
 
+#if SDL_VERSION_ATLEAST(2, 0, 18)
 	levelStartTime = SDL_GetTicks64();
+#else
+	levelStartTime = SDL_GetTicks();
+#endif
 
 	if (!play_demo)
 		mouseSetRelative(true);

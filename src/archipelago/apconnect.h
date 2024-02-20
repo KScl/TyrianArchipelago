@@ -118,8 +118,8 @@ typedef struct {
 
 // Player's time in game/deaths/etc
 typedef struct {
-	Uint64 TimeInLevel; // Tracked with SDL_GetTicks64
-	Uint64 TimeInMenu; // Tracked with SDL_GetTicks64
+	Uint64 TimeInLevel; // Tracked with SDL_GetTicks/SDL_GetTicks64
+	Uint64 TimeInMenu; // Tracked with SDL_GetTicks/SDL_GetTicks64
 
 	Uint16 Deaths;
 } applaydata_t;

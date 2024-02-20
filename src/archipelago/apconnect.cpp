@@ -1238,8 +1238,13 @@ bool Archipelago_StartLocalGame(FILE *file)
 
 static archipelago_connectionstat_t connection_stat = APCONN_NOT_CONNECTED;
 static bool connection_ever_made = false; // Disables timeout
-static uint64_t connection_start_time; // For initial connection timeout
 static std::string connection_error_desc = "";
+
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+static uint64_t connection_start_time; // For initial connection timeout
+#else
+static uint32_t connection_start_time; // 32-bit for older SDL2 versions
+#endif
 
 // ----------------------------------------------------------------------------
 
@@ -1447,7 +1452,12 @@ void Archipelago_Connect(void)
 	connection_stat = APCONN_CONNECTING;
 	connection_error_desc = "";
 	connection_ever_made = false;
+
+#if SDL_VERSION_ATLEAST(2, 0, 18)
 	connection_start_time = SDL_GetTicks64();
+#else
+	connection_start_time = SDL_GetTicks();
+#endif
 }
 
 void Archipelago_Poll(void)
@@ -1463,7 +1473,12 @@ void Archipelago_Poll(void)
 	else
 	{
 		if (connection_stat == APCONN_NOT_CONNECTED // Fatal error occurred
-			|| (connection_stat == APCONN_CONNECTING && SDL_GetTicks64() > connection_start_time + 10000))
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+			|| (connection_stat == APCONN_CONNECTING && SDL_GetTicks64() > connection_start_time + 10000)
+#else
+			|| (connection_stat == APCONN_CONNECTING && !SDL_TICKS_PASSED(SDL_GetTicks(), connection_start_time + 10000))
+#endif
+		)
 		{
 			// Fatal error or connection timeout, disconnect and remove game info
 			Archipelago_Disconnect();

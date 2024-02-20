@@ -1872,7 +1872,12 @@ static void apmenu_chatbox(void)
 
 int apmenu_itemScreen(void)
 {
+#if SDL_VERSION_ATLEAST(2, 0, 18)
 	Uint64 menuStartTime = SDL_GetTicks64();
+#else
+	Uint32 menuStartTime = SDL_GetTicks();
+#endif
+
 	bool updatePalette = true;
 
 	play_song(DEFAULT_SONG_BUY);
@@ -1961,13 +1966,23 @@ int apmenu_itemScreen(void)
 
 				itemSubMenus[currentSubMenu].exitFunc();
 				fade_black(15);
+
+#if SDL_VERSION_ATLEAST(2, 0, 18)
 				APPlayData.TimeInMenu += SDL_GetTicks64() - menuStartTime;
+#else
+				APPlayData.TimeInMenu += SDL_GetTicks() - menuStartTime;
+#endif
 				return -1;
 
 			case SUBMENU_LEVEL:
 				itemSubMenus[currentSubMenu].exitFunc();
 				fade_black(15);
+
+#if SDL_VERSION_ATLEAST(2, 0, 18)
 				APPlayData.TimeInMenu += SDL_GetTicks64() - menuStartTime;
+#else
+				APPlayData.TimeInMenu += SDL_GetTicks() - menuStartTime;
+#endif
 				return subMenuSelections[SUBMENU_NEXT_LEVEL];
 
 			default:
