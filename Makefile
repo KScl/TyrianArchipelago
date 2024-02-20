@@ -58,6 +58,9 @@ ifneq ($(OPENTYRIAN_VERSION), )
     EXTRA_CPPFLAGS += -DOPENTYRIAN_VERSION='"$(OPENTYRIAN_VERSION)"'
 endif
 
+C_STANDARD = iso9899:1999
+CPP_STANDARD = c++17
+
 CPPFLAGS ?= -MMD
 CPPFLAGS += -DNDEBUG
 CFLAGS ?= -pedantic \
@@ -79,7 +82,7 @@ ALL_CPPFLAGS = -DTARGET_$(PLATFORM) \
                $(EXTRA_CPPFLAGS) \
                $(SDL_CPPFLAGS) \
                $(CPPFLAGS)
-ALL_CFLAGS = -std=iso9899:1999 \
+ALL_CFLAGS = -std=$(C_STANDARD) \
              $(CFLAGS)
 ALL_LDFLAGS = $(SDL_LDFLAGS) \
               $(LDFLAGS)
@@ -96,6 +99,7 @@ AP_CPPFLAGS = -Isrc/submodule/apclientpp/           \
               -DASIO_STANDALONE                     \
               $(CPPFLAGS)                           \
               $(CFLAGS)                             \
+              -std=$(CPP_STANDARD)                  \
               -Wno-deprecated-declarations
 
 ###
@@ -153,15 +157,18 @@ clean :
 	rm -f $(TARGET)
 
 $(TARGET) : $(OBJS)
-	$(CXX) $(ALL_CFLAGS) $(ALL_LDFLAGS) -o $@ $^ $(ALL_LDLIBS)
+	@echo "Linking: $@"
+	@$(CXX) $(ALL_CFLAGS) $(ALL_LDFLAGS) -o $@ $^ $(ALL_LDLIBS)
 
 -include $(DEPS)
 
 obj/cpp_%.o : src/archipelago/%.cpp
+	@echo "Compiling ($(CPP_STANDARD)): $< -> $@"
 	@mkdir -p "$(dir $@)"
-	$(CXX) $(SDL_CPPFLAGS) $(AP_CPPFLAGS) -c -o $@ $<
+	@$(CXX) $(SDL_CPPFLAGS) $(AP_CPPFLAGS) -c -o $@ $<
 
 obj/%.o : src/%.c
+	@echo "Compiling ($(C_STANDARD)): $< -> $@"
 	@mkdir -p "$(dir $@)"
-	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c -o $@ $<
+	@$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c -o $@ $<
 
