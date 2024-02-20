@@ -70,8 +70,7 @@ CFLAGS ?= -pedantic \
           -Wno-missing-field-initializers \
           -O2
 LDFLAGS ?=
-LDLIBS ?= -lssl     \
-          -lcrypto  \
+LDLIBS ?= -lssl -lcrypto
 
 SDL_CPPFLAGS := $(shell $(PKG_CONFIG) sdl2 --cflags)
 SDL_LDFLAGS := $(shell $(PKG_CONFIG) sdl2 --libs-only-L --libs-only-other)
@@ -86,7 +85,8 @@ ALL_CFLAGS = -std=$(C_STANDARD) \
              $(CFLAGS)
 ALL_LDFLAGS = $(SDL_LDFLAGS) \
               $(LDFLAGS)
-ALL_LDLIBS = -lm           \
+ALL_LDLIBS = -pthread      \
+             -lm           \
              $(SDL_LDLIBS) \
              $(LDLIBS)
 
