@@ -134,6 +134,11 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\valijson\include;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ASIO_STANDALONE;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="..\src\archipelago\customship.cpp">
+      <CompileAs>CompileAsCpp</CompileAs>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\valijson\include;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ASIO_STANDALONE;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="..\src\arg_parse.c" />
     <ClCompile Include="..\src\backgrnd.c" />
     <ClCompile Include="..\src\config.c" />
@@ -185,6 +190,7 @@
     <ClInclude Include="..\src\apmsg.h" />
     <ClInclude Include="..\src\archipelago\apconnect.h" />
     <ClInclude Include="..\src\archipelago\apitems.h" />
+    <ClInclude Include="..\src\archipelago\customship.h" />
     <ClInclude Include="..\src\archipelago\patcher.h" />
     <ClInclude Include="..\src\arg_parse.h" />
     <ClInclude Include="..\src\backgrnd.h" />
