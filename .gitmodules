@@ -1,15 +1,17 @@
 [submodule "src/submodule/apclientpp"]
 	path = src/submodule/apclientpp
-	url = https://github.com/black-sliver/apclientpp.git
+	url = https://github.com/KScl/apclientpp.git
+	branch = bundled-valijson
+	shallow = true
 [submodule "src/submodule/json"]
 	path = src/submodule/json
 	url = https://github.com/nlohmann/json.git
-[submodule "src/submodule/valijson"]
-	path = src/submodule/valijson
-	url = https://github.com/tristanpenman/valijson.git
+	shallow = true
 [submodule "src/submodule/wswrap"]
 	path = src/submodule/wswrap
 	url = https://github.com/black-sliver/wswrap.git
+	shallow = true
 [submodule "src/submodule/websocketpp"]
 	path = src/submodule/websocketpp
 	url = https://github.com/zaphoyd/websocketpp.git
+	shallow = true
