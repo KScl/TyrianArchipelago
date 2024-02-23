@@ -168,8 +168,6 @@ void JE_initPlayerData(void)
 		player[0].items.sidekick[i] = 0;          // None
 	player[0].items.special = 0;                  // None
 
-	player[0].last_items = player[0].items;
-
 	player[1].items = player[0].items;
 	player[1].items.weapon[REAR_WEAPON].id = 15;  // Vulcan Cannon
 	player[1].items.sidekick_level = 101;         // 101, 102, 103
@@ -191,7 +189,7 @@ void JE_initPlayerData(void)
 		}
 
 		player[p].weapon_mode = 1;
-		player[p].armor = ships[player[p].items.ship].dmg;
+		player[p].armor = 10;
 
 		player[p].is_dragonwing = (p == 1);
 		player[p].lives = &player[p].items.weapon[p].power;
@@ -1194,6 +1192,7 @@ void JE_playCredits(void)
 				shipxwait = 1;
 		}
 
+#if 0 // TODO Reimplement this...
 		uint ship_sprite = ships[currentship].shipgraphic;
 		if (shipxc < -10)
 			ship_sprite -= (shipxc < -20) ? 4 : 2;
@@ -1201,6 +1200,9 @@ void JE_playCredits(void)
 			ship_sprite += (shipxc > 20) ? 4 : 2;
 
 		blit_sprite2x2(VGAScreen, shipx / 40, 184 - (ticks % 200), spriteSheet9, ship_sprite);
+#else
+		(void)currentship;
+#endif
 
 		const int bottom_line = (ticks / 3) / 20;
 		int y = 20 - ((ticks / 3) % 20);
@@ -1271,7 +1273,15 @@ void JE_inGameDisplays(void)
 
 	/*Special Weapon?*/
 	if (APItemChoices.Special.Item > 0)
+	{
 		sprites_blitArchipelagoItem(VGAScreen, 25, 1, APItemChoices.Special.Item);
+
+		// This code was moved out of JE_doSpecialshot because ... why there??
+		// (This means it's no longer affected by filters, just like every other HUD element)
+		const bool specialReady = (shotRepeat[SHOT_SPECIAL] == 0
+			&& specialWait == 0 && flareDuration < 2 && zinglonDuration < 2);
+		blit_sprite2(VGAScreen, 47, 4, spriteSheet9, specialReady ? 94 : 93);
+	}
 
 	/*Lives Left*/
 	if (onePlayerAction || twoPlayerMode)
@@ -3008,8 +3018,6 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 						player[0].items.weapon[FRONT_WEAPON].id = 25;  // HOT DOG!
 						player[0].items.weapon[REAR_WEAPON].id = 26;
 						player[1].items.weapon[REAR_WEAPON].id = 26;
-
-						player[0].last_items = player[0].items;
 
 						for (uint i = 0; i < COUNTOF(player); ++i)
 							player[i].weapon_mode = 1;

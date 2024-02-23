@@ -26,6 +26,7 @@
 
 // Removed (unreferenced) item types
 //JE_ShieldType  shields; // Replaced with "Shield Up" item
+//JE_ShipType    ships; // Replaced with custom ship graphics + "Armor Up" items
 
 /* MAIN Weapons Data */
 JE_WeaponPortType weaponPort;
@@ -33,7 +34,6 @@ JE_WeaponType     weapons[WEAP_NUM + 1]; /* [0..weapnum] */
 
 /* Items */
 JE_PowerType   powerSys;
-JE_ShipType    ships;
 JE_OptionType  options[OPTION_NUM + 1]; /* [0..optionnum] */
 JE_SpecialType special;
 
@@ -164,6 +164,7 @@ void JE_loadItemDat(FILE *f)
 		fread_u16_die(&powerSys[i].cost,        1, f);
 	}
 
+#if 0
 	for (int i = 0; i < itemNum[ITEMNUM_SHIP] + 1; ++i)
 	{
 		Uint8 nameLen;
@@ -177,7 +178,12 @@ void JE_loadItemDat(FILE *f)
 		fread_u8_die( &ships[i].dmg,            1, f);
 		fread_u16_die(&ships[i].cost,           1, f);
 		fread_u8_die( &ships[i].bigshipgraphic, 1, f);
+		printf("%s - %d %d %d %d\n", ships[i].name, ships[i].shipgraphic, ships[i].itemgraphic, ships[i].spd, ships[i].ani);
 	}
+#else
+	// Skip ships (replaced by "Custom Ships" option and "Armor Up" items)
+	fseek(f, 41 * (itemNum[ITEMNUM_SHIP] + 1), SEEK_CUR);
+#endif
 
 	for (int i = 0; i < itemNum[ITEMNUM_OPTION] + 1; ++i)
 	{

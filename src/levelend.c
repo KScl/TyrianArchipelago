@@ -42,7 +42,6 @@ void levelend_doLevelStats(void) // fka JE_endLevelAni
 	APStats.Cash += player[0].cash;
 	player[0].cash = 0;
 
-	player[0].last_items = player[0].items;
 	strcpy(lastLevelName, levelName);
 
 	JE_wipeKey();

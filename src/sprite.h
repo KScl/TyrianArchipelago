@@ -112,7 +112,7 @@ extern Sprite2_array spriteSheet9;  // fka shapes9
 extern Sprite2_array spriteSheet10;  // fka eShapes6
 extern Sprite2_array spriteSheet11;  // fka eShapes5
 extern Sprite2_array spriteSheet12;  // fka shapesW2
-extern Sprite2_array spriteSheet13;  // "shapesT2K" (unofficially)
+extern Sprite2_array spriteSheetT2000;  // fka shapesT2K (unofficially)
 
 extern Sprite2_array archipelagoSpriteSheet;
 

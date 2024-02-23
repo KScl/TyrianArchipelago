@@ -924,9 +924,7 @@ start_level_first:
 	generatorPower = 0;
 	starfield_speed = 1;
 
-	/* Setup player ship graphics */
-	JE_getShipInfo();
-
+	player_updateShipData(); // Setup player ship data
 	player_resetDeathLink();
 	memset(&APUpdateRequest, 0, sizeof(APUpdateRequest));
 

@@ -26,6 +26,7 @@
 #include "varz.h"
 
 #include "archipelago/apconnect.h"
+#include "archipelago/customship.h"
 
 #include <assert.h>
 #include <ctype.h>
@@ -42,6 +43,9 @@ void JE_paramCheck(int argc, char *argv[])
 		{ 'j', 'j', "no-joystick", false },
 		{ 't', 't', "data",         true },
 		{ 'c', 'c', "connect",      true },
+
+		// Debugging options
+		{ 256, 0, "no-custom-ship", false },
 		
 		{ 0, 0, NULL, false}
 	};
@@ -77,6 +81,12 @@ void JE_paramCheck(int argc, char *argv[])
 			exit(0);
 			break;
 
+		// Debugging options
+		case 256:
+			useCustomShips = false;
+			break;
+
+		// Regular options
 		case 's':
 			// Disables sound/music usage
 			audio_disabled = true;

@@ -26,6 +26,7 @@
 
 #include "archipelago/apconnect.h"
 #include "archipelago/apitems.h"
+#include "archipelago/customship.h"
 
 typedef struct { 
 	int count;
@@ -474,6 +475,7 @@ void apmenu_RandomizerStats(void)
 
 static char string_buffer[32];
 
+static void sidebarShipSprite(void);
 static void sidebarArchipelagoInfo(void);
 static void sidebarPlanetNav(void);
 static void sidebarSimulateShots(void);
@@ -483,6 +485,7 @@ static void nullexit(void);
 
 static void submenuMain_Run(void);
 
+static void submenuLevelSelect_Init(void);
 static void submenuLevelSelect_Run(void);
 
 static void submenuInShop_Init(void);
@@ -490,6 +493,9 @@ static void submenuInShop_Run(void);
 
 static void submenuOptions_Run(void);
 static void submenuOptions_Exit(void);
+
+static void submenuOptCustomShip_Init(void);
+static void submenuOptCustomShip_Run(void);
 
 static void submenuUpgrade_Init(void);
 static void submenuUpgrade_Run(void);
@@ -522,6 +528,7 @@ typedef enum
 	SUBMENU_SELECT_SHOP,
 	SUBMENU_IN_SHOP,
 	SUBMENU_OPTIONS,
+	SUBMENU_OPTIONS_CUSTOMSHIP,
 	SUBMENU_UPGRADE,
 	SUBMENU_UP_FRONTPORT,
 	SUBMENU_UP_REARPORT,
@@ -542,10 +549,11 @@ static const struct {
 } itemSubMenus[] = {
 	{""}, // Dummy empty submenu for SUBMENU_NONE
 	{"Archipelago", 0, SUBMENU_EXIT, sidebarArchipelagoInfo, nullinit, nullexit, submenuMain_Run},
-	{"Next Level", 17, SUBMENU_MAIN, sidebarPlanetNav, nullinit, nullexit, submenuLevelSelect_Run},
-	{"Visit Shop", 17, SUBMENU_MAIN, sidebarPlanetNav, nullinit, nullexit, submenuLevelSelect_Run},
+	{"Next Level", 17, SUBMENU_MAIN, sidebarPlanetNav, submenuLevelSelect_Init, nullexit, submenuLevelSelect_Run},
+	{"Visit Shop", 17, SUBMENU_MAIN, sidebarPlanetNav, submenuLevelSelect_Init, nullexit, submenuLevelSelect_Run},
 	{"Shop", 0, SUBMENU_SELECT_SHOP, sidebarArchipelagoInfo, submenuInShop_Init, nullexit, submenuInShop_Run},
 	{"Options", 0, SUBMENU_MAIN, sidebarArchipelagoInfo, nullinit, submenuOptions_Exit, submenuOptions_Run},
+	{"Ship Sprite", 0, SUBMENU_OPTIONS, sidebarShipSprite, submenuOptCustomShip_Init, nullexit, submenuOptCustomShip_Run},
 
 	{"Upgrade Ship", 0, SUBMENU_MAIN, sidebarSimulateShots, submenuUpgrade_Init, nullexit, submenuUpgrade_Run},
 	{"Front Weapon", 0, SUBMENU_UPGRADE, sidebarSimulateShots, submenuUpFrontPort_Init, submenuUpAll_Exit, submenuUpAll_Run},
@@ -563,6 +571,7 @@ static int subMenuSelections[NUM_SUBMENU] = {0};
 // Upgrade menu uses this to show money accurately while you're choosing weapons
 static Uint64 tempMoneySub = 0;
 
+#define GETSELECTED() (subMenuSelections[currentSubMenu])
 #define SELECTED(menuItem) (subMenuSelections[currentSubMenu] == (menuItem))
 
 // ------------------------------------------------------------------
@@ -832,6 +841,9 @@ static void submenuMain_Run(void)
 		defaultMenuOptionDraw("Options",         38 + 64, false, SELECTED(4));
 		defaultMenuOptionDraw("Quit Game",       38 + 96, false, SELECTED(5));
 	}
+
+	apmsg_manageQueueMenu(true);
+	JE_outTextAndDarken(VGAScreen, 286, 187, "[TAB]", 14, 1, TINY_FONT);
 }
 
 // ----------------------------------------------------------------------------
@@ -890,7 +902,7 @@ static void levelselect_changeLevel(int offset)
 	{
 		// Moving down onto BACK
 		JE_playSampleNum(S_CURSOR);
-		navBack = true;			
+		navBack = true;
 		return;
 	}
 
@@ -1079,6 +1091,54 @@ static void submenuLevelSelect_Run(void)
 	}
 	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Back", SMALL_FONT_SHAPES,
 		right_aligned, 15, -3 + (navBack ? 2 : 0), false, 2);
+
+	// ----- Help Text --------------------------------------------------------
+	const char *helpText;
+	if (navBack)
+		helpText = "Go back to the previous menu.";
+	else if (currentSubMenu == SUBMENU_SELECT_SHOP)
+		helpText = "You can visit the shop of any completed level.";
+	else
+		helpText = "Select which level to play next.";
+	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
+}
+
+void submenuLevelSelect_Init(void)
+{
+	// Default to last played level.
+	if (currentLevelID >= 0)
+	{
+		navLevel = allLevelData[currentLevelID].episodeLevelID;
+		navEpisode = allLevelData[currentLevelID].episodeNum;
+	}
+	else
+	{
+		navLevel = 0;
+		navEpisode = 1;
+	}
+
+	while (!AP_BITSET(APSeedSettings.PlayEpisodes, navEpisode-1))
+	{
+		++navEpisode;
+		navLevel = 0;
+
+		if (navEpisode == 6)
+			JE_tyrianHalt(1); // Impossible
+	}
+	navBack = false;
+
+	// Center scroll on the default level.
+	for (navScroll = navLevel - 4; navScroll > 0; --navScroll)
+	{
+		// Move up until the bottom-most entry isn't empty.
+		// Or until we're at the top, because Episode 5 exists.
+		if (level_getByEpisode(navEpisode, navScroll + 7) != -1)
+			break;
+	}
+	// If above the top, set to the top.
+	if (navScroll < 0)
+		navScroll = 0;
+
 }
 
 // ----------------------------------------------------------------------------
@@ -1133,6 +1193,25 @@ static void submenuUpgrade_Run(void)
 		defaultMenuOptionDraw("Special",         38 + 64, false, SELECTED(4));
 		defaultMenuOptionDraw("Done",            38 + 96, false, SELECTED(5));
 	}
+
+	// ----- Help Text --------------------------------------------------------
+	const char *helpText;
+	switch (GETSELECTED())
+	{
+		case 0:  helpText = "Change or upgrade your front weapon."; break;
+		case 1:  helpText = "Change, upgrade, or remove your rear weapon."; break;
+		case 2:  // fall through
+		case 3:  helpText = "Change or remove your sidekicks."; break;
+		case 4:
+			if (APSeedSettings.SpecialMenu)
+			{
+				helpText = "Change or remove your special weapon.";
+				break;
+			}
+			// fall through
+		default: helpText = "Go back to the previous menu."; break;
+	}
+	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
 }
 
 // ------------------------------------------------------------------
@@ -1148,7 +1227,7 @@ bool currentSelectionValid = false;
 
 static void upgrade_changeWeapon(int offset)
 {
-	if (subMenuSelections[currentSubMenu] == 99) // On "done"
+	if (subMenuSelections[currentSubMenu] < 0) // On "done"
 	{
 		if (offset > 0)
 			return;
@@ -1158,7 +1237,7 @@ static void upgrade_changeWeapon(int offset)
 	else if (subMenuSelections[currentSubMenu] + offset >= itemCount)
 	{
 		JE_playSampleNum(S_CURSOR);
-		subMenuSelections[currentSubMenu] = 99;
+		subMenuSelections[currentSubMenu] = -9999;
 	}
 	else if (subMenuSelections[currentSubMenu] + offset >= 0)
 	{
@@ -1166,7 +1245,7 @@ static void upgrade_changeWeapon(int offset)
 		subMenuSelections[currentSubMenu] += offset;
 	}
 
-	if (subMenuSelections[currentSubMenu] != 99)
+	if (subMenuSelections[currentSubMenu] >= 0)
 	{
 		if (subMenuSelections[currentSubMenu] < upgradeScroll)
 			upgradeScroll = subMenuSelections[currentSubMenu];
@@ -1211,7 +1290,7 @@ static void upgrade_changePower(apweapon_t *selWeapon, int offset)
 
 static void upgrade_confirm(apweapon_t *selWeapon)
 {
-	if (subMenuSelections[currentSubMenu] == 99)
+	if (subMenuSelections[currentSubMenu] < 0)
 	{
 		JE_playSampleNum(S_ITEM);
 		nextSubMenu = SUBMENU_RETURN;
@@ -1226,7 +1305,7 @@ static void upgrade_confirm(apweapon_t *selWeapon)
 		JE_playSampleNum(S_CLICK);
 		mainChoice->Item = selWeapon->Item;
 		mainChoice->PowerLevel = selWeapon->PowerLevel;
-		subMenuSelections[currentSubMenu] = 99;		
+		subMenuSelections[currentSubMenu] = -9999;		
 	}
 }
 
@@ -1239,7 +1318,7 @@ static void submenuUpAll_Run(void)
 	else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
 		upgrade_changeWeapon(1);
 
-	if (subMenuSelections[currentSubMenu] != 99)
+	if (subMenuSelections[currentSubMenu] >= 0)
 	{
 		selWeapon = &itemList[subMenuSelections[currentSubMenu]];
 
@@ -1255,7 +1334,7 @@ static void submenuUpAll_Run(void)
 	if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_SPACE))
 		upgrade_confirm(selWeapon);
 
-	if (subMenuSelections[currentSubMenu] == 99 // Over "Done"
+	if (subMenuSelections[currentSubMenu] < 0 // Over "Done"
 		|| selWeapon->Item < 500 // Item ID too low (probably "None")
 		|| selWeapon->Item > 664 // Item ID too high (wrong menu?)
 		|| !currentSelectionValid) // Current hovered choice is invalid
@@ -1356,7 +1435,30 @@ static void submenuUpAll_Run(void)
 	}
 
 	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Done", SMALL_FONT_SHAPES,
-		right_aligned, 15, -3 + (subMenuSelections[currentSubMenu] == 99 ? 2 : 0), false, 2);
+		right_aligned, 15, -3 + (subMenuSelections[currentSubMenu] < 0 ? 2 : 0), false, 2);
+
+	// ----- Help Text --------------------------------------------------------
+	const char *helpText;
+	if (subMenuSelections[currentSubMenu] < 0)
+		helpText = "Go back to the previous menu.";
+	else if (!currentSelectionValid)
+	{
+		if (selWeapon->Item >= 800 && selWeapon->Item < 836
+			&& APItems.Sidekicks[selWeapon->Item - 800] == 1)
+		{
+			helpText = "You only have one of this item.";
+		}
+		else
+			helpText = "You haven't found this item yet.";
+	}
+	else if (selWeapon->Item == 0)
+		helpText = "Remove the item in this slot.";
+	else if (selWeapon->Item >= 500 && selWeapon->Item < 664)
+		helpText = "Change power level with left/right, select to confirm.";
+	else
+		helpText = "Select the item you want.";
+
+	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
 }
 
 // ------------------------------------------------------------------
@@ -1537,21 +1639,22 @@ static void submenuInShop_Run(void)
 		{
 			JE_playSampleNum(S_ITEM);
 			nextSubMenu = SUBMENU_RETURN;
-			return;
 		}
-
-		// Attempt purchase?
-		int buyItem = subMenuSelections[SUBMENU_IN_SHOP];
-		if (Archipelago_WasChecked(shopItemList[buyItem].LocationID))
-			JE_playSampleNum(S_CLICK); // Already purchased, just smile and nod
-		else if (shopItemList[buyItem].Cost > APStats.Cash)
-			JE_playSampleNum(S_CLINK); // Not enough money
 		else
 		{
-			// We haven't bought this and we have the money for it, so buy it
-			JE_playSampleNum(S_CLICK);
-			Archipelago_SendCheck(shopItemList[buyItem].LocationID);
-			APStats.Cash -= shopItemList[buyItem].Cost;
+			// Attempt purchase?
+			int buyItem = subMenuSelections[SUBMENU_IN_SHOP];
+			if (Archipelago_WasChecked(shopItemList[buyItem].LocationID))
+				JE_playSampleNum(S_CLICK); // Already purchased, just smile and nod
+			else if (shopItemList[buyItem].Cost > APStats.Cash)
+				JE_playSampleNum(S_CLINK); // Not enough money
+			else
+			{
+				// We haven't bought this and we have the money for it, so buy it
+				JE_playSampleNum(S_CLICK);
+				Archipelago_SendCheck(shopItemList[buyItem].LocationID);
+				APStats.Cash -= shopItemList[buyItem].Cost;
+			}			
 		}
 	}
 
@@ -1597,6 +1700,128 @@ static void submenuInShop_Run(void)
 	const int y = 40 + shopItemCount * 26;
 	const int shade = subMenuSelections[SUBMENU_IN_SHOP] == shopItemCount ? 15 : 28;
 	JE_textShade(VGAScreen, 185, y, "Done", shade / 16, shade % 16 - 8, DARKEN);
+
+	// ----- Help Text --------------------------------------------------------
+	char helpText[128];
+	if (subMenuSelections[SUBMENU_IN_SHOP] == shopItemCount)
+		strcpy(helpText, "Go back to the previous menu.");
+	else if (shopItemList[subMenuSelections[SUBMENU_IN_SHOP]].PlayerName[0] != '\0')
+	{
+		snprintf(helpText, sizeof(helpText) - 1, "This item is for ~%s~.",
+			shopItemList[subMenuSelections[SUBMENU_IN_SHOP]].PlayerName);
+		helpText[127] = 0;
+	}
+	else
+		strcpy(helpText, "Select the item you want.");
+
+	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
+}
+
+// ----------------------------------------------------------------------------
+// Custom Ship Choice SubMenu
+// ----------------------------------------------------------------------------
+
+static int customShipScroll = 0;
+
+static void ship_navigate(int offset)
+{
+	const int customShipTotal = (signed)CustomShip_Count();
+
+	if (subMenuSelections[currentSubMenu] < 0) // On "done"
+	{
+		if (offset > 0)
+			return;
+		JE_playSampleNum(S_CURSOR);
+		subMenuSelections[currentSubMenu] = customShipScroll + 13;
+
+		if (subMenuSelections[currentSubMenu] >= customShipTotal)
+			subMenuSelections[currentSubMenu] = customShipTotal - 1;
+	}
+	else if (subMenuSelections[currentSubMenu] + offset >= customShipTotal)
+	{
+		JE_playSampleNum(S_CURSOR);
+		subMenuSelections[currentSubMenu] = -9999;
+	}
+	else if (subMenuSelections[currentSubMenu] + offset >= 0)
+	{
+		JE_playSampleNum(S_CURSOR);
+		subMenuSelections[currentSubMenu] += offset;
+	}
+
+	if (subMenuSelections[currentSubMenu] >= 0)
+	{
+		if (subMenuSelections[currentSubMenu] < customShipScroll)
+			customShipScroll = subMenuSelections[currentSubMenu];
+		else if (subMenuSelections[currentSubMenu] > customShipScroll + 13)
+			customShipScroll = subMenuSelections[currentSubMenu] - 13;
+	}
+}
+
+static void ship_confirm(void)
+{
+	JE_playSampleNum(S_CLICK);
+	if (subMenuSelections[currentSubMenu] < 0)
+		nextSubMenu = SUBMENU_RETURN;
+	else
+	{
+		currentCustomShip = subMenuSelections[currentSubMenu];
+		subMenuSelections[currentSubMenu] = -9999;		
+	}
+}
+
+static void submenuOptCustomShip_Run(void)
+{
+	if (newkey && lastkey_scan == SDL_SCANCODE_UP)
+		ship_navigate(-1);
+	else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
+		ship_navigate(1);
+
+	if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_SPACE))
+		ship_confirm();
+
+	int ypos = 38;
+	for (int i = customShipScroll; i < customShipScroll + 14; ++i)
+	{
+		const int shade = subMenuSelections[currentSubMenu] == i ? 15 : 28;
+
+		if (!CustomShip_Exists(i))
+			break;
+
+		if (i == (signed)currentCustomShip)
+		{
+			fill_rectangle_xy(VGAScreen, 164, ypos+2, 300, ypos+6, 227);
+			blit_sprite2(VGAScreen, 298, ypos-3, shopSpriteSheet, 247);
+		}
+
+		const char *shipName = CustomShip_GetName(i);
+		JE_textShade(VGAScreen, 171, ypos, shipName, shade / 16, shade % 16 - 8, DARKEN);
+		ypos += 9;
+	}
+
+	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Done", SMALL_FONT_SHAPES,
+		right_aligned, 15, -3 + (subMenuSelections[currentSubMenu] < 0 ? 2 : 0), false, 2);
+
+	// ----- Help Text --------------------------------------------------------
+	const char *helpText;
+	if (subMenuSelections[currentSubMenu] < 0)
+		helpText = "Go back to the previous menu.";
+	else
+		helpText = "Select the ship sprite you want to use.";
+	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
+}
+
+static void submenuOptCustomShip_Init(void)
+{
+	const size_t customShipTotal = CustomShip_Count();
+
+	// Scroll the ship the player currently is using to the center.
+	subMenuSelections[currentSubMenu] = (CustomShip_Exists(currentCustomShip) ? currentCustomShip : 0);
+	customShipScroll = subMenuSelections[currentSubMenu] - 7;
+
+	if (customShipScroll < 0)
+		customShipScroll = 0;
+	else if (customShipScroll > (signed)customShipTotal - 14)
+		customShipScroll = (signed)customShipTotal - 14;
 }
 
 // ----------------------------------------------------------------------------
@@ -1614,11 +1839,12 @@ static void drawOnOffOption(int y, bool value, bool disable, bool highlight)
 
 static void submenuOptions_Run(void)
 {
-	mousetargets_t optionTargets = {4, {
+	mousetargets_t optionTargets = {5, {
 		{164,  38, JE_textWidth("Music", SMALL_FONT_SHAPES), 12},
 		{164,  54, JE_textWidth("Sound", SMALL_FONT_SHAPES), 12},
 		{164,  70, JE_textWidth("DeathLink", SMALL_FONT_SHAPES), 12},
-		{164, 150, JE_textWidth("Exit to Main Menu", SMALL_FONT_SHAPES), 12}
+		{164,  86, JE_textWidth("Change Sprite...", SMALL_FONT_SHAPES), 12},
+		{164, 150, JE_textWidth("Done", SMALL_FONT_SHAPES), 12}
 	}};
 
 	int menuResult;
@@ -1668,6 +1894,15 @@ static void submenuOptions_Run(void)
 				APOptions.EnableDeathLink = !APOptions.EnableDeathLink;
 				break;
 			case 3:
+				if (!useCustomShips)
+				{
+					JE_playSampleNum(S_CLINK);
+					break;
+				}
+				nextSubMenu = SUBMENU_OPTIONS_CUSTOMSHIP;
+				JE_playSampleNum(S_CLICK);
+				break;
+			case 4:
 				if (menuResult != MENUNAV_SELECT)
 					break;
 				nextSubMenu = SUBMENU_RETURN;
@@ -1680,10 +1915,24 @@ static void submenuOptions_Run(void)
 	JE_barDrawShadow(VGAScreen, 225, 38+16, 1, samples_disabled ? 12 : 16, fxVolume / 12, 3, 13);
 	drawOnOffOption(38 + 32, APOptions.EnableDeathLink, !APSeedSettings.DeathLink, SELECTED(2));
 
-	defaultMenuOptionDraw("Music",             38,       false,                     SELECTED(0));
-	defaultMenuOptionDraw("Sound",             38 +  16, false,                     SELECTED(1));
-	defaultMenuOptionDraw("DeathLink",         38 +  32, !APSeedSettings.DeathLink, SELECTED(2));
-	defaultMenuOptionDraw("Exit to Main Menu", 38 + 112, false,                     SELECTED(3));
+	defaultMenuOptionDraw("Music",            38,       false,                     SELECTED(0));
+	defaultMenuOptionDraw("Sound",            38 +  16, false,                     SELECTED(1));
+	defaultMenuOptionDraw("DeathLink",        38 +  32, !APSeedSettings.DeathLink, SELECTED(2));
+	defaultMenuOptionDraw("Change Sprite...", 38 +  48, !useCustomShips,           SELECTED(3));
+	defaultMenuOptionDraw("Done",             38 + 112, false,                     SELECTED(4));
+
+
+	// ----- Help Text --------------------------------------------------------
+	const char *helpText;
+	switch (GETSELECTED())
+	{
+		case 0:  // fall through
+		case 1:  helpText = "Use left/right to adjust volume, select for on/off."; break;
+		case 2:  helpText = "Enable or disable DeathLink."; break;
+		case 3:  helpText = "Change the sprite that your ship uses."; break;
+		default: helpText = "Go back to the previous menu."; break;
+	}
+	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
 }
 
 static void submenuOptions_Exit(void)
@@ -1697,13 +1946,49 @@ static void submenuOptions_Exit(void)
 // Item Screen Sidebars
 // ------------------------------------------------------------------
 
+static void sidebarShipSprite(void)
+{
+	JE_barDrawShadow(VGAScreen,  42, 152, 2, 14, APStats.ArmorLevel  - 8, 2, 13); // Armor
+	JE_barDrawShadow(VGAScreen, 104, 152, 2, 14, APStats.ShieldLevel - 8, 2, 13); // Shield
+	if (APItemChoices.Sidekick[0].Item)
+		sprites_blitArchipelagoItem(VGAScreen,   3, 84, APItemChoices.Sidekick[0].Item);
+	if (APItemChoices.Sidekick[1].Item)
+		sprites_blitArchipelagoItem(VGAScreen, 129, 84, APItemChoices.Sidekick[1].Item);
+
+	int customShipID = subMenuSelections[SUBMENU_OPTIONS_CUSTOMSHIP];
+	if (customShipID < 0)
+		customShipID = currentCustomShip;
+
+	Sprite2_array *customShipGr = customShipGr = CustomShip_GetSprite(customShipID);
+	if (customShipGr)
+	{
+		blit_sprite2x2(VGAScreen, 66-32, 84,    *customShipGr, 1);
+		blit_sprite2x2(VGAScreen, 66-16, 84-28, *customShipGr, 3);
+		blit_sprite2x2(VGAScreen, 66,    84-56, *customShipGr, 5);
+		blit_sprite2x2(VGAScreen, 66+16, 84-28, *customShipGr, 7);
+		blit_sprite2x2(VGAScreen, 66+32, 84,    *customShipGr, 9);
+	}
+
+	JE_textShade(VGAScreen, 24, 118, CustomShip_GetName(customShipID), 15, 6, DARKEN);
+	JE_textShade(VGAScreen, 24, 128, "Author:", 15, 4, DARKEN);
+	JE_textShade(VGAScreen, 24, 136, CustomShip_GetAuthor(customShipID), 15, 6, DARKEN);
+}
+
 static void sidebarArchipelagoInfo(void)
 {
 	JE_barDrawShadow(VGAScreen,  42, 152, 2, 14, APStats.ArmorLevel  - 8, 2, 13); // Armor
 	JE_barDrawShadow(VGAScreen, 104, 152, 2, 14, APStats.ShieldLevel - 8, 2, 13); // Shield
 
 	// Draw player ship
-	blit_sprite2x2(VGAScreen, 66, 84, spriteSheet9, ships[1].shipgraphic);
+	if (useCustomShips)
+	{
+		Sprite2_array *customShipGr = CustomShip_GetSprite(currentCustomShip);
+		if (customShipGr)
+			blit_sprite2x2(VGAScreen, 66, 84, *customShipGr, 5);
+	}
+	else // Fallback to USP Talon
+		blit_sprite2x2(VGAScreen, 66, 84, spriteSheet9, 233);
+
 
 	if (APItemChoices.FrontPort.Item)
 	{
@@ -1759,7 +2044,7 @@ static void sidebarPlanetNav(void)
 static void sidebarSimulateShots(void)
 {
 	shots_runShotSim();
-	blit_sprite2x2(VGAScreen, player[0].x - 5, player[0].y - 7, spriteSheet9, ships[1].shipgraphic);
+	blit_sprite2x2(VGAScreen, player[0].x - 5, player[0].y - 7, *shipGrPtr, shipGr);
 
 	// Show weapon mode type
 	blit_sprite(VGAScreenSeg, 3, 56, OPTION_SHAPES, (player[0].weapon_mode == 1) ? 18 : 19);
@@ -1921,14 +2206,8 @@ int apmenu_itemScreen(void)
 		snprintf(string_buffer, sizeof(string_buffer), "%llu", (unsigned long long)(APStats.Cash - tempMoneySub));
 		JE_textShade(VGAScreen, 65, 173, string_buffer, 1, 6, DARKEN);
 
-		apmsg_manageQueueMenu(currentSubMenu != SUBMENU_MAIN);
-		if (currentSubMenu == SUBMENU_MAIN)
-		{
-			JE_outTextAndDarken(VGAScreen, 286, 187, "[TAB]", 14, 1, TINY_FONT);
-
-			if (newkey && lastkey_scan == SDL_SCANCODE_TAB)
-				apmenu_chatbox(); // Blocks until exited
-		}
+		if (newkey && lastkey_scan == SDL_SCANCODE_TAB && currentSubMenu == SUBMENU_MAIN)
+			apmenu_chatbox(); // Blocks until exited
 
 		// Back to previous menu
 		if ((newmouse && lastmouse_but == SDL_BUTTON_RIGHT)

@@ -105,6 +105,7 @@ typedef struct
 } JE_ShieldType[SHIELD_NUM + 1]; /* [0..shieldnum] */
 #endif
 
+#if 0 // Ship type -- unreferenced
 typedef struct
 {
 	char        name[31]; /* string [30] */
@@ -116,6 +117,7 @@ typedef struct
 	JE_word     cost;
 	JE_byte     bigshipgraphic;
 } JE_ShipType[SHIP_NUM + 1]; /* [0..shipnum] */
+#endif
 
 /* EnemyData */
 typedef struct
@@ -152,7 +154,7 @@ typedef struct
 extern JE_WeaponPortType weaponPort;
 extern JE_WeaponType weapons[WEAP_NUM + 1]; /* [0..weapnum] */
 extern JE_PowerType powerSys;
-extern JE_ShipType ships;
+//extern JE_ShipType ships;
 extern JE_OptionType options[OPTION_NUM + 1]; /* [0..optionnum] */
 //extern JE_ShieldType shields;
 extern JE_SpecialType special;

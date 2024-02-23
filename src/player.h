@@ -36,6 +36,7 @@ enum
 
 typedef struct
 {
+	// TODO This struct can get cleaned up a lot...
 	Uint8 ship;
 	Uint8 generator;
 	Uint8 shield;
@@ -60,17 +61,18 @@ PlayerItems;
 typedef struct
 {
 	ulong cash; // temporary (in level), zeroed out when starting stage
-	
-	PlayerItems items, last_items;
-	
+
+	// removed: last_items (unused)
+	PlayerItems items;
+
 	bool is_dragonwing;  // i.e., is player 2
 	Uint8 *lives;
-	
+
 	// calculatable
 	// uint shield_max; // replaced with APStats.ShieldLevel
 	// uint initial_armor; // replaced with APStats.ArmorLevel
 	uint shot_hit_area_x, shot_hit_area_y;
-	
+
 	// state
 	bool is_alive;
 	uint invulnerable_ticks;  // ticks until ship can be damaged
@@ -80,33 +82,33 @@ typedef struct
 	uint weapon_mode;
 	uint superbombs;
 	uint purple_balls_needed;
-	
+
 	int x, y;
 	int old_x[20], old_y[20];
-	
+
 	int x_velocity, y_velocity;
 	uint x_friction_ticks, y_friction_ticks;  // ticks until friction is applied
-	
+
 	int delta_x_shot_move, delta_y_shot_move;
-	
+
 	int last_x_shot_move, last_y_shot_move;
 	int last_x_explosion_follow, last_y_explosion_follow;
-	
+
 	struct
 	{
 		// calculatable
 		int ammo_max;
 		uint ammo_refill_ticks_max;
 		uint style;  // affects movement and size
-		
+
 		// state
 		int x, y;
 		int ammo;
 		uint ammo_refill_ticks;
-		
+
 		bool animation_enabled;
 		uint animation_frame;
-		
+
 		uint charge;
 		uint charge_ticks;
 	}
@@ -130,6 +132,7 @@ void calc_purple_balls_needed(Player *);
 bool power_up_weapon(Player *, uint port);
 void handle_got_purple_ball(Player *);
 
+void player_updateShipData(void);
 void player_updateItemChoices(void);
 bool player_overrideItemChoice(int section, Uint16 itemID, Uint8 powerLevel);
 

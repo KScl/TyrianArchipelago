@@ -309,85 +309,6 @@ JE_boolean  linkToPlayer;
 JE_word shipGr, shipGr2;
 Sprite2_array *shipGrPtr, *shipGr2ptr;
 
-void JE_getShipInfo(void)
-{
-	//JE_boolean extraShip, extraShip2;
-
-	shipGrPtr = &spriteSheet9;
-	shipGr2ptr = &spriteSheet9;
-
-	//powerAdd  = powerSys[player[0].items.generator].power;
-
-#if 0
-	extraShip = player[0].items.ship > 90;
-	if (extraShip)
-	{
-		JE_byte base = (player[0].items.ship - 91) * 15;
-		shipGr = JE_SGr(player[0].items.ship - 90, &shipGrPtr);
-		player[0].armor = extraShips[base + 7];
-	}
-	else
-	{
-		shipGr = ships[player[0].items.ship].shipgraphic;
-		player[0].armor = ships[player[0].items.ship].dmg;
-	}
-
-	extraShip2 = player[1].items.ship > 90;
-	if (extraShip2)
-	{
-		JE_byte base2 = (player[1].items.ship - 91) * 15;
-		shipGr2 = JE_SGr(player[1].items.ship - 90, &shipGr2ptr);
-		player[1].armor = extraShips[base2 + 7]; /* bug? */
-	}
-	else
-	{
-		shipGr2 = 0;
-		player[1].armor = 10;
-	}
-#else
-	shipGr = ships[player[0].items.ship].shipgraphic;
-	player[0].armor = APStats.ArmorLevel;
-	player[0].shield = (APStats.ShieldLevel >> 1); // start at half max shield
-	player[0].superbombs = 0;
-
-	shipGr2 = 0;
-	player[1].armor = APStats.ArmorLevel;
-	player[1].shield = (APStats.ShieldLevel >> 1); // start at half max shield
-	player[1].superbombs = 0;
-#endif
-
-	for (uint i = 0; i < COUNTOF(player); ++i)
-	{
-		//player[i].initial_armor = player[i].armor;
-
-		uint temp = ships[player[i].items.ship].ani;
-
-		if (temp == 0)
-		{
-			player[i].shot_hit_area_x = 12;
-			player[i].shot_hit_area_y = 10;
-		}
-		else
-		{
-			player[i].shot_hit_area_x = 11;
-			player[i].shot_hit_area_y = 14;
-		}
-	}
-}
-
-#if 0
-JE_word JE_SGr(JE_word ship, Sprite2_array **ptr)
-{
-	const JE_word GR[15] /* [1..15] */ = {233, 157, 195, 271, 81, 0, 119, 5, 43, 81, 119, 157, 195, 233, 271};
-
-	JE_word tempW = extraShips[(ship - 1) * 15];
-	if (tempW > 7)
-		*ptr = extraShapes;
-
-	return GR[tempW-1];
-}
-#endif
-
 void JE_drawOptions(void)
 {
 	SDL_Surface *temp_surface = VGAScreen;
@@ -679,14 +600,6 @@ void JE_specialComplete(JE_byte playerNum, JE_byte specialType)
 
 void JE_doSpecialShot(JE_byte playerNum, uint *armor, uint *shield)
 {
-	if (player[0].items.special > 0)
-	{
-		if (shotRepeat[SHOT_SPECIAL] == 0 && specialWait == 0 && flareDuration < 2 && zinglonDuration < 2)
-			blit_sprite2(VGAScreen, 47, 4, spriteSheet9, 94);
-		else
-			blit_sprite2(VGAScreen, 47, 4, spriteSheet9, 93);
-	}
-
 	if (shotRepeat[SHOT_SPECIAL] > 0)
 	{
 		--shotRepeat[SHOT_SPECIAL];

@@ -54,9 +54,13 @@ after_build:
 
     New-Item "aptyrian\apdata\" -ItemType Directory | Out-Null
 
+    New-Item "aptyrian\ships\" -ItemType Directory | Out-Null
+
     Copy-Item "opentyrian-*-${env:CONFIGURATION}.exe" "aptyrian\aptyrian-${env:OPENTYRIAN_VERSION}.exe"
 
     Copy-Item "apdata\*.*" "aptyrian\apdata\"
+
+    Copy-Item "ships\*.ship" "aptyrian\ships\"
 
     Copy-Item "docs\UserReadme.txt" "aptyrian\README.txt"
 

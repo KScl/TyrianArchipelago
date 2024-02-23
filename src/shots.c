@@ -509,7 +509,7 @@ JE_integer player_shot_create(JE_word portNum, uint bay_i, JE_word PX, JE_word P
 
 void shots_initShotSim(void) // fka JE_initWeaponView
 {
-	JE_getShipInfo();
+	player_updateShipData();
 
 	player[0].sidekick[LEFT_SIDEKICK].x = 72 - 15;
 	player[0].sidekick[LEFT_SIDEKICK].y = 120;

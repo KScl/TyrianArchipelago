@@ -48,6 +48,7 @@
 #include "SDL.h"
 
 #include "archipelago/apconnect.h"
+#include "archipelago/customship.h"
 #include "archipelago/patcher.h"
 #include "apmenu.h"
 
@@ -766,8 +767,6 @@ int main(int argc, char *argv[])
 	}
 	SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 
-	config_load();
-
 	JE_paramCheck(argc, argv);
 
 	FILE *patch_f = dir_fopen_die("apdata", "patch.jsonc", "r");
@@ -778,6 +777,24 @@ int main(int argc, char *argv[])
 	}
 	fclose(patch_f);
 	printf("Event patches initialized\n");
+
+	const char *ship_dirs[] = {
+		"./ships/"
+	};
+
+	if (useCustomShips)
+	{
+		int numCustomShips = CustomShip_SystemInit(ship_dirs, 1);
+		if (!numCustomShips)
+		{
+			printf("warning: No ship files found. Falling back to internal graphics data.\n");
+			useCustomShips = false;
+		}
+		else
+			printf("Loaded %d ship files.\n", numCustomShips);		
+	}
+
+	config_load();
 
 	init_video();
 	init_keyboard();

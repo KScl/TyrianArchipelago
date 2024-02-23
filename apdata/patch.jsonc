@@ -44,7 +44,7 @@
 		"270:PREPEND": { "time":1868, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":3, "movement":"static", "align_x":6, "align_y":7 },
 
 		// Additional callouts for contact_bypasses_shields
-		"435:APPEND": { "time":2573, "event":116, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
+		"435:APPEND": { "time":2573, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
 	},
 	// --------------------------------------------------------------
 	"Episode1 TYRIAN Hard": {
@@ -74,7 +74,7 @@
 		"419:PREPEND": { "time":1868, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":3, "movement":"static", "align_x":6, "align_y":7 },
 
 		// Additional callouts for contact_bypasses_shields
-		"606:APPEND": { "time":2573, "event":116, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
+		"606:APPEND": { "time":2573, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
 	},
 	// --------------------------------------------------------------
 	"Episode1 BUBBLES ver2.1": {
@@ -135,7 +135,7 @@
 		"1056:REPLACE": { "time":4070, "event":201, /* AP_CheckFromEnemy */ "ap_id": 24, "linknum": 9, "movement":"falling" },
 
 		// Additional callouts for contact_bypasses_shields
-		"757:APPEND": { "time":2850, "event":116, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"757:APPEND": { "time":2850, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 
 		// Bug fix: Point the Accel event for the formation change above to the right linknum
 		"28:REPLACE": { "time":150, "event":20, /* EnemyGlobal_Accel */ "linknum":20, "excc":-12, "eycc":-6 },
@@ -183,7 +183,7 @@
 		"1056:REPLACE": { "time":4070, "event":201, /* AP_CheckFromEnemy */ "ap_id": 24, "linknum": 9, "movement":"falling" },
 
 		// Additional callouts for contact_bypasses_shields
-		"757:APPEND": { "time":2850, "event":116, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"757:APPEND": { "time":2850, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 
 		// Bug fix: Point the Accel event for the formation change above to the right linknum
 		"28:REPLACE": { "time":150, "event":20, /* EnemyGlobal_Accel */ "linknum":20, "excc":-12, "eycc":-6 }
@@ -448,6 +448,79 @@
 		"1:REPLACE":   { "time":   0, "event":48 /* Background2Transparent(False) */ }
 	},
 
+	"Episode2 MISTAKES ver2.1": {
+		// Addition of Archipelago Items
+		// Almost every item here is placed on a trigger enemy to make it clear which enemies are special
+		"33:APPEND":   { "time": 181, "event":201, /* AP_CheckFromEnemy */ "ap_id":230, "linknum":201, "movement":"falling" },
+		"107:APPEND":  { "time": 481, "event":201, /* AP_CheckFromEnemy */ "ap_id":231, "linknum":201, "movement":"falling" },
+		"501:APPEND":  { "time":2110, "event":201, /* AP_CheckFromEnemy */ "ap_id":232, "linknum": 16, "movement":"falling" },
+		"580:APPEND":  { "time":2325, "event":201, /* AP_CheckFromEnemy */ "ap_id":233, "linknum":  6, "movement":"falling" },
+		"758:APPEND": [
+			{ "time":3502, "event":201, /* AP_CheckFromEnemy */ "ap_id":234, "linknum":1, "movement":"falling" },
+			{ "time":3502, "event":201, /* AP_CheckFromEnemy */ "ap_id":235, "linknum":5, "movement":"falling" }
+		],
+		"949:REPLACE": { "time":4710, "event":201, /* AP_CheckFromEnemy */ "ap_id":238, "linknum":  6, "movement":"swaying" },
+		"1012:APPEND": { "time":5200, "event":201, /* AP_CheckFromEnemy */ "ap_id":236, "linknum": 21, "movement":"falling" },
+		"1035:APPEND": { "time":5220, "event":201, /* AP_CheckFromEnemy */ "ap_id":237, "linknum": 24, "movement":"falling" },
+
+		// Additional callouts for contact_bypasses_shields
+		"98:APPEND":   { "time": 460, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"786:PREPEND": { "time":3970, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+
+		// Bug fixes for Bubble Spawner section
+		// Alter LoadEnemyShapeBanks event so it doesn't clobber sprites of enemies currently on screen
+		// Alter the jump to the section to give adequate time for ConditionalVoicedCallout
+		// Move and fix bugged VoicedCallout
+		"786:REPLACE": { "time":4001, "event": 5, /* LoadEnemyShapeBanks */ "banks":[28, 11, 12, 9] },
+		"782:REPLACE": { "time":3582, "event":54, /* Jump */ "jump_time":3970 },
+		"870:PREPEND": { "time":4670, "event":16, /* VoicedCallout */ "output":"Large mass detected ahead!" },
+		"908:REPLACE": { "time":4710, "event": 0  /* NoOp */ },
+
+		// Ported softlock fix from Tyrian 2000
+		"1247:APPEND": [
+			{ "time":7040, "event": 10, /* NewEnemy_Ground2 */ "linknum":2, "type":776, "ex":160, "eyc":2 },
+			{ "time":7040, "event":201, /* AP_CheckFromEnemy */ "ap_id":239, "linknum":  2, "movement":"falling" },
+			{ "time":7041, "event":  6, /* NewEnemy_Ground */  "linknum":1, "type":777, "ex":150, "eyc":2 },
+			{ "time":7041, "event":  6, /* NewEnemy_Ground */  "linknum":3, "type":777, "ex":170, "eyc":2 },
+			{ "time":7055, "event": 19, /* EnemyGlobal_Move */ "linknum":2, "section":1, "eyc":1 },
+			{ "time":7060, "event": 19, /* EnemyGlobal_Move */ "linknum":2, "section":1, "eyc":0 },
+			{ "time":7060, "event": 19, /* EnemyGlobal_Move */ "linknum":1, "section":1, "eyc":3 },
+			{ "time":7060, "event": 19, /* EnemyGlobal_Move */ "linknum":3, "section":1, "eyc":3 },
+			{ "time":7090, "event": 19, /* EnemyGlobal_Move */ "linknum":2, "section":1, "eyc":1 },
+			{ "time":7095, "event": 19, /* EnemyGlobal_Move */ "linknum":2, "section":1, "eyc":2 },
+			{ "time":7180, "event": 54, /* Jump */ "jump_time":5000 }
+		]
+	},
+
+	"Episode2 MISTAKES ver2000": {
+		// Addition of Archipelago Items
+		// Almost every item here is placed on a trigger enemy to make it clear which enemies are special
+		"29:APPEND":   { "time": 181, "event":201, /* AP_CheckFromEnemy */ "ap_id":230, "linknum":201, "movement":"falling" },
+		"103:APPEND":  { "time": 481, "event":201, /* AP_CheckFromEnemy */ "ap_id":231, "linknum":201, "movement":"falling" },
+		"497:APPEND":  { "time":2110, "event":201, /* AP_CheckFromEnemy */ "ap_id":232, "linknum": 16, "movement":"falling" },
+		"576:APPEND":  { "time":2325, "event":201, /* AP_CheckFromEnemy */ "ap_id":233, "linknum":  6, "movement":"falling" },
+		"754:APPEND": [
+			{ "time":3502, "event":201, /* AP_CheckFromEnemy */ "ap_id":234, "linknum":1, "movement":"falling" },
+			{ "time":3502, "event":201, /* AP_CheckFromEnemy */ "ap_id":235, "linknum":5, "movement":"falling" }
+		],
+		"945:REPLACE": { "time":4710, "event":201, /* AP_CheckFromEnemy */ "ap_id":238, "linknum":  6, "movement":"swaying" },
+		"1011:APPEND": { "time":5200, "event":201, /* AP_CheckFromEnemy */ "ap_id":236, "linknum": 21, "movement":"falling" },
+		"1034:APPEND": { "time":5220, "event":201, /* AP_CheckFromEnemy */ "ap_id":237, "linknum": 24, "movement":"falling" },
+		"1247:APPEND": { "time":7040, "event":201, /* AP_CheckFromEnemy */ "ap_id":239, "linknum":  2, "movement":"falling" },
+
+		// Additional callouts for contact_bypasses_shields
+		"94:APPEND":   { "time": 460, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"782:PREPEND": { "time":3970, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+
+		// Bug fixes for Bubble Spawner section
+		// Alter LoadEnemyShapeBanks event so it doesn't clobber sprites of enemies currently on screen
+		// Alter the jump to the section to give adequate time for ConditionalVoicedCallout
+		"782:REPLACE": { "time":4001, "event": 5, /* LoadEnemyShapeBanks */ "banks":[28, 11, 12, 9] },
+		"778:REPLACE": { "time":3582, "event":54, /* Jump */ "jump_time":3970 },
+		"867:PREPEND": { "time":4670, "event":16, /* VoicedCallout */ "output":"Large mass detected ahead!" },
+		"904:REPLACE": { "time":4710, "event": 0  /* NoOp */ }
+	},
+
 	"Episode2 BOTANY B": {
 		// Addition of Archipelago Items
 		"10:APPEND":  { "time": 133, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":260, "movement":"falling" },
@@ -686,7 +759,7 @@
 		],
 
 		// Additional callouts for contact_bypasses_shields
-		"780:REPLACE": { "time":3600, "event":116, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
+		"780:REPLACE": { "time":3600, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
 	},
 	// --------------------------------------------------------------
 	"Episode5 FRUIT": {
@@ -717,6 +790,7 @@
 		"Episode 2": {
 			"2":  "Episode2 GYGES",
 			"6":  "Episode2 GRYPHON",
+			"9":  "Episode2 MISTAKES ver2.1",
 			"11": "Episode2 BOTANY B"
 		},
 		"Episode 3": {
@@ -752,6 +826,7 @@
 		"Episode 2": {
 			"2":  "Episode2 GYGES",
 			"6":  "Episode2 GRYPHON",
+			"9":  "Episode2 MISTAKES ver2000",
 			"11": "Episode2 BOTANY B"
 		},
 		"Episode 3": {

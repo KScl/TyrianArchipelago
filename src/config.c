@@ -42,6 +42,7 @@
 #endif
 
 #include "archipelago/apconnect.h"
+#include "archipelago/customship.h"
 
 /* Configuration Load/Save handler */
 
@@ -287,6 +288,7 @@ static void loadOpts_archipelago(ConfigSection *section)
 	uint temp_uint;
 	const char *temp_str;
 
+	currentCustomShip = (size_t)-1;
 	if (section != NULL)
 	{
 		if (config_get_string_option(section, "uuid", &temp_str))
@@ -296,11 +298,22 @@ static void loadOpts_archipelago(ConfigSection *section)
 
 		if (config_get_uint_option(section, "game_speed", &temp_uint))
 			gameSpeed = (Uint8)(temp_uint & 0xFF);
+
+		if (useCustomShips && config_get_string_option(section, "ship_sprite", &temp_str))
+			currentCustomShip = CustomShip_GetNumFromPath(temp_str);
 	}
 	else
 	{
 		Archipelago_GenerateUUID();
 		gameSpeed = 4;
+	}
+
+	if (useCustomShips)
+	{
+		if (currentCustomShip == (size_t)-1) // Default to USP Talon if not found
+			currentCustomShip = CustomShip_GetNumFromName("\x1EUSP Talon");
+		if (currentCustomShip == (size_t)-1) // Default not found? Just select the first item
+			currentCustomShip = 0;
 	}
 }
 
@@ -311,6 +324,9 @@ static void saveOpts_archipelago(ConfigSection *section)
 
 	config_set_string_option(section, "uuid", Archipelago_GetUUID());
 	config_set_uint_option(section, "game_speed", gameSpeed);
+
+	if (useCustomShips)
+		config_set_string_option(section, "ship_sprite", CustomShip_GetPath(currentCustomShip));
 }
 
 // ----------------------------------------------------------------------------

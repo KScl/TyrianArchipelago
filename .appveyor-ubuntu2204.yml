@@ -20,11 +20,15 @@ test_script:
 
     mkdir aptyrian/apdata
 
+    mkdir aptyrian/ships
+
     cp opentyrian aptyrian/aptyrian
 
     cp COPYING aptyrian/
 
     cp apdata/* aptyrian/apdata/
+
+    cp ships/*.ship aptyrian/ships/
 
     7za a "aptyrian-Ubuntu2204-Release.zip" "aptyrian"
 artifacts:

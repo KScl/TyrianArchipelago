@@ -45,7 +45,7 @@ Sprite2_array spriteSheet9;
 Sprite2_array spriteSheet10;
 Sprite2_array spriteSheet11;
 Sprite2_array spriteSheet12;
-Sprite2_array spriteSheet13; // Used for T2K only
+Sprite2_array spriteSheetT2000; // Used for T2K only
 
 Sprite2_array archipelagoSpriteSheet;
 
@@ -945,8 +945,8 @@ void sprites_loadMainShapeTables(bool xmas)
 	if (tyrian2000detected)
 	{
 		fseek(f, shpPos[i], SEEK_SET);
-		spriteSheet13.size = shpPos[i + 1] - shpPos[i];
-		JE_loadCompShapesB(&spriteSheet13, f);
+		spriteSheetT2000.size = shpPos[i + 1] - shpPos[i];
+		JE_loadCompShapesB(&spriteSheetT2000, f);
 	}
 
 	fclose(f);
@@ -967,7 +967,7 @@ void sprites_freeMainShapeTables(void)
 	free_sprite2s(&spriteSheet12);
 
 	if (tyrian2000detected)
-		free_sprite2s(&spriteSheet13);
+		free_sprite2s(&spriteSheetT2000);
 }
 
 // ------------------------------------------------------------------

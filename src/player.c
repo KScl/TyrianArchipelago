@@ -26,6 +26,7 @@
 
 #include "archipelago/apitems.h"
 #include "archipelago/apconnect.h"
+#include "archipelago/customship.h"
 
 Player player[2];
 
@@ -92,6 +93,41 @@ void player_boostArmor(Player *this_player, int amount)
 
 // ---------------------------------------------------------------------------
 
+void player_updateShipData(void) // fka JE_getShipInfo
+{
+	if (useCustomShips)
+	{
+		shipGr = 5;
+		shipGrPtr = CustomShip_GetSprite(currentCustomShip);
+	}
+	else // USP Talon fallback
+	{
+		shipGr = 233;
+		shipGrPtr = &spriteSheet9;		
+	}
+
+	player[0].armor = APStats.ArmorLevel;
+	player[0].shield = (APStats.ShieldLevel >> 1); // start at half max shield
+	player[0].superbombs = 0;
+
+	// Player 2 stuff
+	// This is for the most part vestigial, but I keep it around just in case
+	shipGr2 = 0;
+	shipGr2ptr = &spriteSheet9;
+	player[1].armor = APStats.ArmorLevel;
+	player[1].shield = (APStats.ShieldLevel >> 1); // start at half max shield
+	player[1].superbombs = 0;
+
+	// Ani was 2 for every ship??
+	// If it was ever somehow 0:
+	//   player[i].shot_hit_area_x = 12;
+	//   player[i].shot_hit_area_y = 10;
+	player[0].shot_hit_area_x = player[1].shot_hit_area_x = 11;
+	player[0].shot_hit_area_y = player[1].shot_hit_area_y = 14;
+}
+
+// ---------------------------------------------------------------------------
+
 void player_updateItemChoices(void)
 {
 	// Default everything to "none"
@@ -139,6 +175,7 @@ void player_updateItemChoices(void)
 		}
 		else
 		{
+			player[0].weapon_mode = 1;
 			APItemChoices.RearPort.Item = 0;
 			APItemChoices.RearMode2 = false;
 		}

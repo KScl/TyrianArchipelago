@@ -1,7 +1,10 @@
 #include <assert.h>
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 #include <random>
+#include <list>
+#include <unordered_map>
 
 #include "SDL.h"
 
@@ -1004,9 +1007,12 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 
 			itemName = ap->get_item_name(itemID, ap->get_player_game(playerID));
 
-			// We don't show player name, but we used to...
-			//if (playerID != ap->get_player_number())
-			//	playerName = APRemote_GetPlayerName(playerID) + "'s";
+			if (playerID != ap->get_player_number())
+			{
+				std::string playerName = APRemote_GetPlayerName(playerID);
+				strncpy(shopItemBuffer[i].PlayerName, playerName.c_str(), 40 - 1);
+				shopItemBuffer[i].PlayerName[39] = 0;
+			}
 
 			if (itemID >= ARCHIPELAGO_BASE_ID && itemID <= ARCHIPELAGO_BASE_ID+999)
 				shopItemBuffer[i].Icon = apitems_AllIcons[itemID - ARCHIPELAGO_BASE_ID];
