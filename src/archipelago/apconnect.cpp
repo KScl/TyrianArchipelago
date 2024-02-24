@@ -20,6 +20,8 @@
 // Uncomment to see server<->client comms from APClient
 //#define APCLIENT_DEBUG
 
+#define APCLIENT_USE_BUNDLED_VALIJSON
+
 // Silence warnings from apclient/wswrap
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
