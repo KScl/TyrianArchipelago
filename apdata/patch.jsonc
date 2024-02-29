@@ -429,10 +429,14 @@
 	// ========================================================================
 	// Episode 2 - Treachery
 	// ========================================================================
-	// All levels are patch-compatible except:
-	// MISTAKES
-	// BOTANY A
-
+	"Episode2 TORM": {
+		"244:REPLACE": { "time": 751, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum":12, "movement":"static"},
+		"314:REPLACE": { "time": 881, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum":13, "movement":"static"},
+		"493:REPLACE": { "time":1701, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum":18, "movement":"static"},
+		"681:REPLACE": { "time":2541, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum": 9, "movement":"static"},
+		"812:APPEND":  { "time":5359, "event":201, /* AP_CheckFromEnemy */ "ap_id":167, "linknum":64, "movement":"swaying", "is_boss":true }
+	},
+	// --------------------------------------------------------------
 	"Episode2 GYGES": {
 		// Addition of Archipelago Items
 		"8:REPLACE":   { "time":   2, "event":201, /* AP_CheckFromEnemy */ "ap_id":170, "linknum":  1, "movement":"falling" },
@@ -447,7 +451,32 @@
 		// Don't allow lower floor to be transparent (bugfix?)
 		"1:REPLACE":   { "time":   0, "event":48 /* Background2Transparent(False) */ }
 	},
-
+	// --------------------------------------------------------------
+	"Episode2 ASTCITY": {
+		// Addition of Archipelago Items
+		"45:REPLACE":  { "time": 570, "event":201, /* AP_CheckFromEnemy */ "ap_id":190, "linknum":  5, "movement":"falling" },
+		"87:REPLACE":  { "time":1310, "event":201, /* AP_CheckFromEnemy */ "ap_id":191, "linknum":  7, "movement":"falling" },
+		"102:APPEND":  { "time":1561, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":192, "movement":"falling" },
+		"158:APPEND":  { "time":2233, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":193, "movement":"falling", "align_x":-7, "align_y":-8 },
+		"221:REPLACE": { "time":3280, "event":201, /* AP_CheckFromEnemy */ "ap_id":194, "linknum":  8, "movement":"falling" },
+		"300:REPLACE": { "time":4140, "event":201, /* AP_CheckFromEnemy */ "ap_id":195, "linknum":  4, "movement":"falling" },
+		"302:REPLACE": { "time":4160, "event":201, /* AP_CheckFromEnemy */ "ap_id":196, "linknum":  5, "movement":"falling" },
+		"322:REPLACE": { "time":4430, "event":201, /* AP_CheckFromEnemy */ "ap_id":197, "linknum":  2, "movement":"falling" },
+		"325:REPLACE": { "time":4540, "event":200, /* AP_CheckFreestanding */ "ap_id":198, "ex":240, "movement":"sky_falling" },
+		"419:REPLACE": [
+			// We need to move the level end event back a bit to give time for the AP Item to drop.
+			{ "time":5821, "event": 36  /* ReadyToEndLevel */ },
+			{ "time":5821, "event":200, /* AP_CheckFreestanding */ "ap_id":199, "movement":"swaying", "ex":120, "ey":-16 },
+			{ "time":6041, "event": 11 /* EndLevel */ }
+		]
+	},
+	// --------------------------------------------------------------
+	"Episode2 GEM WAR": {
+	},
+	// --------------------------------------------------------------
+	"Episode2 MARKERS": {
+	},
+	// --------------------------------------------------------------
 	"Episode2 MISTAKES ver2.1": {
 		// Addition of Archipelago Items
 		// Almost every item here is placed on a trigger enemy to make it clear which enemies are special
@@ -491,7 +520,6 @@
 			{ "time":7180, "event": 54, /* Jump */ "jump_time":5000 }
 		]
 	},
-
 	"Episode2 MISTAKES ver2000": {
 		// Addition of Archipelago Items
 		// Almost every item here is placed on a trigger enemy to make it clear which enemies are special
@@ -520,7 +548,15 @@
 		"867:PREPEND": { "time":4670, "event":16, /* VoicedCallout */ "output":"Large mass detected ahead!" },
 		"904:REPLACE": { "time":4710, "event": 0  /* NoOp */ }
 	},
-
+	// --------------------------------------------------------------
+	"Episode2 SOH JIN": {
+	},
+	// --------------------------------------------------------------
+	"Episode2 BOTANY A ver2.1": {
+	},
+	"Episode2 BOTANY B ver2000": {
+	},
+	// --------------------------------------------------------------
 	"Episode2 BOTANY B": {
 		// Addition of Archipelago Items
 		"10:APPEND":  { "time": 133, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":260, "movement":"falling" },
@@ -529,7 +565,7 @@
 		"255:APPEND": { "time":2681, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":263, "movement":"falling" },
 		"272:APPEND": { "time":3044, "event":201, /* AP_CheckFromEnemy */ "ap_id":264, "linknum":11, "movement":"falling" }
 	},
-
+	// --------------------------------------------------------------
 	"Episode2 GRYPHON":{
 		// Addition of Archipelago Items
 		"129:APPEND":  { "time": 580, "event":201, /* AP_CheckFromEnemy */ "ap_id":270, "linknum":14, "movement":"falling" },
@@ -559,7 +595,41 @@
 	// ========================================================================
 	// Episode 3 - Mission: Suicide
 	// ========================================================================
-
+	"Episode3 GAUNTLET ver2.1": {
+		"170:REPLACE": { "time": 860, "event":201, /* AP_CheckFromEnemy */ "ap_id":280, "linknum":42, "movement":"static" },
+		"558:REPLACE": { "time":2680, "event":201, /* AP_CheckFromEnemy */ "ap_id":281, "linknum":42, "movement":"static" },
+		"889:REPLACE": { "time":5788, "event":201, /* AP_CheckFromEnemy */ "ap_id":282, "linknum":62, "movement":"static" }
+	},
+	"Episode3 GAUNTLET ver2000": {
+		"170:REPLACE": { "time": 860, "event":201, /* AP_CheckFromEnemy */ "ap_id":280, "linknum":42, "movement":"static" },
+		"559:REPLACE": { "time":2680, "event":201, /* AP_CheckFromEnemy */ "ap_id":281, "linknum":42, "movement":"static" },
+		"892:REPLACE": { "time":5788, "event":201, /* AP_CheckFromEnemy */ "ap_id":282, "linknum":62, "movement":"static" }
+	},
+	// --------------------------------------------------------------
+	"Episode3 IXMUCANE ver2.1":{
+		"48:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":290, "linknum":7, "movement":"falling" },
+		"94:REPLACE":  { "time": 690, "event":201, /* AP_CheckFromEnemy */ "ap_id":291, "linknum":8, "movement":"falling" },
+		"458:REPLACE": { "time":2840, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":19, "movement":"static" },
+		"561:REPLACE": { "time":3440, "event":201, /* AP_CheckFromEnemy */ "ap_id":293, "linknum":18, "movement":"falling" },
+		"650:REPLACE": { "time":4140, "event":201, /* AP_CheckFromEnemy */ "ap_id":294, "linknum":19, "movement":"static" }
+	},
+	"Episode3 IXMUCANE ver2000": {
+		"48:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":290, "linknum":7, "movement":"falling" },
+		"94:REPLACE":  { "time": 690, "event":201, /* AP_CheckFromEnemy */ "ap_id":291, "linknum":8, "movement":"falling" },
+		"458:REPLACE": { "time":2840, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":19, "movement":"static" },
+		"561:REPLACE": { "time":3440, "event":201, /* AP_CheckFromEnemy */ "ap_id":293, "linknum":18, "movement":"falling" },
+		"647:REPLACE": { "time":4120, "event":201, /* AP_CheckFromEnemy */ "ap_id":294, "linknum":19, "movement":"static" }
+	},
+	// --------------------------------------------------------------
+	"Episode3 BONUS": {
+		// Addition of Archipelago Items
+		"17:REPLACE":  { "time":  10, "event":201, /* AP_CheckFromEnemy */ "ap_id":300, "linknum":41, "movement":"falling" },
+		"150:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":301, "linknum":10, "movement":"falling" },
+		"210:REPLACE": { "time":1200, "event":201, /* AP_CheckFromEnemy */ "ap_id":302, "linknum":10, "movement":"falling" },
+		"256:REPLACE": { "time":1560, "event":201, /* AP_CheckFromEnemy */ "ap_id":303, "linknum":61, "movement":"falling" },
+		"448:REPLACE": { "time":2650, "event":201, /* AP_CheckFromEnemy */ "ap_id":304, "linknum":41, "movement":"falling" }
+	},
+	// --------------------------------------------------------------
 	"Episode3 STARGATE": {
 		"143:REPLACE": { "time": 960, "event":201, /* AP_CheckFromEnemy */ "ap_id":310, "linknum": 7, "movement":"falling" },
 		"313:REPLACE": { "time":1900, "event":201, /* AP_CheckFromEnemy */ "ap_id":311, "linknum":11, "movement":"falling" },
@@ -571,7 +641,28 @@
 		],
 		"666:REPLACE": { "time":4510, "event":201, /* AP_CheckFromEnemy */ "ap_id":316, "linknum": 6, "movement":"swaying" }
 	},
-
+	// --------------------------------------------------------------
+	"Episode3 AST.CITY": {
+		"127:REPLACE": { "time":3200, "event":201, /* AP_CheckFromEnemy */ "ap_id":320, "linknum":1, "movement":"falling" },
+		"164:REPLACE": { "time":3600, "event":201, /* AP_CheckFromEnemy */ "ap_id":320, "linknum":1, "movement":"falling" }
+	},
+	// --------------------------------------------------------------
+	"Episode3 SAWBLADES": {
+		"84:REPLACE": {"time": 420, "event":201, /* AP_CheckFromEnemy */ "ap_id":330, "linknum":7, "movement":"falling" },
+		"99:REPLACE": {"time": 490, "event":201, /* AP_CheckFromEnemy */ "ap_id":331, "linknum":8, "movement":"falling" }
+	},
+	// --------------------------------------------------------------
+	"Episode3 CAMANIS ver2.1": {
+		"97:REPLACE":  { "time": 750, "event":201, /* AP_CheckFromEnemy */ "ap_id":340, "linknum":1, "movement":"falling" },
+		"512:REPLACE": { "time":3300, "event":201, /* AP_CheckFromEnemy */ "ap_id":341, "linknum":18, "movement":"falling" },
+		"621:REPLACE": { "time":3950, "event":201, /* AP_CheckFromEnemy */ "ap_id":342, "linknum":1, "movement":"falling" }
+	},
+	"Episode3 CAMANIS ver2000": {
+		"98:REPLACE":  { "time": 750, "event":201, /* AP_CheckFromEnemy */ "ap_id":340, "linknum":1, "movement":"falling" },
+		"525:REPLACE": { "time":3300, "event":201, /* AP_CheckFromEnemy */ "ap_id":341, "linknum":18, "movement":"falling" },
+		"640:REPLACE": { "time":3950, "event":201, /* AP_CheckFromEnemy */ "ap_id":342, "linknum":1, "movement":"falling" }
+	},
+	// --------------------------------------------------------------
 	"Episode3 MACES": {
 		// Addition of Archipelago Items
 		"61:REPLACE":  { "time": 272, "event":200, /* AP_CheckFreestanding */ "ap_id":350, "movement":"sky_falling", "ex": 42, "backup":562 },
@@ -581,6 +672,18 @@
 			{ "time":1896, "event":200, /* AP_CheckFreestanding */ "ap_id":353, "movement":"sky_falling", "ex": 66, "backup":562 },
 			{ "time":1924, "event":200, /* AP_CheckFreestanding */ "ap_id":354, "movement":"sky_falling", "ex":186, "backup":562 }
 		]
+	},
+	// --------------------------------------------------------------
+	"Episode3 TYRIAN X": {
+	},
+	// --------------------------------------------------------------
+	"Episode3 SAVARA Y": {
+	},
+	// --------------------------------------------------------------
+	"Episode3 NEW DELI": {
+	},
+	// --------------------------------------------------------------
+	"Episode3 FLEET": {
 	},
 
 	// ========================================================================
@@ -601,19 +704,19 @@
 
 
 	"Episode4 SURFACE": {
-
 	},
-
+	// --------------------------------------------------------------
+	"Episode4 WINDY": {
+	},
+	// --------------------------------------------------------------
 	"Episode4 LAVA RUN": {
-
 	},
-
+	// --------------------------------------------------------------
 	"Episode4 CORE ver2.1": {
 		// Random explosion events changed
 		"653:REPLACE": { "time": 9999, "event":99, /* RandomExplosions */ "enable":true },
 		"657:REPLACE": { "time":10000, "event":99, /* RandomExplosions */ "enable":true }
 	},
-
 	"Episode4 CORE ver2000": {
 		// When changing random explosion events from 68 to 99, they forgot to change these!
 		// And because there's an extra ReadyToEndLevel inserted earlier in the level,
@@ -621,11 +724,12 @@
 		"654:REPLACE": { "time": 9999, "event":99, /* RandomExplosions */ "enable":true },
 		"658:REPLACE": { "time":10000, "event":99, /* RandomExplosions */ "enable":true }
 	},
-
+	// --------------------------------------------------------------
 	"Episode4 LAVA EXIT ver2.1": {
-
 	},
-
+	"Episode4 LAVA EXIT ver2000": {
+	},
+	// --------------------------------------------------------------
 	"Episode4 DESERTRUN": {
 		// Addition of Archipelago Items
 		"530:REPLACE": { "time":6400, "event":200, /* AP_CheckFreestanding */ "ap_id":451, "movement":"gnd2_falling", "ex": 42, "backup":398 },
@@ -668,7 +772,10 @@
 			{ "time":4355, "event": 61, /* Skip_IfFlagEquals */ "flag":10, "value":0, "skip_events":1 }
 		]
 	},
-
+	// --------------------------------------------------------------
+	"Episode4 SIDE EXIT": {
+	},
+	// --------------------------------------------------------------
 	"Episode4 ?TUNNEL? ver2.1": {
 		// Replace random explosions events with their T2K versions.
 		"664:REPLACE": { "time":4010, "event":99, /* RandomExplosions */ "enable":true  },
@@ -693,6 +800,48 @@
 			{ "time": 9000, "event":36 /* ReadyToEndLevel */ }
 		]
 	},
+	"Episode4 ?TUNNEL? ver2000": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 ICE EXIT ver2.1": {
+	},
+	"Episode4 ICE EXIT ver2000": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 ICESECRET ver2.1": {
+	},
+	"Episode4 ICESECRET ver2000": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 HARVEST": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 UNDERDELI ver2.1": {
+	},
+	"Episode4 UNDERDELI ver2000": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 APPROACH": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 SAVARA IV ver2.1": {
+	},
+	"Episode4 SAVARA IV ver2000": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 DREAD-NOT": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 EYESPY": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 BRAINIAC": {
+	},
+	// --------------------------------------------------------------
+	"Episode4 NOSE DRIP ver2.1": {
+	},
+	"Episode4 NOSE DRIP ver2000": {
+	},
 
 	// ========================================================================
 	// Episode 5 - Hazudra Fodder
@@ -705,7 +854,7 @@
 		"402:REPLACE": { "time":2600, "event":201, /* AP_CheckFromEnemy */ "ap_id":584, "linknum":  4, "movement":"sky_falling" },
 		"433:APPEND":  { "time":2800, "event":201, /* AP_CheckFromEnemy */ "ap_id":585, "linknum":254, "movement":"swaying", "is_boss":true},
 
-		// Give time for the AP item to drop. (Expect to see a lot of patching to do this in Episode 5.)
+		// Give time for the AP item to drop.
 		"514:PREPEND": [
 			{ "time": 5040, "event": 36 /* ReadyToEndLevel */ },
 			{ "time":60000, "event":  0 /* NoOp */ }
@@ -788,19 +937,50 @@
 			"17": "Episode1 SAVARA V ver2.1"
 		},
 		"Episode 2": {
+			"1":  "Episode2 TORM",
 			"2":  "Episode2 GYGES",
+			"4":  "Episode2 ASTCITY",
+			"5":  "Episode2 SOH JIN",
 			"6":  "Episode2 GRYPHON",
+			"7":  "Episode2 GEM WAR",
+			"8":  "Episode2 MARKERS",
 			"9":  "Episode2 MISTAKES ver2.1",
+			"10": "Episode2 BOTANY A ver2.1",
 			"11": "Episode2 BOTANY B"
 		},
 		"Episode 3": {
+			"1":  "Episode3 CAMANIS ver2.1",
+			"2":  "Episode3 AST.CITY",
+			"3":  "Episode3 GAUNTLET ver2.1",
+			"4":  "Episode3 IXMUCANE ver2.1",
+			"5":  "Episode3 BONUS",
+			"6":  "Episode3 FLEET",
 			"7":  "Episode3 STARGATE",
+			"8":  "Episode3 TYRIAN X",
+			"9":  "Episode3 SAWBLADES",
+			"10": "Episode3 SAVARA Y",
+			"11": "Episode3 NEW DELI",
 			"12": "Episode3 MACES"
 		},
 		"Episode 4": {
+			"1":  "Episode4 HARVEST",
+			"2":  "Episode4 WINDY",
+			"3":  "Episode4 SAVARA IV ver2.1",
+			"4":  "Episode4 SURFACE",
 			"5":  "Episode4 CORE ver2.1",
+			"6":  "Episode4 SIDE EXIT",
+			"7":  "Episode4 UNDERDELI ver2.1",
+			"8":  "Episode4 ICE EXIT ver2.1",
+			"9":  "Episode4 LAVA EXIT ver2.1",
 			"10": "Episode4 DESERTRUN",
-			"11": "Episode4 ?TUNNEL? ver2.1"
+			"11": "Episode4 ?TUNNEL? ver2.1",
+			"12": "Episode4 LAVA RUN",
+			"13": "Episode4 EYESPY",
+			"14": "Episode4 DREAD-NOT",
+			"15": "Episode4 BRAINIAC",
+			"16": "Episode4 NOSE DRIP ver2.1",
+			"19": "Episode4 APPROACH",
+			"20": "Episode4 ICESECRET ver2.1"
 		}
 	},
 	// --------------------------------------------------------------
@@ -824,24 +1004,59 @@
 			"17": "Episode1 SAVARA V ver2000"
 		},
 		"Episode 2": {
+			"1":  "Episode2 TORM",
 			"2":  "Episode2 GYGES",
+			"4":  "Episode2 ASTCITY",
+			"5":  "Episode2 SOH JIN",
 			"6":  "Episode2 GRYPHON",
+			"7":  "Episode2 GEM WAR",
+			"8":  "Episode2 MARKERS",
 			"9":  "Episode2 MISTAKES ver2000",
+			"10": "Episode2 BOTANY A ver2000",
 			"11": "Episode2 BOTANY B"
 		},
 		"Episode 3": {
+			"1":  "Episode3 CAMANIS ver2000",
+			"2":  "Episode3 AST.CITY",
+			"3":  "Episode3 GAUNTLET ver2000",
+			"4":  "Episode3 IXMUCANE ver2000",
+			"5":  "Episode3 BONUS",
+			"6":  "Episode3 FLEET",
 			"7":  "Episode3 STARGATE",
+			"8":  "Episode3 TYRIAN X",
+			"9":  "Episode3 SAWBLADES",
+			"10": "Episode3 SAVARA Y",
+			"11": "Episode3 NEW DELI",
 			"12": "Episode3 MACES"
 		},
 		"Episode 4": {
+			"1":  "Episode4 HARVEST",
+			"2":  "Episode4 WINDY",
+			"3":  "Episode4 SAVARA IV ver2000",
+			"4":  "Episode4 SURFACE",
 			"5":  "Episode4 CORE ver2000",
-			"10": "Episode4 DESERTRUN"
+			"6":  "Episode4 SIDE EXIT",
+			"7":  "Episode4 UNDERDELI ver2000",
+			"8":  "Episode4 ICE EXIT ver2000",
+			"9":  "Episode4 LAVA EXIT ver2000",
+			"10": "Episode4 DESERTRUN",
+			"11": "Episode4 ?TUNNEL? ver2000",
+			"12": "Episode4 LAVA RUN",
+			"13": "Episode4 EYESPY",
+			"14": "Episode4 DREAD-NOT",
+			"15": "Episode4 BRAINIAC",
+			"16": "Episode4 NOSE DRIP ver2000",
+			"19": "Episode4 APPROACH",
+			"20": "Episode4 ICESECRET ver2000"
 		},
 		"Episode 5": {
+			"2": "Episode5 AST. ROCK",
 			"3": "Episode5 STATION",
 			"4": "Episode5 SAVARA",
 			"5": "Episode5 ASTEROIDS",
-			"7": "Episode5 CORAL"
+			"6": "Episode5 MINERS",
+			"7": "Episode5 CORAL",
+			"8": "Episode5 FRUIT"
 		}
 	}
 }

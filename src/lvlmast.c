@@ -137,8 +137,9 @@ leveldata_t allLevelData[LEVELDATA_COUNT] = {
 	{5,  2,     6,  0,  5,  6,    600, 1600,    "MINERS   ", "Miners"},
 	{5,  3,     4,  0,  8, 21,    610, 1610,    "SAVARA   ", "Savara"},
 	{5,  4,     7,  0,  6, 37,    620, 1620,    "CORAL    ", "Coral"},
-	{5,  5,     3,  0,  9, 23,    630, 1630,    "STATION  ", "Station"},
-	{5,  6,     8,  0, 13, 14,    640, 1640,    "FRUIT    ", "Fruit", true},
+	//{5,  5,     1,  0,  1,  1,    630, 1630,    "CANYONRUN", "CanyonRun"},
+	{5,  5,     3,  0,  9, 23,    640, 1640,    "STATION  ", "Station"},
+	{5,  6,     8,  0, 13, 14,    650, 1650,    "FRUIT    ", "Fruit", true},
 };
 
 void level_loadFromLevelID(int levelID)
