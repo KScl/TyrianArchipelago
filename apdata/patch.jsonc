@@ -587,6 +587,7 @@
 		"63:APPEND":   { "time": 240, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 		"67:REPLACE":  { "time": 280, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false },
 		"569:REPLACE": { "time":2740, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"570:PREPEND": { "time":2740, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false },
 
 		// Bug fix: the actual boss is the head, not the body, assign the boss bar correctly
 		"1260:REPLACE": { "time":7100,  "event":79, /* SetBossBar */ "linknum":[62, 0] }
@@ -631,6 +632,7 @@
 	},
 	// --------------------------------------------------------------
 	"Episode3 STARGATE": {
+		// Addition of Archipelago Items
 		"143:REPLACE": { "time": 960, "event":201, /* AP_CheckFromEnemy */ "ap_id":310, "linknum": 7, "movement":"falling" },
 		"313:REPLACE": { "time":1900, "event":201, /* AP_CheckFromEnemy */ "ap_id":311, "linknum":11, "movement":"falling" },
 		"334:REPLACE": [
@@ -653,14 +655,28 @@
 	},
 	// --------------------------------------------------------------
 	"Episode3 CAMANIS ver2.1": {
-		"97:REPLACE":  { "time": 750, "event":201, /* AP_CheckFromEnemy */ "ap_id":340, "linknum":1, "movement":"falling" },
+		// Addition of Archipelago Items
+		"97:REPLACE":  { "time": 750, "event":201, /* AP_CheckFromEnemy */ "ap_id":340, "linknum": 1, "movement":"falling" },
 		"512:REPLACE": { "time":3300, "event":201, /* AP_CheckFromEnemy */ "ap_id":341, "linknum":18, "movement":"falling" },
-		"621:REPLACE": { "time":3950, "event":201, /* AP_CheckFromEnemy */ "ap_id":342, "linknum":1, "movement":"falling" }
+		"621:REPLACE": { "time":3950, "event":201, /* AP_CheckFromEnemy */ "ap_id":342, "linknum": 1, "movement":"falling" },
+		"864:REPLACE": { "time":4960, "event":201, /* AP_CheckFromEnemy */ "ap_id":343, "linknum":18, "movement":"falling" },
+		"890:REPLACE": { "time":5150, "event":201, /* AP_CheckFromEnemy */ "ap_id":344, "linknum": 1, "movement":"falling" },
+		"1076:APPEND": { "time":6000, "event":201, /* AP_CheckFromEnemy */ "ap_id":345, "linknum": 1, "movement":"swaying", "is_boss": true }
 	},
 	"Episode3 CAMANIS ver2000": {
-		"98:REPLACE":  { "time": 750, "event":201, /* AP_CheckFromEnemy */ "ap_id":340, "linknum":1, "movement":"falling" },
+		// Addition of Archipelago Items
+		"98:REPLACE":  { "time": 750, "event":201, /* AP_CheckFromEnemy */ "ap_id":340, "linknum": 1, "movement":"falling" },
 		"525:REPLACE": { "time":3300, "event":201, /* AP_CheckFromEnemy */ "ap_id":341, "linknum":18, "movement":"falling" },
-		"640:REPLACE": { "time":3950, "event":201, /* AP_CheckFromEnemy */ "ap_id":342, "linknum":1, "movement":"falling" }
+		"640:REPLACE": { "time":3950, "event":201, /* AP_CheckFromEnemy */ "ap_id":342, "linknum": 1, "movement":"falling" },
+		"883:REPLACE": { "time":4960, "event":201, /* AP_CheckFromEnemy */ "ap_id":343, "linknum":18, "movement":"falling" },
+		"909:REPLACE": { "time":5150, "event":201, /* AP_CheckFromEnemy */ "ap_id":344, "linknum": 1, "movement":"falling" },
+		"1105:APPEND": { "time":6000, "event":201, /* AP_CheckFromEnemy */ "ap_id":345, "linknum": 1, "movement":"swaying", "is_boss": true },
+
+		// Bug fix: A snow effect was added to the frozen sections, however the percent chance of spawning the snowflake "enemies"
+		// is set to 95%. This does a very good job of filling up all the sky enemy slots and then making things fail to spawn,
+		// so we tone it down to a more modest 20%.
+		// This is still high enough to add a good amount of snowflakes to the screen, without filling every single slot.
+		"5:REPLACE": { "time":0, "event":37, /* RandomEnemyFrequency */ "percentage":20 }
 	},
 	// --------------------------------------------------------------
 	"Episode3 MACES": {
@@ -684,6 +700,12 @@
 	},
 	// --------------------------------------------------------------
 	"Episode3 FLEET": {
+		// Addition of Archipelago Items
+		"18:REPLACE":  { "time":   0, "event":201, /* AP_CheckFromEnemy */ "ap_id":390, "linknum": 59, "movement":"falling" },
+		"456:REPLACE": { "time":1650, "event":201, /* AP_CheckFromEnemy */ "ap_id":391, "linknum":  1, "movement":"falling" },
+		"660:REPLACE": { "time":2460, "event":201, /* AP_CheckFromEnemy */ "ap_id":392, "linknum":  1, "movement":"falling" },
+		"910:REPLACE": { "time":3300, "event":201, /* AP_CheckFromEnemy */ "ap_id":393, "linknum": 59, "movement":"falling" },
+		"1507:APPEND": { "time":5048, "event":201, /* AP_CheckFromEnemy */ "ap_id":394, "linknum":254, "movement":"swaying", "is_boss":true }
 	},
 
 	// ========================================================================

@@ -225,6 +225,10 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat = j.value<Sint16>("song", 0);
 			break;
 
+		case  37: // RandomEnemyFrequency
+			eventRec[x].eventdat = 100 - j.value<Sint16>("percentage", 0);
+			break;
+
 		case  39: // EnemyGlobal_LinkNum
 			eventRec[x].eventdat  = j.value<Sint16>("linknum", 0);
 			eventRec[x].eventdat2 = j.value<Sint16>("new_linknum", 0);
