@@ -52,8 +52,6 @@ void JE_SFCodes(JE_byte playerNum_, JE_integer PX_, JE_integer PY_, JE_integer m
 
 void JE_outCharGlow(JE_word x, JE_word y, const char *s);
 
-void JE_playCredits(void);
-
 void JE_inGameDisplays(void);
 void JE_mainKeyboardInput(void);
 void JE_pauseGame(void);

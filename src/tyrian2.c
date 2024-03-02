@@ -820,9 +820,9 @@ start_level:
 	if (levelStartTime) // Increment total time spent in levels
 	{
 #if SDL_VERSION_ATLEAST(2, 0, 18)
-		APPlayData.TimeInMenu += SDL_GetTicks64() - levelStartTime;
+		APPlayData.TimeInLevel += SDL_GetTicks64() - levelStartTime;
 #else
-		APPlayData.TimeInMenu += SDL_GetTicks() - levelStartTime;
+		APPlayData.TimeInLevel += SDL_GetTicks() - levelStartTime;
 #endif
 	}
 

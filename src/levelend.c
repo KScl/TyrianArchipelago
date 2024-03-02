@@ -3,20 +3,25 @@
 
 #include "animlib.h"
 #include "apmenu.h"
+#include "file.h"
 #include "fonthand.h"
 #include "helptext.h"
 #include "keyboard.h"
 #include "loudness.h"
+#include "levelend.h"
 #include "lvlmast.h"
 #include "mainint.h"
+#include "mtrand.h"
 #include "nortsong.h"
 #include "nortvars.h"
 #include "pcxmast.h"
 #include "picload.h"
 #include "varz.h"
+#include "vga256d.h"
 #include "video.h"
 
 #include "archipelago/apconnect.h"
+#include "archipelago/customship.h"
 
 // ============================================================================
 // Level End
@@ -543,4 +548,171 @@ void levelend_playEndScene(unsigned int episode)
 		JE_playCredits();
 		apmenu_RandomizerStats();
 	}
+}
+
+// ============================================================================
+// Game End
+// ============================================================================
+
+void JE_playCredits(void)
+{
+	const int lines_max = (tyrian2000detected) ? 126 : 131;
+	char credstr[lines_max][65 + 1];
+
+	int lines = 0;
+
+	Sprite2_array *currentShipGr = NULL;
+
+	JE_byte currentpic = 0, fade = 0;
+	JE_shortint fadechg = 1;
+	JE_integer shipx = 0, shipxwait = 0;
+	JE_shortint shipxc = 0, shipxca = 0;
+
+	load_sprites_file(EXTRA_SHAPES, "estsc.shp");
+
+	setDelay2(1000);
+
+	play_song(8);
+
+	// load credits text
+	FILE *f = dir_fopen_die(data_dir(), "tyrian.cdt", "rb");
+	for (lines = 0; lines < lines_max; ++lines)
+	{
+		read_encrypted_pascal_string(credstr[lines], sizeof(credstr[lines]), f);
+	}
+	fclose(f);
+
+	memcpy(colors, palettes[6-1], sizeof(colors));
+	JE_clr256(VGAScreen);
+	JE_showVGA();
+	fade_palette(colors, 2, 0, 255);
+
+	//tempScreenSeg = VGAScreenSeg;
+
+	const int ticks_max = lines * 20 * 3;
+	for (int ticks = 0; ticks < ticks_max; ++ticks)
+	{
+		setDelay(1);
+		JE_clr256(VGAScreen);
+
+		blit_sprite_hv(VGAScreenSeg, 319 - sprite(EXTRA_SHAPES, currentpic)->width, 100 - (sprite(EXTRA_SHAPES, currentpic)->height / 2), EXTRA_SHAPES, currentpic, 0x0, fade - 15);
+
+		fade += fadechg;
+		if (fade == 0 && fadechg == -1)
+		{
+			fadechg = 1;
+			++currentpic;
+			if (currentpic >= sprite_table[EXTRA_SHAPES].count)
+				currentpic = 0;
+		}
+		if (fade == 15)
+			fadechg = 0;
+
+		if (getDelayTicks2() == 0)
+		{
+			fadechg = -1;
+			setDelay2(900);
+		}
+
+		if (ticks % 200 == 0)
+		{
+			currentShipGr = CustomShip_GetSprite(mt_rand() % CustomShip_Count());
+			shipxwait = (mt_rand() % 80) + 10;
+			if ((mt_rand() % 2) == 1)
+			{
+				shipx = 1;
+				shipxc = 0;
+				shipxca = 1;
+			}
+			else
+			{
+				shipx = 900;
+				shipxc = 0;
+				shipxca = -1;
+			}
+		}
+
+		shipxwait--;
+		if (shipxwait == 0)
+		{
+			if (shipx == 1 || shipx == 900)
+				shipxc = 0;
+			shipxca = -shipxca;
+			shipxwait = (mt_rand() % 40) + 15;
+		}
+		shipxc += shipxca;
+		shipx += shipxc;
+		if (shipx < 1)
+		{
+			shipx = 1;
+			shipxwait = 1;
+		}
+		if (shipx > 900)
+		{
+			shipx = 900;
+			shipxwait = 1;
+		}
+		int tmp_unknown = shipxc * shipxc;
+		if (450 + tmp_unknown < 0 || 450 + tmp_unknown > 900)
+		{
+			if (shipxca < 0 && shipxc < 0)
+				shipxwait = 1;
+			if (shipxca > 0 && shipxc > 0)
+				shipxwait = 1;
+		}
+
+		uint ship_sprite = 5;
+		if (shipxc < -10)     ship_sprite -= (shipxc < -20) ? 4 : 2;
+		else if (shipxc > 10) ship_sprite += (shipxc > 20) ? 4 : 2;
+
+		blit_sprite2x2(VGAScreen, shipx / 40, 184 - (ticks % 200), *currentShipGr, ship_sprite);
+
+		const int bottom_line = (ticks / 3) / 20;
+		int y = 20 - ((ticks / 3) % 20);
+
+		for (int line = bottom_line - 10; line < bottom_line; ++line)
+		{
+			if (line >= 0 && line < lines_max)
+			{
+				if (strcmp(&credstr[line][0], ".") != 0 && strlen(credstr[line]))
+				{
+					const Uint8 color = credstr[line][0] - 65;
+					const char *text = &credstr[line][1];
+
+					const int x = 110 - JE_textWidth(text, SMALL_FONT_SHAPES) / 2;
+
+					JE_outTextAdjust(VGAScreen, x + abs((y / 18) % 4 - 2) - 1, y - 1, text, color, -8, SMALL_FONT_SHAPES, false);
+					JE_outTextAdjust(VGAScreen, x,                             y,     text, color, -2, SMALL_FONT_SHAPES, false);
+				}
+			}
+
+			y += 20;
+		}
+
+		fill_rectangle_xy(VGAScreen, 0,  0, 319, 10, 0);
+		fill_rectangle_xy(VGAScreen, 0, 190, 319, 199, 0);
+
+		if (currentpic == sprite_table[EXTRA_SHAPES].count - 1)
+			JE_outTextAdjust(VGAScreen, 5, 180, miscText[54], 2, -2, SMALL_FONT_SHAPES, false);  // levels-in-episode
+
+		if (bottom_line == lines_max - 8)
+			fade_song();
+
+		if (ticks == ticks_max - 1)
+		{
+			--ticks;
+			play_song(9);
+		}
+
+		JE_showVGA();
+
+		wait_delay();
+
+		if (JE_anyButton())
+			break;
+	}
+
+	fade_black(10);
+
+	free_sprites(EXTRA_SHAPES);
 }
