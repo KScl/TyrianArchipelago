@@ -57,5 +57,6 @@ void JE_outTextGlow(SDL_Surface * screen, int x, int y, const char *s);
 // ----------------------------------------------------------------------------
 
 void fonthand_outTextColorize(SDL_Surface *screen, int x, int y, const char *s, Uint8 defaultHue, Uint8 defaultVal, bool darken);
+void fonthand_outTextPartial(SDL_Surface *screen, int x, int y, int xlb, int xrb, const char *s, Uint8 hue, Uint8 val, bool darken);
 
 #endif /* FONTHAND_H */

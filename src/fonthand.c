@@ -386,3 +386,102 @@ void fonthand_outTextColorize(SDL_Surface *screen, int x, int y, const char *s, 
 		}
 	}
 }
+
+// ----------------------------------------------------------------------------
+
+// Code to grab and later redraw an 8x8 segment of the screen.
+static void grabScreenSection(SDL_Surface *screen, Uint8 *buffer, int x, int y)
+{
+	if (x < 0 || x > screen->w - 8 || y < 0 || y > screen->h - 8)
+		return;
+
+	Uint8 *src_s = (Uint8*)screen->pixels + (y * screen->pitch) + x;
+	Uint8 *dst_s = buffer;
+	for (int yLoop = 0; yLoop < 8; ++yLoop)
+	{
+		memcpy(dst_s, src_s, 8);
+		dst_s += 8;
+		src_s += screen->pitch;
+	}
+}
+
+static void redrawGrabbedSection(SDL_Surface *screen, Uint8 *buffer, int x, int y)
+{
+	if (x < 0 || x > screen->w - 8 || y < 0 || y > screen->h - 8)
+		return;
+
+	Uint8 *src_s = buffer;
+	Uint8 *dst_s = (Uint8*)screen->pixels + (y * screen->pitch) + x;
+	for (int yLoop = 0; yLoop < 8; ++yLoop)
+	{
+		memcpy(dst_s, src_s, 8);
+		dst_s += screen->pitch;
+		src_s += 8;
+	}
+}
+
+void fonthand_outTextPartial(SDL_Surface *screen, int x, int y, int xlb, int xrb, const char *s, Uint8 hue, Uint8 val, bool darken)
+{
+	Uint8 bright = 0;
+	int spriteID;
+
+	for (; *s && x < xlb; ++s)
+	{
+		switch (*s)
+		{
+			case ' ':
+				x += 6;
+				continue; // outer for loop
+			case '~':
+				bright = (bright == 0) ? 4 : 0;
+				continue; // outer for loop
+			default:
+				spriteID = font_ascii[(unsigned char)*s];
+				break;
+		}
+
+		if (spriteID != -1 && sprite_exists(TINY_FONT, spriteID))
+		{
+			const int new_width = sprite(TINY_FONT, spriteID)->width;
+			if (x + new_width > xlb) // would be displayed, need to draw
+				break;
+			x += new_width + 1;
+		}
+	}
+
+	if (!(*s))
+		return;
+
+	Uint8 left_buffer[64];
+	Uint8 right_buffer[64];
+	grabScreenSection(screen, left_buffer, xlb - 8, y);
+	grabScreenSection(screen, right_buffer, xrb, y);
+
+	for (; *s && x < xrb; ++s)
+	{
+		switch (*s)
+		{
+			case ' ':
+				x += 6;
+				continue; // outer for loop
+			case '~':
+				bright = (bright == 0) ? 4 : 0;
+				continue; // outer for loop
+			default:
+				spriteID = font_ascii[(unsigned char)*s];
+				break;
+		}
+
+		if (spriteID != -1 && sprite_exists(TINY_FONT, spriteID))
+		{
+			if (darken)
+				blit_sprite_dark(screen, x + 1, y + 1, TINY_FONT, spriteID, false);
+			blit_sprite_hv_unsafe(screen, x, y, TINY_FONT, spriteID, hue, val + bright);
+
+			x += sprite(TINY_FONT, spriteID)->width + 1;
+		}
+	}
+
+	redrawGrabbedSection(screen, left_buffer, xlb - 8, y);
+	redrawGrabbedSection(screen, right_buffer, xrb, y);
+}

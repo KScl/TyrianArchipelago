@@ -1012,8 +1012,8 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 			if (playerID != ap->get_player_number())
 			{
 				std::string playerName = APRemote_GetPlayerName(playerID);
-				strncpy(shopItemBuffer[i].PlayerName, playerName.c_str(), 40 - 1);
-				shopItemBuffer[i].PlayerName[39] = 0;
+				strncpy(shopItemBuffer[i].PlayerName, playerName.c_str(), 32 - 1);
+				shopItemBuffer[i].PlayerName[32 - 1] = 0;
 			}
 
 			if (itemID >= ARCHIPELAGO_BASE_ID && itemID <= ARCHIPELAGO_BASE_ID+999)
@@ -1030,8 +1030,8 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 			shopItemBuffer[i].Icon = 9003;
 		}
 
-		strncpy(shopItemBuffer[i].ItemName, itemName.c_str(), 40 - 1);
-		shopItemBuffer[i].ItemName[39] = 0;
+		strncpy(shopItemBuffer[i].ItemName, itemName.c_str(), 96 - 1);
+		shopItemBuffer[i].ItemName[96 - 1] = 0;
 	}
 	*shopItems = (i == 0) ? NULL : shopItemBuffer;
 	return i;

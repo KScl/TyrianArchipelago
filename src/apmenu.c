@@ -571,6 +571,9 @@ static int subMenuSelections[NUM_SUBMENU] = {0};
 // Upgrade menu uses this to show money accurately while you're choosing weapons
 static Uint64 tempMoneySub = 0;
 
+// A few different menus use this
+static Uint32 itemHoverTime = 0;
+
 #define GETSELECTED() (subMenuSelections[currentSubMenu])
 #define SELECTED(menuItem) (subMenuSelections[currentSubMenu] == (menuItem))
 
@@ -610,22 +613,27 @@ static menunavcode_t defaultMenuNavigation(const mousetargets_t *mouseTargets)
 	if (buttonDown)
 		mouseTarget = apmenu_mouseInTarget(mouseTargets, lastmouse_x, lastmouse_y);
 
+	++itemHoverTime;
+
 	if (mouseTarget >= 0 && *selection != mouseTarget)
 	{
 		JE_playSampleNum(S_CURSOR);
 		*selection = mouseTarget;
+		itemHoverTime = 0;
 	}
 	else if (newkey && lastkey_scan == SDL_SCANCODE_UP)
 	{
 		JE_playSampleNum(S_CURSOR);
 		if (--(*selection) < 0)
 			*selection = mouseTargets->count - 1;
+		itemHoverTime = 0;
 	}
 	else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
 	{
 		JE_playSampleNum(S_CURSOR);
 		if (++(*selection) >= mouseTargets->count)
 			*selection = 0;
+		itemHoverTime = 0;
 	}
 
 	if ((mouseTarget >= 0 && buttonDown)
@@ -654,6 +662,27 @@ static const char *getCleanName(Uint16 itemID)
 		case 512: case 609: return "Banana Blast";
 		case 513: case 610: return "HotDog";
 		default:            return apitems_AllNames[itemID];		
+	}
+}
+
+// Scrolls text on screen if it is too long.
+void scrollingTinyTextItem(SDL_Surface *screen, int x, int y, int width, const char *s, Uint8 hue, Uint8 value, bool doScroll)
+{
+	x += 1;
+	y += 1;
+
+	const int textWidth = JE_textWidth(s, TINY_FONT);
+	if (textWidth <= width)
+		JE_outTextAndDarken(screen, x, y, s, hue, value, TINY_FONT);
+	else if (!doScroll)
+		fonthand_outTextPartial(screen, x, y, x, x+width, s, hue, value, true);
+	else
+	{
+		const int scrollX = (itemHoverTime <= 60) ? x : x - ((signed)itemHoverTime - 60);
+		if (scrollX + textWidth < x)
+			itemHoverTime = 0;
+
+		fonthand_outTextPartial(screen, scrollX, y, x, x+width, s, hue, value, true);			
 	}
 }
 // ----------------------------------------------------------------------------
@@ -786,7 +815,7 @@ bool apmenu_quitRequest(void)
 // Main SubMenu
 // ----------------------------------------------------------------------------
 
-const mousetargets_t mainMenuTargets = {6, {
+static const mousetargets_t mainMenuTargets = {6, {
 	{164,  38, 111, /* width "Play Next Level" */ 12},
 	{164,  54,  77, /* width "Ship Specs"      */ 12},
 	{164,  70,  71, /* width "Visit Shop"      */ 12},
@@ -795,7 +824,7 @@ const mousetargets_t mainMenuTargets = {6, {
 	{164, 134,  71, /* width "Quit Game"       */ 12},
 }};
 
-const mousetargets_t mainMenuTargetsNoShop = {5, {
+static const mousetargets_t mainMenuTargetsNoShop = {5, {
 	{164,  38, 111, /* width "Play Next Level" */ 12},
 	{164,  54,  77, /* width "Ship Specs"      */ 12},
 	{164,  70,  97, /* width "Upgrade Ship"    */ 12},
@@ -849,6 +878,23 @@ static void submenuMain_Run(void)
 // ----------------------------------------------------------------------------
 // Level Selection SubMenus
 // ----------------------------------------------------------------------------
+
+static const mousetargets_t levelTargets = {13, {
+	{164,  38,  80, 12},
+	{164,  54,  80, 12},
+	{164,  70,  80, 12},
+	{164,  86,  80, 12},
+	{164, 102,  80, 12},
+	{164, 118,  80, 12},
+	{164, 134,  80, 12},
+	{164, 150,  80, 12},
+	{264, 166,  40, 12}, // Back
+	// Episode navigation
+	{160,   0, 120,  34, MOUSE_POINTER_UP},
+	{160, 182, 120,  18, MOUSE_POINTER_DOWN},
+	{130,  38,  30, 144, MOUSE_POINTER_LEFT},
+	{290,  38,  30, 144, MOUSE_POINTER_RIGHT},
+}};
 
 static int navEpisode = 1; // Currently selected episode
 static int navLevel   = 0; // Sublevel in above episode
@@ -970,23 +1016,6 @@ static void levelselect_attemptSelect(void)
 
 static void submenuLevelSelect_Run(void)
 {
-	mousetargets_t levelTargets = {13, {
-		{164,  38,  80, 12},
-		{164,  54,  80, 12},
-		{164,  70,  80, 12},
-		{164,  86,  80, 12},
-		{164, 102,  80, 12},
-		{164, 118,  80, 12},
-		{164, 134,  80, 12},
-		{164, 150,  80, 12},
-		{264, 166,  40, 12}, // Back
-		// Episode navigation
-		{160,   0, 120,  34, MOUSE_POINTER_UP},
-		{160, 182, 120,  18, MOUSE_POINTER_DOWN},
-		{130,  38,  30, 144, MOUSE_POINTER_LEFT},
-		{290,  38,  30, 144, MOUSE_POINTER_RIGHT},
-	}};
-
 	// Mousewheel actions go before mouse movement
 	// so that what's behind the cursor gets updated immediately after scrolling.
 	if (mousewheel == MOUSEWHEEL_UP)
@@ -1145,9 +1174,22 @@ void submenuLevelSelect_Init(void)
 // Upgrade Ship SubMenus
 // ----------------------------------------------------------------------------
 
-mousetargets_t upgradeChoiceTargets = {6};
+static const mousetargets_t upgradeChoiceTargets = {6, {
+	{164,  38, 104, /* width "Front Weapon"   */ 12},
+	{164,  54,  97, /* width "Rear Weapon"    */ 12},
+	{164,  70,  93, /* width "Left Sidekick"  */ 12},
+	{164,  86,  99, /* width "Right Sidekick" */ 12},
+	{164, 102,  50, /* width "Special"        */ 12},
+	{164, 134,  35, /* width "Done"           */ 12},
+}};
 
-mousetargets_t upgradeChoiceTargetsNoSpecial = {5};
+static const mousetargets_t upgradeChoiceTargetsNoSpecial = {5, {
+	{164,  38, 104, /* width "Front Weapon"   */ 12},
+	{164,  54,  97, /* width "Rear Weapon"    */ 12},
+	{164,  70,  93, /* width "Left Sidekick"  */ 12},
+	{164,  86,  99, /* width "Right Sidekick" */ 12},
+	{164, 118,  35, /* width "Done"           */ 12},
+}};
 
 static void submenuUpgrade_Init(void)
 {
@@ -1225,6 +1267,71 @@ int itemCount = 0;
 apweapon_t itemList[64]; // All possible item IDs, and power levels for each
 bool currentSelectionValid = false;
 
+// ------------------------------------------------------------------
+// Mouse Controls Specific Behavior
+// ------------------------------------------------------------------
+
+static const mousetargets_t upgradeItemListTargets = {19, {
+	{171,  38, 129,  8},
+	{171,  47, 129,  8},
+	{171,  56, 129,  8},
+	{171,  65, 129,  8},
+	{171,  74, 129,  8},
+	{171,  83, 129,  8},
+	{171,  92, 129,  8},
+	{171, 101, 129,  8},
+	{171, 110, 129,  8},
+	{171, 119, 129,  8},
+	{171, 128, 129,  8},
+	{171, 137, 129,  8},
+	{171, 146, 129,  8},
+	{171, 155, 129,  8},
+	{269, 166,  35, 12}, // Done
+	// Menu scrolling
+	{160,   0, 120,  34, MOUSE_POINTER_UP},
+	{160, 182, 120,  18, MOUSE_POINTER_DOWN},
+	// Power up/down
+	{ 24, 149,  12,  19, MOUSE_POINTER_LEFT},
+	{120, 149,  12,  19, MOUSE_POINTER_RIGHT},
+}};
+
+static int upgradeLastHover = -1;
+
+static void upgrade_scrollWeapons(int offset)
+{
+	if (upgradeScroll + offset < 0 || upgradeScroll + 13 + offset >= itemCount)
+		return;
+
+	JE_playSampleNum(S_CURSOR);
+	upgradeScroll += offset;
+}
+
+static void upgrade_setWeapon(int posFromScroll)
+{
+	if (upgradeScroll + posFromScroll >= itemCount)
+		return;
+
+	apweapon_t *newWeapon = &itemList[upgradeScroll + posFromScroll];
+
+	if (!player_overrideItemChoice(currentSubMenu - SUBMENU_UP_FRONTPORT,
+		newWeapon->Item, newWeapon->PowerLevel))
+	{
+		JE_playSampleNum(S_CLINK);		
+	}
+	else
+	{
+		JE_playSampleNum(S_CLICK);
+		mainChoice->Item = newWeapon->Item;
+		mainChoice->PowerLevel = newWeapon->PowerLevel;
+		tempMoneySub = Archipelago_GetTotalUpgradeCost(mainChoice->Item, mainChoice->PowerLevel);
+		subMenuSelections[currentSubMenu] = upgradeScroll + posFromScroll;
+	}
+}
+
+// ------------------------------------------------------------------
+// Keyboard Specific Behavior
+// ------------------------------------------------------------------
+
 static void upgrade_changeWeapon(int offset)
 {
 	if (subMenuSelections[currentSubMenu] < 0) // On "done"
@@ -1299,35 +1406,98 @@ static void upgrade_confirm(apweapon_t *selWeapon)
 
 	if (!player_overrideItemChoice(currentSubMenu - SUBMENU_UP_FRONTPORT,
 		selWeapon->Item, selWeapon->PowerLevel))
-		JE_playSampleNum(S_CLINK);
+	{
+		JE_playSampleNum(S_CLINK);		
+	}
 	else
 	{
 		JE_playSampleNum(S_CLICK);
 		mainChoice->Item = selWeapon->Item;
 		mainChoice->PowerLevel = selWeapon->PowerLevel;
-		subMenuSelections[currentSubMenu] = -9999;		
+		subMenuSelections[currentSubMenu] = -9999;
 	}
 }
+
+// ------------------------------------------------------------------
 
 static void submenuUpAll_Run(void)
 {
 	apweapon_t *selWeapon = mainChoice;
 
-	if (newkey && lastkey_scan == SDL_SCANCODE_UP)
-		upgrade_changeWeapon(-1);
-	else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
-		upgrade_changeWeapon(1);
+	// Mousewheel actions go before mouse movement
+	// so that what's behind the cursor gets updated immediately after scrolling.
+	if (mousewheel == MOUSEWHEEL_UP)
+		upgrade_scrollWeapons(-1);
+	else if (mousewheel == MOUSEWHEEL_DOWN)
+		upgrade_scrollWeapons(1);
 
-	if (subMenuSelections[currentSubMenu] >= 0)
+	// Separate mouse hover from mouse down for this menu only
+	int mouseHoverTarget = apmenu_mouseInTarget(&upgradeItemListTargets, mouse_x, mouse_y);
+	if (upgradeLastHover != mouseHoverTarget)
 	{
-		selWeapon = &itemList[subMenuSelections[currentSubMenu]];
+		upgradeLastHover = mouseHoverTarget;
+		if (mouseHoverTarget >= 0 && mouseHoverTarget <= 14)
+			JE_playSampleNum(S_CURSOR);
+	}
 
-		if (currentSubMenu == SUBMENU_UP_FRONTPORT || currentSubMenu == SUBMENU_UP_REARPORT)
+	// Menu behavior for upgrading and choosing weapons works differently because the natural
+	// flow for keyboard doesn't convey well for a mouse. You'd have to dodge menu items to
+	// upgrade the weapon you wanted if we just auto-selected what you're highlighted over,
+	// like the keyboard controls do.
+	//
+	// The other prime difference is that changes are committed immediately, instead of
+	// requiring a selection to confirm, because hitting a narrow menu target to confirm
+	// your changes is not as easy as just pressing the "enter" button. This does make for
+	// some weird interactions if you switch between mouse and keyboard, but oh well.
+	int mouseDownTarget = (newmouse && lastmouse_but == SDL_BUTTON_LEFT) ?
+		apmenu_mouseInTarget(&upgradeItemListTargets, lastmouse_x, lastmouse_y) : -1;
+	if (mouseDownTarget >= 0)
+	{
+		switch (mouseDownTarget)
 		{
-			if (newkey && lastkey_scan == SDL_SCANCODE_LEFT)
-				upgrade_changePower(selWeapon, -1);
-			else if (newkey && lastkey_scan == SDL_SCANCODE_RIGHT)
-				upgrade_changePower(selWeapon, 1);			
+			case 14:
+				JE_playSampleNum(S_ITEM);
+				nextSubMenu = SUBMENU_RETURN;
+				break;
+			case 15:
+				upgrade_scrollWeapons(-1);
+				break;
+			case 16:
+				upgrade_scrollWeapons(1);
+				break;
+			case 17:
+				if (currentSubMenu == SUBMENU_UP_FRONTPORT || currentSubMenu == SUBMENU_UP_REARPORT)
+					upgrade_changePower(mainChoice, -1);
+				break;
+			case 18:
+				if (currentSubMenu == SUBMENU_UP_FRONTPORT || currentSubMenu == SUBMENU_UP_REARPORT)
+					upgrade_changePower(mainChoice, 1);
+				break;
+			default:
+				upgrade_setWeapon(mouseDownTarget);
+				break;
+		}
+		selWeapon = &itemList[subMenuSelections[currentSubMenu]];
+		selWeapon->PowerLevel = mainChoice->PowerLevel;
+	}
+	else
+	{
+		if (newkey && lastkey_scan == SDL_SCANCODE_UP)
+			upgrade_changeWeapon(-1);
+		else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
+			upgrade_changeWeapon(1);
+
+		if (subMenuSelections[currentSubMenu] >= 0)
+		{
+			selWeapon = &itemList[subMenuSelections[currentSubMenu]];
+
+			if (currentSubMenu == SUBMENU_UP_FRONTPORT || currentSubMenu == SUBMENU_UP_REARPORT)
+			{
+				if (newkey && lastkey_scan == SDL_SCANCODE_LEFT)
+					upgrade_changePower(selWeapon, -1);
+				else if (newkey && lastkey_scan == SDL_SCANCODE_RIGHT)
+					upgrade_changePower(selWeapon, 1);
+			}
 		}
 	}
 
@@ -1385,7 +1555,9 @@ static void submenuUpAll_Run(void)
 	int ypos = 38;
 	for (int i = upgradeScroll; i < upgradeScroll + 14; ++i)
 	{
-		const int shade = subMenuSelections[currentSubMenu] == i ? 15 : 28;
+		bool highlight = (subMenuSelections[currentSubMenu] == i
+			|| (upgradeLastHover >= 0 && i == upgradeScroll + upgradeLastHover));
+		const int shade = highlight ? 15 : 28;
 
 		bool enabled = false;
 		bool visible = false;
@@ -1434,8 +1606,10 @@ static void submenuUpAll_Run(void)
 		ypos += 9;
 	}
 
+	const bool doneSelected = ((upgradeLastHover <= 0 && subMenuSelections[currentSubMenu] < 0)
+		|| upgradeLastHover == 14);
 	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Done", SMALL_FONT_SHAPES,
-		right_aligned, 15, -3 + (subMenuSelections[currentSubMenu] < 0 ? 2 : 0), false, 2);
+		right_aligned, 15, -3 + (doneSelected ? 2 : 0), false, 2);
 
 	// ----- Help Text --------------------------------------------------------
 	const char *helpText;
@@ -1481,6 +1655,8 @@ static void submenuUpAll_Init(void)
 		tempMoneySub = Archipelago_GetTotalUpgradeCost(mainChoice->Item, mainChoice->PowerLevel);
 		APStats.Cash += tempMoneySub;
 	}
+
+	upgradeLastHover = -1;
 }
 
 static void submenuUpAll_Exit(void)
@@ -1676,22 +1852,10 @@ static void submenuInShop_Run(void)
 		else
 			snprintf(string_buffer, sizeof(string_buffer), "Cost: %d", shopItemList[i].Cost);
 
-		JE_textShade(VGAScreen, 185, y+4, shopItemList[i].ItemName,
-			shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
+		scrollingTinyTextItem(VGAScreen, 185, y+4, 126, shopItemList[i].ItemName,
+			shade / 16, shade % 16 - 8 - afford_shade, (shade == 15));
 		JE_textShade(VGAScreen, 187, y+14, string_buffer,
 			shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
-
-		/* I couldn't find a way to make this look good
-		else
-		{
-			JE_textShade(VGAScreen, 185, y+2, shopItemList[i].ItemName,
-				shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
-			JE_textShade(VGAScreen, 185, y+9, shopItemList[i].PlayerName,
-				shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
-			JE_textShade(VGAScreen, 187, y+17, string_buffer,
-				shade / 16, shade % 16 - 8 - afford_shade, DARKEN);
-		}
-		*/
 
 		sprites_blitArchipelagoIcon(VGAScreen, 160, y, shopItemList[i].Icon);
 	}
@@ -1721,7 +1885,55 @@ static void submenuInShop_Run(void)
 // Custom Ship Choice SubMenu
 // ----------------------------------------------------------------------------
 
+static const mousetargets_t customShipTargets = {17, {
+	{171,  38, 129,  8},
+	{171,  47, 129,  8},
+	{171,  56, 129,  8},
+	{171,  65, 129,  8},
+	{171,  74, 129,  8},
+	{171,  83, 129,  8},
+	{171,  92, 129,  8},
+	{171, 101, 129,  8},
+	{171, 110, 129,  8},
+	{171, 119, 129,  8},
+	{171, 128, 129,  8},
+	{171, 137, 129,  8},
+	{171, 146, 129,  8},
+	{171, 155, 129,  8},
+	{269, 166,  35, 12}, // Done
+	// Menu scrolling
+	{160,   0, 120,  34, MOUSE_POINTER_UP},
+	{160, 182, 120,  18, MOUSE_POINTER_DOWN},
+}};
+
 static int customShipScroll = 0;
+
+static void ship_set(int posFromScroll)
+{
+	if (customShipScroll + posFromScroll == subMenuSelections[currentSubMenu]
+		|| !CustomShip_Exists(customShipScroll + posFromScroll))
+	{
+		return;		
+	}
+
+	JE_playSampleNum(S_CURSOR);
+	subMenuSelections[currentSubMenu] = customShipScroll + posFromScroll;
+}
+
+static void ship_scroll(int offset)
+{
+	const int customShipTotal = (signed)CustomShip_Count();
+	if (customShipScroll + offset < 0 || customShipScroll + 13 + offset >= customShipTotal)
+		return;
+
+	JE_playSampleNum(S_CURSOR);
+	customShipScroll += offset;
+
+	if (subMenuSelections[currentSubMenu] < customShipScroll)
+		subMenuSelections[currentSubMenu] = customShipScroll;
+	else if (subMenuSelections[currentSubMenu] > customShipScroll + 13)
+		subMenuSelections[currentSubMenu] = customShipScroll + 13;
+}
 
 static void ship_navigate(int offset)
 {
@@ -1765,19 +1977,62 @@ static void ship_confirm(void)
 	else
 	{
 		currentCustomShip = subMenuSelections[currentSubMenu];
-		subMenuSelections[currentSubMenu] = -9999;		
+		subMenuSelections[currentSubMenu] = -9999;
 	}
 }
 
 static void submenuOptCustomShip_Run(void)
 {
-	if (newkey && lastkey_scan == SDL_SCANCODE_UP)
-		ship_navigate(-1);
-	else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
-		ship_navigate(1);
+	// Mousewheel actions go before mouse movement
+	// so that what's behind the cursor gets updated immediately after scrolling.
+	if (mousewheel == MOUSEWHEEL_UP)
+		ship_scroll(-1);
+	else if (mousewheel == MOUSEWHEEL_DOWN)
+		ship_scroll(1);
 
-	if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_SPACE))
-		ship_confirm();
+	int mouseTarget = apmenu_mouseInTarget(&customShipTargets, mouse_x, mouse_y);
+	bool buttonDown = (newmouse && lastmouse_but == SDL_BUTTON_LEFT);
+	if (buttonDown)
+		mouseTarget = apmenu_mouseInTarget(&customShipTargets, lastmouse_x, lastmouse_y);
+
+	if (mouseTarget >= 0) switch (mouseTarget)
+	{
+		case 14:
+			if (subMenuSelections[currentSubMenu] >= 0)
+			{
+				JE_playSampleNum(S_CURSOR);
+				subMenuSelections[currentSubMenu] = -9999;
+			}
+			if (buttonDown)
+				ship_confirm();
+			break;
+		case 15:
+			if (buttonDown)
+				ship_scroll(-1);
+			break;
+		case 16:
+			if (buttonDown)
+				ship_scroll(1);
+			break;
+		default:
+			ship_set(mouseTarget);
+			if (buttonDown)
+			{
+				ship_confirm();
+				subMenuSelections[currentSubMenu] = currentCustomShip;
+			}
+			break;
+	}
+	else
+	{
+		if (newkey && lastkey_scan == SDL_SCANCODE_UP)
+			ship_navigate(-1);
+		else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
+			ship_navigate(1);
+
+		if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_SPACE))
+			ship_confirm();		
+	}
 
 	int ypos = 38;
 	for (int i = customShipScroll; i < customShipScroll + 14; ++i)
