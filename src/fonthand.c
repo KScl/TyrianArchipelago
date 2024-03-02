@@ -27,6 +27,8 @@
 #include "vga256d.h"
 #include "video.h"
 
+#include <string.h>
+
 const int font_ascii[256] =
 {
 	 -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,

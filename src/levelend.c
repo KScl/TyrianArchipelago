@@ -557,7 +557,7 @@ void levelend_playEndScene(unsigned int episode)
 void JE_playCredits(void)
 {
 	const int lines_max = (tyrian2000detected) ? 126 : 131;
-	char credstr[lines_max][65 + 1];
+	char credstr[131 /* lines_max (max value) */][65 + 1];
 
 	int lines = 0;
 
