@@ -73,11 +73,9 @@ void JE_outCharGlow(JE_word x, JE_word y, const char *s)
 	JE_shortint glowcol[60]; /* [1..60] */
 	JE_shortint glowcolc[60]; /* [1..60] */
 	JE_word textloc[60]; /* [1..60] */
-	JE_byte bank;
+	const JE_byte bank = (useLastBank) ? 15 : 14;
 
 	setDelay2(1);
-
-	bank = (warningRed) ? 7 : ((useLastBank) ? 15 : 14);
 
 	if (s[0] == '\0')
 		return;
@@ -173,7 +171,6 @@ void JE_initPlayerData(void)
 	player[1].items.sidekick_level = 101;         // 101, 102, 103
 	player[1].items.sidekick_series = 0;          // None
 
-	gameHasRepeated = false;
 	onePlayerAction = false;
 	superArcadeMode = SA_NONE;
 	superTyrian = false;
@@ -198,8 +195,6 @@ void JE_initPlayerData(void)
 
 	mainLevel = FIRST_LEVEL;
 	saveLevel = FIRST_LEVEL;
-
-	strcpy(lastLevelName, miscText[19]);
 }
 
 void JE_gammaCorrect_func(JE_byte *col, JE_real r)

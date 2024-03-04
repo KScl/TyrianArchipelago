@@ -26,17 +26,6 @@
 
 #include <stdio.h>
 
-#define SAVE_FILES_NUM (11 * 2)
-
-/* These are necessary because the size of the structure has changed from the original, but we
-   need to know the original sizes in order to find things in TYRIAN.SAV */
-#define SAVE_FILES_SIZE 2398
-#define SIZEOF_SAVEGAMETEMP SAVE_FILES_SIZE + 4 + 100
-#define SAVE_FILE_SIZE (SIZEOF_SAVEGAMETEMP - 4)
-
-/*#define SAVE_FILES_SIZE (2502 - 4)
-#define SAVE_FILE_SIZE (SAVE_FILES_SIZE)*/
-
 enum
 {
 	DIFFICULTY_WIMP = 0,
@@ -66,57 +55,14 @@ enum
 	KEY_SETTING_RIGHT_SIDEKICK,
 };
 
-//typedef JE_byte DosKeySettings[8];  // fka KeySettingType
-
 typedef SDL_Scancode KeySettings[8];
 
-typedef JE_byte JE_PItemsType[12]; /* [1..12] */
-
-typedef JE_byte JE_EditorItemAvailType[100]; /* [1..100] */
-
-#if 0
-typedef struct
-{
-	JE_word       encode;
-	JE_word       level;
-	JE_PItemsType items;
-	JE_longint    score;
-	JE_longint    score2;
-	char          levelName[11]; /* string [9]; */ /* SYN: Added one more byte to match lastLevelName below */
-	JE_char       name[15]; /* [1..14] */ /* SYN: Added extra byte for null */
-	JE_byte       cubes;
-	JE_byte       power[2]; /* [1..2] */
-	JE_byte       episode;
-	JE_PItemsType lastItems;
-	JE_byte       difficulty;
-	JE_byte       secretHint;
-	JE_byte       input1;
-	JE_byte       input2;
-	JE_boolean    gameHasRepeated; /*See if you went from one episode to another*/
-	JE_byte       initialDifficulty;
-
-	/* High Scores - Each episode has both sets of 1&2 player selections - with 3 in each */
-	JE_longint    highScore1;
-	JE_longint    highScore2;  // unused
-	char          highScoreName[30]; /* string [29] */
-	JE_byte       highScoreDiff;
-} JE_SaveFileType;
-
-typedef JE_SaveFileType JE_SaveFilesType[SAVE_FILES_NUM]; /* [1..savefilesnum] */
-typedef JE_byte JE_SaveGameTemp[SAVE_FILES_SIZE + 4 + 100]; /* [1..sizeof(savefilestype) + 4 + 100] */
-#endif
-
 extern const JE_byte cryptKey[10];
-//extern const DosKeySettings defaultDosKeySettings;  // fka defaultKeySettings
 extern const KeySettings defaultKeySettings;
-extern const char defaultHighScoreNames[34][23];
-extern const char defaultTeamNames[22][25];
-extern const JE_EditorItemAvailType initialItemAvail;
 extern JE_boolean smoothies[9];
 extern JE_byte starShowVGASpecialCode;
 extern JE_word lastCubeMax, cubeMax;
 extern JE_word cubeList[4];
-extern JE_boolean gameHasRepeated;
 extern JE_shortint difficultyLevel, oldDifficultyLevel, initialDifficulty;
 
 extern uint generatorPower, lastGenPower;
@@ -139,7 +85,7 @@ enum
 
 extern JE_byte shotRepeat[11], shotMultiPos[11];
 extern JE_boolean portConfigChange, portConfigDone;
-extern char lastLevelName[11], levelName[11];
+extern char levelName[11];
 extern JE_byte mainLevel, nextLevel, saveLevel;
 //extern DosKeySettings dosKeySettings;  // fka keySettings
 extern KeySettings keySettings;
@@ -148,7 +94,7 @@ extern JE_boolean filtrationAvail, filterActive, filterFade, filterFadeStart;
 extern JE_boolean gameJustLoaded;
 extern JE_boolean galagaMode;
 extern JE_boolean extraGame;
-extern JE_boolean twoPlayerMode, twoPlayerLinked, onePlayerAction, superTyrian, trentWin;
+extern JE_boolean twoPlayerMode, twoPlayerLinked, onePlayerAction, superTyrian;
 extern JE_byte superArcadeMode;
 extern JE_byte superArcadePowerUp;
 extern JE_real linkGunDirec;
@@ -157,7 +103,7 @@ extern JE_byte inputDevice[2];
 extern JE_byte background3over;
 extern JE_byte background2over;
 extern JE_byte gammaCorrection;
-extern JE_boolean superPause, explosionTransparent, displayScore, background2, smoothScroll, wild, superWild, starActive, topEnemyOver, skyEnemyOverAll, background2notTransparent;
+extern JE_boolean superPause, explosionTransparent, background2, smoothScroll, wild, superWild, starActive, topEnemyOver, skyEnemyOverAll, background2notTransparent;
 extern JE_byte fastPlay;
 extern JE_boolean pentiumMode;
 extern JE_byte gameSpeed;

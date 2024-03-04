@@ -47,8 +47,6 @@ void levelend_doLevelStats(void) // fka JE_endLevelAni
 	APStats.Cash += player[0].cash;
 	player[0].cash = 0;
 
-	strcpy(lastLevelName, levelName);
-
 	JE_wipeKey();
 	frameCountMax = 3;
 	textGlowFont = SMALL_FONT_SHAPES;

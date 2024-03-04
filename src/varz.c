@@ -402,23 +402,6 @@ void JE_tyrianHalt(JE_byte code)
 		code = 0;
 	}
 
-#if 0
-	if (trentWin)
-	{
-		printf("\n"
-		       "\n"
-		       "\n"
-		       "\n"
-		       "Sleep well, Trent, you deserve the rest.\n"
-		       "You now have permission to borrow my ship on your next mission.\n"
-		       "\n"
-		       "Also, you might want to try out the YESXMAS parameter.\n"
-		       "  Type: File0001 YESXMAS\n"
-		       "\n"
-		       "You'll need the 2.1 patch, though!\n"
-		       "\n");
-	}
-#endif
 	SDL_Quit();
 	exit(code);
 }

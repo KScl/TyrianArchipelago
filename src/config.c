@@ -82,103 +82,13 @@ static const char *const keySettingNames[] =
 	"right sidekick",
 };
 
-const char defaultHighScoreNames[34][23] = /* [1..34] of string [22] */
-{/*1P*/
-/*TYR*/   "The Prime Chair", /*13*/
-          "Transon Lohk",
-          "Javi Onukala",
-          "Mantori",
-          "Nortaneous",
-          "Dougan",
-          "Reid",
-          "General Zinglon",
-          "Late Gyges Phildren",
-          "Vykromod",
-          "Beppo",
-          "Borogar",
-          "ShipMaster Carlos",
-
-/*OTHER*/ "Jill", /*5*/
-          "Darcy",
-          "Jake Stone",
-          "Malvineous Havershim",
-          "Marta Louise Velasquez",
-
-/*JAZZ*/  "Jazz Jackrabbit", /*3*/
-          "Eva Earlong",
-          "Devan Shell",
-
-/*OMF*/   "Crystal Devroe", /*11*/
-          "Steffan Tommas",
-          "Milano Angston",
-          "Christian",
-          "Shirro",
-          "Jean-Paul",
-          "Ibrahim Hothe",
-          "Angel",
-          "Cossette Akira",
-          "Raven",
-          "Hans Kreissack",
-
-/*DARE*/  "Tyler", /*2*/
-          "Rennis the Rat Guard"
-};
-
-const char defaultTeamNames[22][25] = /* [1..22] of string [24] */
-{
-	"Jackrabbits",
-	"Team Tyrian",
-	"The Elam Brothers",
-	"Dare to Dream Team",
-	"Pinball Freaks",
-	"Extreme Pinball Freaks",
-	"Team Vykromod",
-	"Epic All-Stars",
-	"Hans Keissack's WARriors",
-	"Team Overkill",
-	"Pied Pipers",
-	"Gencore Growlers",
-	"Microsol Masters",
-	"Beta Warriors",
-	"Team Loco",
-	"The Shellians",
-	"Jungle Jills",
-	"Murderous Malvineous",
-	"The Traffic Department",
-	"Clan Mikal",
-	"Clan Patrok",
-	"Carlos' Crawlers"
-};
-
-const JE_EditorItemAvailType initialItemAvail =
-{
-	1,1,1,0,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0, /* Front/Rear Weapons 1-38  */
-	0,0,0,0,0,0,0,0,0,0,1,                                                           /* Fill                     */
-	1,0,0,0,0,1,0,0,0,1,1,0,1,0,0,0,0,0,                                             /* Sidekicks          51-68 */
-	0,0,0,0,0,0,0,0,0,0,0,                                                           /* Fill                     */
-	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,                                                   /* Special Weapons    81-93 */
-	0,0,0,0,0                                                                        /* Fill                     */
-};
-
-/* Last 2 bytes = Word
- *
- * Max Value = 1680
- * X div  60 = Armor  (1-28)
- * X div 168 = Shield (1-12)
- * X div 280 = Engine (1-06)
- */
-
-JE_boolean smoothies[9] = /* [1..9] */
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+JE_boolean smoothies[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 }; /* [1..9] */
 
 JE_byte starShowVGASpecialCode;
 
 /* CubeData */
 JE_word lastCubeMax, cubeMax;
 JE_word cubeList[4]; /* [1..4] */
-
-/* High-Score Stuff */
-JE_boolean gameHasRepeated;  // can only get highscore on first play-through
 
 /* Difficulty */
 JE_shortint difficultyLevel, oldDifficultyLevel,
@@ -192,11 +102,10 @@ JE_byte          shotRepeat[11], shotMultiPos[11];
 JE_boolean       portConfigChange, portConfigDone;
 
 /* Level Data */
-char    lastLevelName[11], levelName[11]; /* string [10] */
+char levelName[11]; /* string [10] */
 JE_byte mainLevel, nextLevel, saveLevel;   /*Current Level #*/
 
 /* Keyboard Junk */
-//DosKeySettings dosKeySettings;
 KeySettings keySettings;
 
 /* Configuration */
@@ -210,7 +119,6 @@ JE_boolean galagaMode;
 JE_boolean extraGame;
 
 JE_boolean twoPlayerMode, twoPlayerLinked, onePlayerAction, superTyrian;
-JE_boolean trentWin = false;
 JE_byte    superArcadeMode;
 
 JE_byte    superArcadePowerUp;
@@ -224,7 +132,6 @@ JE_byte background2over;
 JE_byte gammaCorrection;
 JE_boolean superPause = false;
 JE_boolean explosionTransparent,
-           displayScore,
            background2, smoothScroll, wild, superWild, starActive,
            topEnemyOver,
            skyEnemyOverAll,
@@ -514,13 +421,11 @@ void JE_initProcessorType(void)
 	explosionTransparent = true;
 	filtrationAvail = false;
 	background2 = true;
-	displayScore = true;
 
 	switch (processorType)
 	{
 		case 1: /* 386 */
 			background2 = false;
-			displayScore = false;
 			explosionTransparent = false;
 			break;
 		case 2: /* 486 - Default */

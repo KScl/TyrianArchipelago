@@ -55,10 +55,6 @@ const int font_ascii[256] =
 JE_byte textGlowFont, textGlowBrightness = 6;
 
 JE_boolean levelWarningDisplay;
-//JE_byte levelWarningLines;
-//char levelWarningText[10][61]; /* [1..10] of string [60] */
-JE_boolean warningRed;
-
 JE_byte warningSoundDelay;
 JE_word armorShipDelay;
 JE_byte warningCol;
