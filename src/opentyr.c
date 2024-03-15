@@ -853,7 +853,7 @@ int main(int argc, char *argv[])
 	}
 
 #ifdef NDEBUG
-	if (!isNetworkGame)
+	if (!skipIntroLogos)
 		intro_logos();
 #endif
 
@@ -865,6 +865,16 @@ int main(int argc, char *argv[])
 		stopped_demo = false;
 
 		gameLoaded = false;
+
+#ifdef DEBUG_OPTIONS
+		if (debugDamageViewer)
+		{
+			if (!Archipelago_StartDebugGame())
+				JE_tyrianHalt(1);
+			apmenu_initArchipelagoGame();
+		}
+		else
+#endif
 
 #ifdef WITH_NETWORK
 		if (isNetworkGame)
@@ -885,6 +895,9 @@ int main(int argc, char *argv[])
 
 		// Broke out of main, disconnect AP
 		Archipelago_Disconnect();
+
+		if (debugDamageViewer)
+			break;
 	}
 
 	JE_tyrianHalt(0);

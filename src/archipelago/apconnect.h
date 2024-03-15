@@ -53,6 +53,7 @@ void Archipelago_Save(void);
 // Local Game
 // ----------------------------------------------------------------------------
 
+bool Archipelago_StartDebugGame(void);
 bool Archipelago_StartLocalGame(FILE *file);
 
 // ----------------------------------------------------------------------------

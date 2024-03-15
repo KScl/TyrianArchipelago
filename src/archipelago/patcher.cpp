@@ -195,6 +195,7 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 
 		case  25: // EnemyGlobal_SetHealth
 			eventRec[x].eventdat  = j.value<Sint16>("health", 0);
+			eventRec[x].eventdat6 = j.value<bool>("difficulty_scaled", false) ? 99 : 0;
 			break;
 
 		case  26: // SmallEnemyAdjust

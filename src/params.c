@@ -46,6 +46,7 @@ void JE_paramCheck(int argc, char *argv[])
 
 		// Debugging options
 		{ 256, 0, "no-custom-ship", false },
+		{ 257, 0, "damage-viewer",  false },
 		
 		{ 0, 0, NULL, false}
 	};
@@ -83,7 +84,16 @@ void JE_paramCheck(int argc, char *argv[])
 
 		// Debugging options
 		case 256:
+#ifdef DEBUG_OPTIONS
 			useCustomShips = false;
+#endif
+			break;
+
+		case 257:
+#ifdef DEBUG_OPTIONS
+			skipIntroLogos = true;
+			debugDamageViewer = true;
+#endif
 			break;
 
 		// Regular options
@@ -127,6 +137,7 @@ void JE_paramCheck(int argc, char *argv[])
 				goto connect_slot_error;
 			}
 
+			skipIntroLogos = true;
 			Archipelago_SetDefaultConnectionDetails(option.arg);
 			break;
 

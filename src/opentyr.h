@@ -64,6 +64,9 @@ void setupMenu(void);
 // Debugging Cheats
 // ------------------------------------------------------------------
 
+// Enables debug options like DPS tests
+#define DEBUG_OPTIONS
+
 // Enables "Unbounded" speed option for quickly advancing.
 #define UNBOUNDED_SPEED
 

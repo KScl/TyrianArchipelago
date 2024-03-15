@@ -18,6 +18,7 @@
 	// ========================================================================
 	// Episode 1 - Escape
 	// ========================================================================
+	// Episode 1 is essentially complete and can be 100%ed
 	"Episode1 TYRIAN Easy": {
 		// Addition of Archipelago Items
 		"17:REPLACE":  { "time": 160, "event":201, /* AP_CheckFromEnemy */ "ap_id":0, "linknum":  1, "movement":"falling" },
@@ -27,7 +28,23 @@
 		"510:REPLACE": { "time":2765, "event":201, /* AP_CheckFromEnemy */ "ap_id":5, "linknum":  7, "movement":"falling" },
 		"575:REPLACE": { "time":2992, "event":201, /* AP_CheckFromEnemy */ "ap_id":6, "linknum": 14, "movement":"falling" },
 		"795:REPLACE": { "time":4516, "event":201, /* AP_CheckFromEnemy */ "ap_id":8, "linknum": 11, "movement":"falling", "backup":397 },
-		"878:APPEND":  { "time":5384, "event":201, /* AP_CheckFromEnemy */ "ap_id":9, "linknum":142, "movement":"swaying", "is_boss":true },
+
+		// Boss -- Don't allow parts of the boss to die until fully on screen
+		"863:APPEND": [
+			{ "time":5300, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+			{ "time":5300, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":255 },
+			{ "time":5300, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":255 }
+		],
+		"868:APPEND": [
+			{ "time":5328, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+			{ "time":5328, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":100, "difficulty_scaled":true },
+			{ "time":5328, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":100, "difficulty_scaled":true }
+		],
+		"873:APPEND": { "time":5356, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+		"878:APPEND": [
+			{ "time":5384, "event": 25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":254 },
+			{ "time":5384, "event":201, /* AP_CheckFromEnemy */ "ap_id":9, "linknum":142, "movement":"swaying", "is_boss":true }
+		],
 
 		// Tank Turn-and-fire Secret (exists in the game, but due to an error, is normally unobtainable)
 		"642:REPLACE": { "time":3253, "event":201, /* AP_CheckFromEnemy */ "ap_id":7, "linknum":  4, "movement":"falling", "backup":396 },
@@ -57,7 +74,23 @@
 		"681:REPLACE":  { "time":2765, "event":201, /* AP_CheckFromEnemy */ "ap_id":5, "linknum":  7, "movement":"falling" },
 		"746:REPLACE":  { "time":2992, "event":201, /* AP_CheckFromEnemy */ "ap_id":6, "linknum": 14, "movement":"falling" },
 		"1032:REPLACE": { "time":4516, "event":201, /* AP_CheckFromEnemy */ "ap_id":8, "linknum": 11, "movement":"falling", "backup":397 },
-		"1115:APPEND":  { "time":5384, "event":201, /* AP_CheckFromEnemy */ "ap_id":9, "linknum":142, "movement":"swaying", "is_boss":true },
+
+		// Boss -- Don't allow parts of the boss to die until fully on screen
+		"1100:APPEND": [
+			{ "time":5300, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+			{ "time":5300, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":255 },
+			{ "time":5300, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":255 }
+		],
+		"1105:APPEND": [
+			{ "time":5328, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+			{ "time":5328, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":100, "difficulty_scaled":true },
+			{ "time":5328, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":100, "difficulty_scaled":true }
+		],
+		"1110:APPEND": { "time":5356, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+		"1115:APPEND": [
+			{ "time":5384, "event": 25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":254 },
+			{ "time":5384, "event":201, /* AP_CheckFromEnemy */ "ap_id":9, "linknum":142, "movement":"swaying", "is_boss":true }
+		],
 
 		// Tank Turn-and-fire Secret (exists in the game, but due to an error, is normally unobtainable)
 		"813:REPLACE":  { "time":3253, "event":201, /* AP_CheckFromEnemy */ "ap_id":7, "linknum":  4, "movement":"falling", "backup":396 },
@@ -429,6 +462,17 @@
 	// ========================================================================
 	// Episode 2 - Treachery
 	// ========================================================================
+	// Level status: 5/10
+	// - TORM: Very basic, needs work
+	// - GYGES: Complete
+	// - ASTCITY: Complete
+	// - GEM WAR: Nothing even present
+	// - MARKERS: Nothing even present
+	// - MISTAKES: Complete
+	// - SOH JIN: Nothing even present
+	// - BOTANY A: Nothing even present
+	// - BOTANY B: Complete
+	// - GRYPHON: Complete
 	"Episode2 TORM": {
 		"244:REPLACE": { "time": 751, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum":12, "movement":"static"},
 		"314:REPLACE": { "time": 881, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum":13, "movement":"static"},
@@ -442,7 +486,7 @@
 		"8:REPLACE":   { "time":   2, "event":201, /* AP_CheckFromEnemy */ "ap_id":170, "linknum":  1, "movement":"falling" },
 		"161:REPLACE": { "time": 530, "event":201, /* AP_CheckFromEnemy */ "ap_id":171, "linknum":146, "movement":"falling" },
 		"283:REPLACE": { "time":1610, "event":201, /* AP_CheckFromEnemy */ "ap_id":172, "linknum": 16, "movement":"falling" },
-		"411:APPEND":  { "time":2710, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":173, "movement":"falling" },
+		"411:APPEND":  { "time":2710, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":173, "movement":"static" },
 		"573:REPLACE": { "time":3481, "event":201, /* AP_CheckFromEnemy */ "ap_id":174, "linknum":201, "movement":"falling", "backup":397 },
 		"594:REPLACE": { "time":3752, "event":201, /* AP_CheckFromEnemy */ "ap_id":175, "linknum":  5, "movement":"falling" },
 		"661:APPEND":  { "time":4629, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":176, "movement":"falling" },
@@ -554,7 +598,7 @@
 	// --------------------------------------------------------------
 	"Episode2 BOTANY A ver2.1": {
 	},
-	"Episode2 BOTANY B ver2000": {
+	"Episode2 BOTANY A ver2000": {
 	},
 	// --------------------------------------------------------------
 	"Episode2 BOTANY B": {
@@ -596,6 +640,19 @@
 	// ========================================================================
 	// Episode 3 - Mission: Suicide
 	// ========================================================================
+	// Level status: 6/12
+	// - GAUNTLET: Needs work
+	// - IXMUCANE: Needs work
+	// - BONUS: Complete
+	// - STARGATE: Complete
+	// - AST. CITY: Not really started
+	// - SAWBLADES: Not really started
+	// - CAMANIS: Complete
+	// - MACES: Complete
+	// - TYRIAN X: Complete
+	// - SAVARA Y: Nothing present at all
+	// - NEW DELI: Maybe?
+	// - FLEET: Complete
 	"Episode3 GAUNTLET ver2.1": {
 		"170:REPLACE": { "time": 860, "event":201, /* AP_CheckFromEnemy */ "ap_id":280, "linknum":42, "movement":"static" },
 		"558:REPLACE": { "time":2680, "event":201, /* AP_CheckFromEnemy */ "ap_id":281, "linknum":42, "movement":"static" },
@@ -690,13 +747,73 @@
 		]
 	},
 	// --------------------------------------------------------------
-	"Episode3 TYRIAN X": {
+	"Episode3 TYRIAN X ver2.1": {
+		// Addition of Archipelago Items
+		"25:REPLACE":  { "time": 160, "event":201, /* AP_CheckFromEnemy */ "ap_id":360, "linknum":11, "movement":"falling" },
+		"51:REPLACE":  { "time": 260, "event":201, /* AP_CheckFromEnemy */ "ap_id":361, "linknum": 1, "movement":"falling" },
+		"294:REPLACE": { "time":1560, "event":201, /* AP_CheckFromEnemy */ "ap_id":362, "linknum": 4, "movement":"falling" },
+		"471:REPLACE": { "time":2485, "event":201, /* AP_CheckFromEnemy */ "ap_id":363, "linknum":11, "movement":"falling" },
+		"590:REPLACE": { "time":2765, "event":201, /* AP_CheckFromEnemy */ "ap_id":364, "linknum": 7, "movement":"falling" },
+		"682:REPLACE": { "time":3116, "event":201, /* AP_CheckFromEnemy */ "ap_id":365, "linknum": 7, "movement":"falling" },
+
+		// Tank Turn-and-fire Secret (exists in the game, but due to an error, is normally unobtainable)
+		"717:REPLACE": { "time":3253, "event":201, /* AP_CheckFromEnemy */ "ap_id":366, "linknum": 4, "movement":"falling", "backup":396 },
+
+		// Port Tyrian 2000's change that prevents the boss from being blown up early
+		// Note that this differs from the way we handled it in TYRIAN (Episode 1)
+		"1034:APPEND": [
+			{ "time":5300, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":255 },
+			{ "time":5300, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+			{ "time":5300, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":255 }
+		],
+		"1039:APPEND": [
+			{ "time":5328, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":255 },
+			{ "time":5328, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+			{ "time":5328, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":255 }
+		],
+		"1044:APPEND": [
+			{ "time":5356, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":255 },
+			{ "time":5356, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+			{ "time":5356, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":255 }
+		],
+		"1049:APPEND": [
+			{ "time":5384, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":255 },
+			{ "time":5384, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":255 },
+			{ "time":5384, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":255 }
+		],
+		"1052:PREPEND": [
+			{ "time":5400, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":254 },
+			{ "time":5400, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":254 },
+			{ "time":5400, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":254 },
+			{ "time":5400, "event":201, /* AP_CheckFromEnemy */ "ap_id":366, "linknum":142, "movement":"swaying", "is_boss":true }
+		]
+	},
+	"Episode3 TYRIAN X ver2000": {
+		// Addition of Archipelago Items
+		"25:REPLACE":   { "time": 160, "event":201, /* AP_CheckFromEnemy */ "ap_id":360, "linknum":11, "movement":"falling" },
+		"51:REPLACE":   { "time": 260, "event":201, /* AP_CheckFromEnemy */ "ap_id":361, "linknum": 1, "movement":"falling" },
+		"294:REPLACE":  { "time":1560, "event":201, /* AP_CheckFromEnemy */ "ap_id":362, "linknum": 4, "movement":"falling" },
+		"471:REPLACE":  { "time":2485, "event":201, /* AP_CheckFromEnemy */ "ap_id":363, "linknum":11, "movement":"falling" },
+		"590:REPLACE":  { "time":2765, "event":201, /* AP_CheckFromEnemy */ "ap_id":364, "linknum": 7, "movement":"falling" },
+		"682:REPLACE":  { "time":3116, "event":201, /* AP_CheckFromEnemy */ "ap_id":365, "linknum": 7, "movement":"falling" },
+
+		// Tank Turn-and-fire Secret (exists in the game, but due to an error, is normally unobtainable)
+		"717:REPLACE":  { "time":3253, "event":201, /* AP_CheckFromEnemy */ "ap_id":366, "linknum": 4, "movement":"falling", "backup":396 },
+
+		// Boss drop -- as stated earlier, Tyrian 2000 prevents the boss here from dying until fully spawned already
+		"1067:PREPEND": { "time":5400, "event":201, /* AP_CheckFromEnemy */ "ap_id":367, "linknum":142, "movement":"swaying", "is_boss":true } 
 	},
 	// --------------------------------------------------------------
 	"Episode3 SAVARA Y": {
 	},
 	// --------------------------------------------------------------
 	"Episode3 NEW DELI": {
+		"139:REPLACE": {"time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":380, "linknum": 1, "movement":"falling" },
+		"149:REPLACE": {"time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":381, "linknum": 4, "movement":"falling" },
+		"307:REPLACE": {"time":1800, "event":201, /* AP_CheckFromEnemy */ "ap_id":382, "linknum": 1, "movement":"falling" },
+		"332:REPLACE": {"time":1900, "event":201, /* AP_CheckFromEnemy */ "ap_id":383, "linknum": 4, "movement":"falling" },
+		"355:REPLACE": {"time":2000, "event":201, /* AP_CheckFromEnemy */ "ap_id":384, "linknum":11, "movement":"falling" },
+		"375:REPLACE": {"time":2100, "event":201, /* AP_CheckFromEnemy */ "ap_id":385, "linknum":14, "movement":"falling" }
 	},
 	// --------------------------------------------------------------
 	"Episode3 FLEET": {
@@ -935,10 +1052,60 @@
 	// --------------------------------------------------------------
 	"Episode5 FRUIT": {
 		"165:REPLACE": { "time": 760, "event":201, /* AP_CheckFromEnemy */ "ap_id":640, "linknum": 5, "movement":"sky_falling" }
+	},
+
+	// ========================================================================
+	// Special Patches
+	// ========================================================================
+	"SOH JIN E2 Damage Visualization": {
+		"5:REPLACE": [
+			// Test for "Standard" DPS (Damage to direct target)
+			{ "time":   1, "event": 6, /* NewEnemy_Ground */ "linknum":254, "type":776, "ex":150, "ey":60 },
+
+			// Test for "Extra" DPS (Damage to areas not directly targeted)
+//			{ "time":   1, "event": 6, /* NewEnemy_Ground */ "linknum":253, "type":776, "ex":150, "ey":70 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex": 50, "ey":124 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex": 60, "ey":96 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex": 70, "ey":68 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex": 80, "ey":40 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":100, "ey":40 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":120, "ey":40 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":140, "ey":40 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":160, "ey":40 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":180, "ey":40 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":200, "ey":40 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":220, "ey":40 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":230, "ey":68 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":240, "ey":96 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex":250, "ey":124 },
+
+			// Test for "Sideways" DPS (One side at a 90 degree or close to 90 degree angle)
+//			{ "time":   1, "event": 6, /* NewEnemy_Ground */ "linknum":253, "type":776, "ex":30, "ey":124 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex": 30, "ey":96 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex": 30, "ey":68 },
+//			{ "time":   1, "event":10, /* NewEnemy_Ground2 */ "linknum":254, "type":777, "ex": 30, "ey":40 },
+
+			// ------------------------------------------------------
+			{ "time":   1, "event":19, /* EnemyGlobal_Move */ "linknum":253 },
+			{ "time":   1, "event":19, /* EnemyGlobal_Move */ "linknum":254 },
+			{ "time":   1, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 253, "health":255 },
+			{ "time":   1, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 254, "health":255 },
+			{ "time":   1, "event":31, /* EnemyGlobal_FireOverride */ "linknum": 253 },
+			{ "time":   1, "event":31, /* EnemyGlobal_FireOverride */ "linknum": 254 },
+			{ "time":   2, "event": 2, /* MapBackMove */ "mode":[0] },
+			{ "time":   2, "event":53, /* ForceEvents */ "enable":true },
+			{ "time":1000, "event": 0  /* NoOp */ },
+			{ "time":2000, "event":54, /* Jump */ "jump_time":1000 }
+		]
 	}
 },
 // ===================================================================================================================
 "patchList": {
+	"Debug Mode": {
+		"Episode 2": {
+			"5": "SOH JIN E2 Damage Visualization"
+		}
+	},
 	"Tyrian 2.1": {
 		"Episode 1": {
 			"1":  "Episode1 ASTEROID1",
@@ -978,7 +1145,7 @@
 			"5":  "Episode3 BONUS",
 			"6":  "Episode3 FLEET",
 			"7":  "Episode3 STARGATE",
-			"8":  "Episode3 TYRIAN X",
+			"8":  "Episode3 TYRIAN X ver2.1",
 			"9":  "Episode3 SAWBLADES",
 			"10": "Episode3 SAVARA Y",
 			"11": "Episode3 NEW DELI",
@@ -1045,7 +1212,7 @@
 			"5":  "Episode3 BONUS",
 			"6":  "Episode3 FLEET",
 			"7":  "Episode3 STARGATE",
-			"8":  "Episode3 TYRIAN X",
+			"8":  "Episode3 TYRIAN X ver2000",
 			"9":  "Episode3 SAWBLADES",
 			"10": "Episode3 SAVARA Y",
 			"11": "Episode3 NEW DELI",

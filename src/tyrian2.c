@@ -170,6 +170,34 @@ void JE_starShowVGA(void)
 	skipStarShowVGA = false;
 }
 
+static Uint8 tyrian_scaleEnemyHealth(int baseHealth)
+{
+	if (baseHealth >= 255)
+		return 255;
+
+	switch (difficultyLevel)
+	{
+		default:
+		case DIFFICULTY_WIMP:       baseHealth *= 0.5f + 1;  break;
+		case DIFFICULTY_EASY:       baseHealth *= 0.75f + 1; break;
+		case DIFFICULTY_NORMAL:     break;
+		case DIFFICULTY_HARD:       baseHealth *= 1.2f;      break;
+		case DIFFICULTY_IMPOSSIBLE: baseHealth *= 1.5f;      break;
+		case DIFFICULTY_INSANITY:   baseHealth *= 1.8f;      break;
+		case DIFFICULTY_SUICIDE:    baseHealth *= 2;         break;
+		case DIFFICULTY_MANIACAL:   baseHealth *= 3;         break;
+		case DIFFICULTY_ZINGLON:    baseHealth *= 4;         break;
+		case DIFFICULTY_NORTANEOUS: baseHealth *= 8;         break;
+		case DIFFICULTY_10:         baseHealth *= 8;         break;
+	}
+
+	if (baseHealth > 254)
+		return 254;
+	if (baseHealth <= 0)
+		return 1;
+	return (Uint8)baseHealth;
+}
+
 static void tyrian_blitAPRadar(SDL_Surface *surface, unsigned int i)
 {
 	if (enemy[i].sprite2s == NULL)
@@ -1201,7 +1229,26 @@ start_level_first:
 	BKwrap2 = BKwrap2to = &megaData2.mainmap[1][0];
 	BKwrap3 = BKwrap3to = &megaData3.mainmap[1][0];
 
+#ifdef DEBUG_OPTIONS
+	damagePerSecondTime = 0;
+	damagePerSecondHist[0] = 0;
+	damagePerSecondHist[1] = 0;
+	damagePerSecondHist[2] = 0;
+	damagePerSecondAvg = 0.0f;
+#endif
+
 level_loop:
+
+#ifdef DEBUG_OPTIONS
+	if (++damagePerSecondTime >= 35)
+	{
+		damagePerSecondHist[2] = damagePerSecondHist[1];
+		damagePerSecondHist[1] = damagePerSecondHist[0];
+		damagePerSecondHist[0] = 0;
+		damagePerSecondAvg = (float)(damagePerSecondHist[0] + damagePerSecondHist[1] + damagePerSecondHist[2]) / 3;
+		damagePerSecondTime = 0;
+	}
+#endif
 
 	//tempScreenSeg = game_screen; /* side-effect of game_screen */
 
@@ -1644,6 +1691,11 @@ level_loop:
 								infiniteShot = true;
 							}
 						}
+
+#ifdef DEBUG_OPTIONS
+						if (debugDamageViewer && enemy[b].linknum == 254)
+							damagePerSecondHist[0] += damage;
+#endif
 
 						int armorleft = enemy[b].armorleft;
 
@@ -3029,58 +3081,9 @@ uint JE_makeEnemy(struct JE_SingleEnemyType *enemy, Uint16 eDatI, Sint16 uniqueS
 	enemy->evalue = enemyDat[eDatI].value;
 #endif
 
-	int tempArmor = 1;
 	if (enemyDat[eDatI].armor > 0)
 	{
-		if (enemyDat[eDatI].armor != 255)
-		{
-			switch (difficultyLevel)
-			{
-			case -1:
-			case DIFFICULTY_WIMP:
-				tempArmor = enemyDat[eDatI].armor * 0.5f + 1;
-				break;
-			case DIFFICULTY_EASY:
-				tempArmor = enemyDat[eDatI].armor * 0.75f + 1;
-				break;
-			case DIFFICULTY_NORMAL:
-				tempArmor = enemyDat[eDatI].armor;
-				break;
-			case DIFFICULTY_HARD:
-				tempArmor = enemyDat[eDatI].armor * 1.2f;
-				break;
-			case DIFFICULTY_IMPOSSIBLE:
-				tempArmor = enemyDat[eDatI].armor * 1.5f;
-				break;
-			case DIFFICULTY_INSANITY:
-				tempArmor = enemyDat[eDatI].armor * 1.8f;
-				break;
-			case DIFFICULTY_SUICIDE:
-				tempArmor = enemyDat[eDatI].armor * 2;
-				break;
-			case DIFFICULTY_MANIACAL:
-				tempArmor = enemyDat[eDatI].armor * 3;
-				break;
-			case DIFFICULTY_ZINGLON:
-				tempArmor = enemyDat[eDatI].armor * 4;
-				break;
-			case DIFFICULTY_NORTANEOUS:
-			case DIFFICULTY_10:
-				tempArmor = enemyDat[eDatI].armor * 8;
-				break;
-			}
-
-			if (tempArmor > 254)
-			{
-				tempArmor = 254;
-			}
-		}
-		else
-		{
-			tempArmor = 255;
-		}
-
-		enemy->armorleft = tempArmor;
+		enemy->armorleft = tyrian_scaleEnemyHealth(enemyDat[eDatI].armor);
 
 		avail = 0;
 		enemy->scoreitem = false;
@@ -3597,7 +3600,9 @@ void JE_eventSystem(void)
 		{
 			if (eventRec[eventLoc-1].eventdat4 == 0 || enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
 			{
-				if (galagaMode)
+				if (eventRec[eventLoc-1].eventdat6 == 99)
+					enemy[temp].armorleft = tyrian_scaleEnemyHealth(eventRec[eventLoc-1].eventdat);
+				else if (galagaMode)
 					enemy[temp].armorleft = roundf(eventRec[eventLoc-1].eventdat * (difficultyLevel / 2));
 				else
 					enemy[temp].armorleft = eventRec[eventLoc-1].eventdat;

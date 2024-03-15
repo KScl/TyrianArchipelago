@@ -60,28 +60,37 @@ static int apmenu_mouseInTarget(const mousetargets_t *targets, int x, int y)
 
 // ----------------------------------------------------------------------------
 
+// Does basic init steps as we initiate an Archipelago game.
+void apmenu_initArchipelagoGame(void)
+{
+	player[0].cash = 0;
+	onePlayerAction = false;
+	twoPlayerMode = false;
+	difficultyLevel = initialDifficulty = APSeedSettings.Difficulty;
+	sprites_loadMainShapeTables(APSeedSettings.Christmas);
+	JE_initEpisode(1); // Temporary: We need to init items before first menu
+}
+
+// ----------------------------------------------------------------------------
+
+static void ap_connectDrawOnlineOffline(void)
+{
+	//draw_font_hv_shadow(VGAScreen, 40, 100, "Connect to an Archipelago Multiworld server, to", small_font, left_aligned, 15, 3, false, 1);
+	//draw_font_hv_shadow(VGAScreen, 40, 110, "play a randomized game with other players.", small_font, left_aligned, 15, 3, false, 1);
+	//draw_font_hv_shadow(VGAScreen, 40, 160, "Play a pre-generated randomized game offline.", small_font, left_aligned, 15, 3, false, 1);
+	//draw_font_hv_shadow(VGAScreen, 40, 170, "play a randomized game with other players.", small_font, left_aligned, 15, 3, false, 1);
+
+}
+
 bool ap_connectScreen(void)
 {
 	clearFileDropped();
 
 	JE_loadPic(VGAScreen2, 2, false);
-	draw_font_hv_shadow(VGAScreen2, 10,  10, "01", small_font, centered,  1, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10,  20, "02", small_font, centered,  2, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10,  30, "03", small_font, centered,  3, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10,  40, "04", small_font, centered,  4, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10,  50, "05", small_font, centered,  5, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10,  60, "06", small_font, centered,  6, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10,  70, "07", small_font, centered,  7, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10,  80, "08", small_font, centered,  8, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10,  90, "09", small_font, centered,  9, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10, 100, "10", small_font, centered, 10, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10, 110, "11", small_font, centered, 11, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10, 120, "12", small_font, centered, 12, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10, 130, "13", small_font, centered, 13, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10, 140, "14", small_font, centered, 14, 6, false, 1);
-	draw_font_hv_shadow(VGAScreen2, 10, 150, "15", small_font, centered, 15, 6, false, 1);
 	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 	fade_palette(colors, 10, 0, 255);
+	ap_connectDrawOnlineOffline();
+	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 
 	int error_time = 0;
 	int visual_time = 0;
@@ -113,6 +122,8 @@ bool ap_connectScreen(void)
 			visual_pulse = -2 + ((visual_time ^ 0x1F) >> 2);
 		else
 			visual_pulse = -2 + ( visual_time         >> 2);
+
+		draw_font_hv_shadow(VGAScreen, 40, 100, "Connect to an Archipelago Multiworld server and", small_font, left_aligned, 15, 4, false, 1);
 
 		switch(Archipelago_ConnectionStatus())
 		{
@@ -163,12 +174,7 @@ bool ap_connectScreen(void)
 
 	JE_playSampleNum(S_SELECT);
 	fade_black(15);
-	player[0].cash = 0;
-	onePlayerAction = false;
-	twoPlayerMode = false;
-	difficultyLevel = initialDifficulty = APSeedSettings.Difficulty;
-	sprites_loadMainShapeTables(APSeedSettings.Christmas);
-	JE_initEpisode(1); // Temporary: We need to init items before first menu
+	apmenu_initArchipelagoGame();
 	return true;
 }
 
@@ -853,6 +859,15 @@ static void submenuMain_Run(void)
 			case 4: nextSubMenu = SUBMENU_OPTIONS;     break;
 			case 5: nextSubMenu = SUBMENU_EXIT;        break;
 		}
+
+#ifdef DEBUG_OPTIONS
+		// If in damage viewer mode, immediately go to Soh Jin (Episode 2).
+		if (debugDamageViewer && nextSubMenu == SUBMENU_NEXT_LEVEL)
+		{
+			subMenuSelections[SUBMENU_NEXT_LEVEL] = 24;
+			nextSubMenu = SUBMENU_LEVEL;
+		}
+#endif
 	}
 
 	defaultMenuOptionDraw("Play Next Level", 38 + 0,  false, SELECTED(0));
@@ -871,7 +886,7 @@ static void submenuMain_Run(void)
 		defaultMenuOptionDraw("Quit Game",       38 + 96, false, SELECTED(5));
 	}
 
-	apmsg_manageQueueMenu(true);
+	apmsg_manageQueueMenu(false);
 	JE_outTextAndDarken(VGAScreen, 286, 187, "[TAB]", 14, 1, TINY_FONT);
 }
 

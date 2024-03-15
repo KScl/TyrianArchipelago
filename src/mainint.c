@@ -1087,8 +1087,21 @@ void JE_inGameDisplays(void)
 	snprintf(tempstr, sizeof(tempstr), "%s", difficultyNameB[difficultyLevel+1]);
 	JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
 
+#ifdef DEBUG_OPTIONS
+	if (debugDamageViewer)
+	{
+		snprintf(tempstr, sizeof(tempstr), "%.2f", damagePerSecondAvg);
+	}
+	else
+	{
+		const Uint64 totalCash = APStats.Cash + player[0].cash;
+		snprintf(tempstr, sizeof(tempstr), "%llu", (unsigned long long)totalCash);
+	}
+#else
 	const Uint64 totalCash = APStats.Cash + player[0].cash;
 	snprintf(tempstr, sizeof(tempstr), "%llu", (unsigned long long)totalCash);
+#endif
+
 	if (smoothies[6-1]) // This is the same way Tyrian 2000 fixed this and it's good enough for me
 		JE_textShade(VGAScreen, 30, 175, tempstr, 8, 8, FULL_SHADE);
 	else

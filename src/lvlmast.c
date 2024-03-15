@@ -195,8 +195,13 @@ void level_loadFromLevelID(int levelID)
 	fseek(f, 1, SEEK_CUR); // char_mapFile (unused)
 	fread_die(&char_shapeFile, 1, 1, f);
 
-	Patcher_ReadyPatch(tyrian2000detected ? "Tyrian 2000" : "Tyrian 2.1",
-	                   allLevelData[levelID].episodeNum, baseLevelNum);
+	const char *patchGameName = tyrian2000detected ? "Tyrian 2000" : "Tyrian 2.1";
+#ifdef DEBUG_OPTIONS
+	if (debugDamageViewer)
+		patchGameName = "Debug Mode";
+#endif
+
+	Patcher_ReadyPatch(patchGameName, allLevelData[levelID].episodeNum, baseLevelNum);
 
 	JE_loadMapData(f);
 	level_loadEvents(f);

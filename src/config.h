@@ -116,6 +116,15 @@ extern JE_byte processorType;
 extern JE_boolean youAreCheating; // invulnerability
 #endif
 
+#ifdef DEBUG_OPTIONS
+extern bool debugDamageViewer;
+extern int damagePerSecondTime;
+extern int damagePerSecondHist[3];
+extern float damagePerSecondAvg;
+#endif
+
+extern bool skipIntroLogos;
+
 extern Config opentyrian_config;
 
 void JE_initProcessorType(void);

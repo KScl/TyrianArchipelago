@@ -148,6 +148,15 @@ JE_byte    processorType;  /* 1=386 2=486 3=Pentium Hyper */
 JE_boolean youAreCheating;
 #endif
 
+#ifdef DEBUG_OPTIONS
+bool debugDamageViewer = false;
+int damagePerSecondTime;
+int damagePerSecondHist[3];
+float damagePerSecondAvg;
+#endif
+
+bool skipIntroLogos = false;
+
 Config opentyrian_config;  // implicitly initialized
 
 const char *get_user_directory(void)

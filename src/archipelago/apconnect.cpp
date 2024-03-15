@@ -1164,6 +1164,43 @@ void Archipelago_UpdateDeathLinkState(void)
 // Local Play : File I/O
 // ============================================================================
 
+bool Archipelago_StartDebugGame(void)
+{
+	if (gameInProgress || ap)
+		return false;
+
+	APAll_InitMessageQueue();
+
+	memset(&APSeedSettings, 0, sizeof(APSeedSettings));
+	APSeedSettings.Tyrian2000Mode = tyrian2000detected;
+	APSeedSettings.PlayEpisodes = tyrian2000detected ? 0x1F : 0xF;
+	APSeedSettings.GoalEpisodes = tyrian2000detected ? 0x1F : 0xF;
+	APSeedSettings.Difficulty = 2;
+	APSeedSettings.SpecialMenu = true;
+
+	APAll_FreshInit();
+
+	// Grant the player everything unconditionally.
+	APItems.FrontPorts = -1;
+	APItems.RearPorts = -1;
+	APItems.Specials = -1;
+	for (int i = 0; i < 5; ++i)
+		APItems.Levels[i] = -1;
+	for (int i = 0; i < 36; ++i)
+		APItems.Sidekicks[i] = 2;
+
+	APStats.PowerMaxLevel = 10;
+	APStats.GeneratorLevel = 6;
+	APStats.ArmorLevel = 28;
+	APStats.ShieldLevel = 28;
+	APItemChoices.FrontPort.Item = 500;
+
+	totalLocationCount = 0;
+
+	gameInProgress = true;
+	return true;
+}
+
 bool Archipelago_StartLocalGame(FILE *file)
 {
 	if (gameInProgress || ap)
