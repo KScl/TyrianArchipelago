@@ -162,13 +162,16 @@
 			{ "time":100, "event":33, /* EnemyFromOtherEnemy */ "linknum": 1, "type": 393 },
 			{ "time":100, "event":0 /* NoOp */ }
 		],
-		"55:REPLACE":   { "time": 250, "event":201, /* AP_CheckFromEnemy */ "ap_id": 21, "linknum":16, "movement":"falling" },
-		"449:REPLACE":  { "time":1757, "event":201, /* AP_CheckFromEnemy */ "ap_id": 22, "linknum":62, "movement":"falling" },
-		"735:REPLACE":  { "time":2750, "event":201, /* AP_CheckFromEnemy */ "ap_id": 23, "linknum": 6, "movement":"falling" },
-		"1056:REPLACE": { "time":4070, "event":201, /* AP_CheckFromEnemy */ "ap_id": 24, "linknum": 9, "movement":"falling" },
+		"55:REPLACE":   { "time": 250, "event":201, /* AP_CheckFromEnemy */ "ap_id": 21, "linknum": 16, "movement":"falling" },
+		"449:REPLACE":  { "time":1757, "event":201, /* AP_CheckFromEnemy */ "ap_id": 22, "linknum": 62, "movement":"falling" },
+		"710:APPEND":   { "time":2528, "event":201, /* AP_CheckFromEnemy */ "ap_id": 23, "linknum":142, "movement":"swaying", "is_boss":true },
+		"735:REPLACE":  { "time":2750, "event":201, /* AP_CheckFromEnemy */ "ap_id": 24, "linknum":  6, "movement":"falling" },
+		"847:APPEND":   { "time":3328, "event":201, /* AP_CheckFromEnemy */ "ap_id": 25, "linknum":142, "movement":"swaying", "is_boss":true },
+		"1056:REPLACE": { "time":4070, "event":201, /* AP_CheckFromEnemy */ "ap_id": 26, "linknum":  9, "movement":"falling" },
 
 		// Additional callouts for contact_bypasses_shields
-		"757:APPEND": { "time":2850, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"757:APPEND":  { "time":2850, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"1014:APPEND": { "time":3950, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 
 		// Bug fix: Point the Accel event for the formation change above to the right linknum
 		"28:REPLACE": { "time":150, "event":20, /* EnemyGlobal_Accel */ "linknum":20, "excc":-12, "eycc":-6 },
@@ -210,13 +213,16 @@
 			{ "time":100, "event":33, /* EnemyFromOtherEnemy */ "linknum": 1, "type": 393 },
 			{ "time":100, "event":0 /* NoOp */ }
 		],
-		"55:REPLACE":   { "time": 250, "event":201, /* AP_CheckFromEnemy */ "ap_id": 21, "linknum":16, "movement":"falling" },
-		"449:REPLACE":  { "time":1757, "event":201, /* AP_CheckFromEnemy */ "ap_id": 22, "linknum":62, "movement":"falling" },
-		"735:REPLACE":  { "time":2750, "event":201, /* AP_CheckFromEnemy */ "ap_id": 23, "linknum": 6, "movement":"falling" },
-		"1056:REPLACE": { "time":4070, "event":201, /* AP_CheckFromEnemy */ "ap_id": 24, "linknum": 9, "movement":"falling" },
+		"55:REPLACE":   { "time": 250, "event":201, /* AP_CheckFromEnemy */ "ap_id": 21, "linknum": 16, "movement":"falling" },
+		"449:REPLACE":  { "time":1757, "event":201, /* AP_CheckFromEnemy */ "ap_id": 22, "linknum": 62, "movement":"falling" },
+		"710:APPEND":   { "time":2528, "event":201, /* AP_CheckFromEnemy */ "ap_id": 23, "linknum":142, "movement":"swaying", "is_boss":true },
+		"735:REPLACE":  { "time":2750, "event":201, /* AP_CheckFromEnemy */ "ap_id": 24, "linknum":  6, "movement":"falling" },
+		"847:APPEND":   { "time":3328, "event":201, /* AP_CheckFromEnemy */ "ap_id": 25, "linknum":142, "movement":"swaying", "is_boss":true },
+		"1056:REPLACE": { "time":4070, "event":201, /* AP_CheckFromEnemy */ "ap_id": 26, "linknum":  9, "movement":"falling" },
 
 		// Additional callouts for contact_bypasses_shields
-		"757:APPEND": { "time":2850, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"757:APPEND":  { "time":2850, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"1014:APPEND": { "time":3950, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 
 		// Bug fix: Point the Accel event for the formation change above to the right linknum
 		"28:REPLACE": { "time":150, "event":20, /* EnemyGlobal_Accel */ "linknum":20, "excc":-12, "eycc":-6 }
@@ -462,23 +468,27 @@
 	// ========================================================================
 	// Episode 2 - Treachery
 	// ========================================================================
-	// Level status: 5/10
-	// - TORM: Very basic, needs work
+	// Level status: 7/10
+	// - TORM: Complete
 	// - GYGES: Complete
 	// - ASTCITY: Complete
 	// - GEM WAR: Nothing even present
-	// - MARKERS: Nothing even present
+	// - MARKERS: Complete
 	// - MISTAKES: Complete
 	// - SOH JIN: Nothing even present
 	// - BOTANY A: Nothing even present
 	// - BOTANY B: Complete
 	// - GRYPHON: Complete
 	"Episode2 TORM": {
-		"244:REPLACE": { "time": 751, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum":12, "movement":"static"},
-		"314:REPLACE": { "time": 881, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum":13, "movement":"static"},
-		"493:REPLACE": { "time":1701, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum":18, "movement":"static"},
-		"681:REPLACE": { "time":2541, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum": 9, "movement":"static"},
-		"812:APPEND":  { "time":5359, "event":201, /* AP_CheckFromEnemy */ "ap_id":167, "linknum":64, "movement":"swaying", "is_boss":true }
+		// Addition of Archipelago Items
+		"244:REPLACE": { "time": 751, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum": 12, "movement":"static" },
+		"314:REPLACE": { "time": 881, "event":201, /* AP_CheckFromEnemy */ "ap_id":161, "linknum": 13, "movement":"static" },
+		"409:REPLACE": { "time":1310, "event":200, /* AP_CheckFreestanding */ "ap_id":162, "ex":200, "ey":8, "movement":"falling"},
+		"493:REPLACE": { "time":1701, "event":201, /* AP_CheckFromEnemy */ "ap_id":163, "linknum": 18, "movement":"static" },
+		"681:REPLACE": { "time":2541, "event":201, /* AP_CheckFromEnemy */ "ap_id":164, "linknum":  9, "movement":"static" },
+		"1128:APPEND": { "time":4960, "event":201, /* AP_CheckFromEnemy */ "ap_id":165, "linknum": 14, "movement":"static" },
+		"1128:APPEND": { "time":5101, "event":201, /* AP_CheckFromEnemy */ "ap_id":166, "linknum": 14, "movement":"swaying", "is_boss":true },
+		"1484:APPEND": { "time":6600, "event":201, /* AP_CheckFromEnemy */ "ap_id":167, "linknum":143, "movement":"swaying", "is_boss":true }
 	},
 	// --------------------------------------------------------------
 	"Episode2 GYGES": {
@@ -486,11 +496,10 @@
 		"8:REPLACE":   { "time":   2, "event":201, /* AP_CheckFromEnemy */ "ap_id":170, "linknum":  1, "movement":"falling" },
 		"161:REPLACE": { "time": 530, "event":201, /* AP_CheckFromEnemy */ "ap_id":171, "linknum":146, "movement":"falling" },
 		"283:REPLACE": { "time":1610, "event":201, /* AP_CheckFromEnemy */ "ap_id":172, "linknum": 16, "movement":"falling" },
-		"411:APPEND":  { "time":2710, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":173, "movement":"static" },
-		"573:REPLACE": { "time":3481, "event":201, /* AP_CheckFromEnemy */ "ap_id":174, "linknum":201, "movement":"falling", "backup":397 },
-		"594:REPLACE": { "time":3752, "event":201, /* AP_CheckFromEnemy */ "ap_id":175, "linknum":  5, "movement":"falling" },
-		"661:APPEND":  { "time":4629, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":176, "movement":"falling" },
-		"812:APPEND":  { "time":5359, "event":201, /* AP_CheckFromEnemy */ "ap_id":177, "linknum":110, "movement":"swaying", "is_boss":true },
+		"573:REPLACE": { "time":3481, "event":201, /* AP_CheckFromEnemy */ "ap_id":173, "linknum":201, "movement":"falling", "backup":397 },
+		"594:REPLACE": { "time":3752, "event":201, /* AP_CheckFromEnemy */ "ap_id":174, "linknum":  5, "movement":"falling" },
+		"661:APPEND":  { "time":4629, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":175, "movement":"falling" },
+		"812:APPEND":  { "time":5359, "event":201, /* AP_CheckFromEnemy */ "ap_id":176, "linknum":110, "movement":"swaying", "is_boss":true },
 
 		// Don't allow lower floor to be transparent (bugfix?)
 		"1:REPLACE":   { "time":   0, "event":48 /* Background2Transparent(False) */ }
@@ -519,6 +528,25 @@
 	},
 	// --------------------------------------------------------------
 	"Episode2 MARKERS": {
+		// Addition of Archipelago Items
+		"329:REPLACE": { "time":1240, "event":201, /* AP_CheckFromEnemy */ "ap_id":210, "linknum":10, "movement":"falling" },
+		"528:APPEND":  { "time":1990, "event":201, /* AP_CheckFromEnemy */ "ap_id":211, "linknum":16, "movement":"falling" },
+		"764:REPLACE": { "time":2750, "event":201, /* AP_CheckFromEnemy */ "ap_id":213, "linknum":10, "movement":"falling" },
+		"870:REPLACE": { "time":3150, "event":201, /* AP_CheckFromEnemy */ "ap_id":214, "linknum":11, "movement":"falling" },
+
+		// Car Destroyer Secret
+		// There's a chain of cars that only spawns if you destroy the previous one in the chain
+		// This is like usual secret item drops, but whatever effect the last one would've had seems to be removed from vanilla
+		"672:APPEND": [
+			{ "time": 2466, "event": 61, /* Skip_IfFlagSet */ "flag":3, "value":0, "skip_events":1 },
+			{ "time": 2466, "event":201, /* AP_CheckFromEnemy */ "ap_id":212, "linknum":201, "movement":"static", "backup":397 }		
+		],
+
+		// Additional callouts for contact_bypasses_shields
+		"21:APPEND":   { "time":   0, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"141:APPEND":  { "time": 630, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"340:APPEND":  { "time":1270, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"563:APPEND":  { "time":2120, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
 	},
 	// --------------------------------------------------------------
 	"Episode2 MISTAKES ver2.1": {

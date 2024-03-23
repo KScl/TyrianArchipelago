@@ -740,6 +740,26 @@ draw_enemy_end:
 		;
 	}
 
+#if 0
+	for (int i = enemyOffset - 25; i < enemyOffset; i++)
+	{
+		if (enemyAvail[i] != 0 || !enemy[i].armorleft)
+			continue;
+
+		const int baseX = enemy[i].ex + tempMapXOfs;
+		const int baseY = enemy[i].ey;
+
+		char buffer[6];
+		sprintf(buffer, "%hd", enemy[i].armorleft);
+		JE_textShade(VGAScreen, baseX, baseY, buffer, 14, 1, FULL_SHADE);
+
+		if (!enemy[i].special)
+			continue;
+		sprintf(buffer, "%hd", enemy[i].flagnum);
+		JE_textShade(VGAScreen, baseX, baseY+8, buffer, 7, 2, FULL_SHADE);
+	}
+#endif
+
 	player[0].x += 25;
 }
 
@@ -3680,7 +3700,7 @@ void JE_eventSystem(void)
 		break;
 
 	case 33: /* Enemy From other Enemies */
-#if 1
+#if 0
 		for (temp = 0; temp < 100; temp++)
 		{
 			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
