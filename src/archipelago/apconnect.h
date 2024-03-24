@@ -165,8 +165,8 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **items);
 // Scouts for shop items (only relevant for remote game)
 void Archipelago_ScoutShopItems(int shopStartID);
 
-unsigned int Archipelago_GetUpgradeCost(int itemID, int powerLevel);
-unsigned int Archipelago_GetTotalUpgradeCost(int itemID, int powerLevel);
+unsigned int Archipelago_GetUpgradeCost(Uint16 localItemID, int powerLevel);
+unsigned int Archipelago_GetTotalUpgradeCost(Uint16 localItemID, int powerLevel);
 
 // ----------------------------------------------------------------------------
 // DeathLink

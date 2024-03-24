@@ -748,7 +748,7 @@ static void APLocal_ParseLocationData(json &j)
 	for (auto &location : j.items())
 	{
 		Uint16 locationID = std::stoi(location.key());
-		Uint16 itemID = 0;
+		Uint16 localItemID = 0;
 
 		std::string contents = location.value().template get<std::string>();
 		if (contents[0] == '!')
@@ -756,8 +756,8 @@ static void APLocal_ParseLocationData(json &j)
 			advancementLocations.insert({locationID});
 			contents = contents.substr(1);
 		}
-		itemID = std::stoi(contents);
-		allLocationData.emplace(locationID, itemID);
+		localItemID = std::stoi(contents);
+		allLocationData.emplace(locationID, localItemID);
 	}
 }
 
@@ -785,16 +785,16 @@ static void APLocal_ReceiveItem(int64_t locationID)
 		return;
 
 	++lastItemIndex;
-	Uint16 itemID = allLocationData[locationID];
-	APAll_ResolveItem(itemID);
+	Uint16 localItemID = allLocationData[locationID];
+	APAll_ResolveItem(localItemID);
 
-	Uint8 flags = APLocal_GetItemFlags(itemID, locationID);
-	std::string output = "You got your " + APLocal_BuildItemString(itemID, flags);
+	Uint8 flags = APLocal_GetItemFlags(localItemID, locationID);
+	std::string output = "You got your " + APLocal_BuildItemString(localItemID, flags);
 	apmsg_enqueue(output.c_str());
-	apmsg_playSFX(itemID >= 980 ? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
+	apmsg_playSFX(localItemID >= 980 ? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
 
 	std::cout << "You got your "
-	          << APLocal_BuildANSIString(itemID, flags)
+	          << APLocal_BuildANSIString(localItemID, flags)
 	          << " (" << lastItemIndex + 1 << "/" << totalLocationCount << ")" << std::endl;
 }
 
@@ -945,8 +945,8 @@ static void APAll_ParseShopData(json &j)
 	for (auto &location : j.items())
 	{
 		Uint16 locationID = std::stoi(location.key());
-		Uint16 itemID = location.value().template get<Uint16>();
-		shopPrices.emplace(locationID, itemID);
+		Uint16 localItemID = location.value().template get<Uint16>();
+		shopPrices.emplace(locationID, localItemID);
 	}
 }
 
@@ -956,9 +956,9 @@ static void APAll_ParseWeaponCost(json &j)
 
 	for (auto &item : j.items())
 	{
-		Uint16 itemID = std::stoi(item.key());
+		Uint16 localItemID = std::stoi(item.key());
 		Uint16 itemPrice = item.value().template get<Uint16>();
-		upgradePrices.emplace(itemID, itemPrice);
+		upgradePrices.emplace(localItemID, itemPrice);
 	}
 }
 
@@ -997,15 +997,15 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 		else if (!ap)
 		{
 			// Local game, we have the info already
-			Uint16 itemID = allLocationData[shopStartID + i];
-			itemName = apitems_AllNames[itemID];
-			shopItemBuffer[i].Icon = apitems_AllIcons[itemID];
+			Uint16 localItemID = allLocationData[shopStartID + i];
+			itemName = apitems_AllNames[localItemID];
+			shopItemBuffer[i].Icon = apitems_AllIcons[localItemID];
 		}
 		else if (scoutedShopLocations.count(shopStartID + i) == 1)
 		{
 			// Remote game, previously scouted location from the server
-			int playerID = scoutedShopLocations[shopStartID + i].player;
-			int itemID = scoutedShopLocations[shopStartID + i].item;
+			int64_t playerID = scoutedShopLocations[shopStartID + i].player;
+			int64_t itemID = scoutedShopLocations[shopStartID + i].item;
 
 			itemName = ap->get_item_name(itemID, ap->get_player_game(playerID));
 
@@ -1056,22 +1056,22 @@ void Archipelago_ScoutShopItems(int shopStartID)
 		ap->LocationScouts(scoutRequests);
 }
 
-unsigned int Archipelago_GetUpgradeCost(int itemID, int powerLevel)
+unsigned int Archipelago_GetUpgradeCost(Uint16 localItemID, int powerLevel)
 {
-	if (upgradePrices.count(itemID) != 1)
+	if (upgradePrices.count(localItemID) != 1)
 		return 0;
 
 	const int upgradeMultiplier[11] = {0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55};
-	return upgradePrices[itemID] * upgradeMultiplier[powerLevel];
+	return upgradePrices[localItemID] * upgradeMultiplier[powerLevel];
 }
 
-unsigned int Archipelago_GetTotalUpgradeCost(int itemID, int powerLevel)
+unsigned int Archipelago_GetTotalUpgradeCost(Uint16 localItemID, int powerLevel)
 {
-	if (upgradePrices.count(itemID) != 1 || powerLevel > 10)
+	if (upgradePrices.count(localItemID) != 1 || powerLevel > 10)
 		return 0;
 
 	const int upgradeMultiplier[11] = {0, 1, 4, 10, 20, 35, 56, 84, 120, 165, 220};
-	return upgradePrices[itemID] * upgradeMultiplier[powerLevel];
+	return upgradePrices[localItemID] * upgradeMultiplier[powerLevel];
 }
 
 // ============================================================================
