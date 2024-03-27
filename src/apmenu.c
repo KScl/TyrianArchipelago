@@ -2328,12 +2328,20 @@ static void sidebarSimulateShots(void)
 #endif
 }
 
-// ----------------------------------------------------------------------------
+// ------------------------------------------------------------------
+// Chat Box
+// ------------------------------------------------------------------
+
+static char userChatEntry[256];
+static Uint8 userChatEntryLen = 0;
 
 static void apmenu_chatbox(void)
 {
 	Uint8 scrollbackPos = 1;
 	int lines = 1;
+
+	Uint8 inputFlashVal = 8;
+	Uint8 inputFlashTime = 32;
 
 	JE_playSampleNum(S_SPRING);
 
@@ -2386,10 +2394,62 @@ static void apmenu_chatbox(void)
 		if (newkey && (lastkey_scan == SDL_SCANCODE_TAB || lastkey_scan == SDL_SCANCODE_ESCAPE))
 			break;
 
+		if (newkey && lastkey_scan == SDL_SCANCODE_RETURN && userChatEntryLen)
+		{
+			userChatEntry[userChatEntryLen] = 0; // Just absolutely ensure there's a null terminator
+			Archipelago_ChatMessage(userChatEntry);
+			userChatEntry[0] = 0;
+			userChatEntryLen = 0;
+			scrollbackPos = 1;
+		}
+		else if (newkey && lastkey_scan == SDL_SCANCODE_BACKSPACE && userChatEntryLen)
+		{
+			userChatEntry[--userChatEntryLen] = 0; // Erase character
+		}
+		else if (new_text)
+		{
+			for (char *input_p = last_text; *input_p; ++input_p)
+			{
+				if (userChatEntryLen == 255)
+					break; // Input box full
+				if ((unsigned char)*input_p < 127 && (*input_p == ' ' || font_ascii[(unsigned char)*input_p] != -1))
+					userChatEntry[userChatEntryLen++] = *input_p;
+			}
+			userChatEntry[userChatEntryLen] = 0;
+		}
+
 		fill_rectangle_xy(VGAScreen, 0, 180 - (lines * 9), 319, 180, 228);
 		fill_rectangle_xy(VGAScreen, 307, 180 - (lines * 9), 310, 180, 227);
 		apmsg_drawScrollBack(scrollbackPos, lines);
 		blit_sprite2(VGAScreen, 303, 160 - (scrollbackPos >> 1), shopSpriteSheet, 247);
+
+		// Output user typing onto the screen
+		const int chatWidth = JE_textWidth(userChatEntry, TINY_FONT);
+		const int chatBoxMaxWidth = 250;
+		int chatStartX = 10;
+		int chatEndX = 10;
+
+		if (chatWidth > chatBoxMaxWidth)
+		{
+			chatEndX = 10 + chatBoxMaxWidth;
+			chatStartX = chatEndX - chatWidth;
+		}
+		else
+			chatEndX = chatStartX + chatWidth;
+
+		fill_rectangle_xy(VGAScreen, 9, 187, 267, 187+9, 228);
+		if (chatStartX != chatEndX)
+			fonthand_outTextPartial(VGAScreen, chatStartX, 187, 10, chatEndX, userChatEntry, 14, 1, true);
+
+		// Cursor flash and draw
+		if (!(--inputFlashTime))
+		{
+			inputFlashVal = (inputFlashVal == 8) ? 12 : 8;
+			inputFlashTime = 24;
+		}
+		const int inputFlashHue = (userChatEntryLen == 255) ? 4 : 14;
+		fill_rectangle_xy(VGAScreen, chatEndX+2, 188, chatEndX+6, 188+5, 14<<4 | 2);
+		fill_rectangle_xy(VGAScreen, chatEndX+1, 187, chatEndX+5, 187+5, inputFlashHue<<4 | inputFlashVal);
 
 		service_SDL_events(true);
 		JE_mouseStart();
@@ -2452,6 +2512,10 @@ int apmenu_itemScreen(void)
 	currentSubMenu = SUBMENU_MAIN;
 	nextSubMenu = SUBMENU_NONE;
 	itemSubMenus[SUBMENU_MAIN].initFunc();
+
+	// Clear chat box when entering menu
+	memset(userChatEntry, 0, sizeof(userChatEntry));
+	userChatEntryLen = 0;
 
 	service_SDL_events(true); // Flush events before starting
 	Archipelago_Save();

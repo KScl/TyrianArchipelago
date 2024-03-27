@@ -70,6 +70,7 @@ void Archipelago_Disconnect(void);
 archipelago_connectionstat_t Archipelago_ConnectionStatus(void);
 const char* Archipelago_GetConnectionError(void);
 
+void Archipelago_ChatMessage(const char *userMessage);
 void Archipelago_GoalComplete(void);
 
 // ----------------------------------------------------------------------------

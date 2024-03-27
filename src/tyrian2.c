@@ -3700,7 +3700,7 @@ void JE_eventSystem(void)
 		break;
 
 	case 33: /* Enemy From other Enemies */
-#if 0
+#if 1
 		for (temp = 0; temp < 100; temp++)
 		{
 			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
@@ -3816,7 +3816,7 @@ void JE_eventSystem(void)
 
 	case 45: /* arcade-only enemy from other enemies */
 	case 85: // T2K_TimeBattle_EnemyFromOtherEnemy
-#if 1
+#if 0
 		for (temp = 0; temp < 100; temp++)
 		{
 			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)

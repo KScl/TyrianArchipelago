@@ -435,7 +435,10 @@ static std::string APRemote_CleanString(std::string input)
 {
 	for (char &c : input)
 	{
-		if (font_ascii[(unsigned char)c] == -1 && c != ' ')
+		// Ignore normally non-printable carriage return, line feed, and space
+		if (c == '\r' || c == '\n' || c == ' ')
+			continue;
+		else if (font_ascii[(unsigned char)c] == -1)
 			c = '?';
 	}
 	return input;
@@ -602,10 +605,10 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 	// Someone joined or left the game (ignore original message contents)
 	else if (args.type == "Join" || args.type == "Part")
 	{
-		s << APRemote_GetPlayerName(*args.slot, *args.team);
+		s << "<04" << APRemote_GetPlayerName(*args.slot, *args.team);
 		if (args.type == "Join")
 		{
-			s << " [" << ap->get_player_game(*args.slot) << "]";
+			s << " [<08" << ap->get_player_game(*args.slot) << "<04]";
 			s << " joined the game";
 		}
 		else
@@ -627,6 +630,17 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 
 	std::string output = s.str();
 	apmsg_enqueue(output.c_str());
+}
+
+// ----------------------------------------------------------------------------
+
+void Archipelago_ChatMessage(const char *userMessage)
+{
+	if (!ap)
+		return;
+
+	std::string text = userMessage;
+	ap->Say(text);
 }
 
 // ============================================================================

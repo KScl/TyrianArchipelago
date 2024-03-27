@@ -46,6 +46,8 @@ void apmsg_enqueue(const char *msg)
 		cur_width = 0;
 		while (*src_p && cur_width < 228 && dst_p - dst_p_begin < 73)
 		{
+			if (*src_p == '\r')
+				continue;
 			if (*src_p == '\n')
 				break;
 
