@@ -436,7 +436,8 @@ static std::string APRemote_CleanString(std::string input)
 	for (char &c : input)
 	{
 		// Ignore normally non-printable carriage return, line feed, and space
-		if (c == '\r' || c == '\n' || c == ' ')
+		// The underscore has a hack that makes it print even without graphics for it
+		if (c == '\r' || c == '\n' || c == ' ' || c == '_')
 			continue;
 		else if (font_ascii[(unsigned char)c] == -1)
 			c = '?';
@@ -634,13 +635,20 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 
 // ----------------------------------------------------------------------------
 
+// ----------------------------------------------------------------------------
+
 void Archipelago_ChatMessage(const char *userMessage)
 {
-	if (!ap)
-		return;
-
 	std::string text = userMessage;
-	ap->Say(text);
+
+	if (text.find_first_not_of(' ') == std::string::npos)
+		return; // Do not send a string consisting only of whitespace
+
+	if (text[0] == '/')
+		return; // Do not send commands that start with a backslash (for future local command use)
+
+	if (ap)
+		ap->Say(text);
 }
 
 // ============================================================================
@@ -1312,14 +1320,35 @@ static uint32_t connection_start_time; // 32-bit for older SDL2 versions
 // Stuff like receiving a slot refusal, or getting invalid data.
 static void APRemote_FatalError(std::string reason)
 {
-	connection_stat = APCONN_NOT_CONNECTED;
+	connection_stat = APCONN_FATAL_ERROR;
 	connection_error_desc = reason;
+
+	// This is ... a conundrum. We are in the middle of a game, got disconnected from the AP server,
+	// and in the process of reconnecting, have received a refusal to connect to slot or some other error
+	// that demands we stop. We can't proceed past this point, so we show an error dialog and close.
+	if (gameInProgress)
+	{
+		Archipelago_Save();
+
+		std::stringstream s;
+		s << "While attempting to reconnect to the Archipelago server, a fatal error occurred:" << std::endl;
+		s << reason << std::endl;
+		s << std::endl;
+		s << "The game is now in an unrecoverable state, and will be closed." << std::endl;
+		s << "Your progress has been automatically saved." << std::endl;
+		std::string full_error_text = s.str();
+
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", full_error_text.c_str(), NULL);
+		exit(1);
+	}
 }
 
 // *** Callback for APClient's "OnSocketDisconnected" ***
 static void APRemote_CB_Disconnect()
 {
 	connection_stat = APCONN_CONNECTING;
+	if (gameInProgress)
+		apmsg_enqueue("<45Disconnected");
 }
 
 // *** Callback for APClient's "OnSocketError" ***
@@ -1327,6 +1356,8 @@ static void APRemote_CB_Error(const std::string& error)
 {
 	connection_error_desc = error;
 	connection_stat = APCONN_CONNECTING;
+	if (gameInProgress)
+		apmsg_enqueue(("<45" + error).c_str());
 }
 
 // *** Callback for "RoomInfo" ***
@@ -1366,72 +1397,105 @@ static void APRemote_CB_SlotRefused(const std::list<std::string>& reasons)
 // This is where we get our slot_data and thus where most of the magic happens.
 static void APRemote_CB_SlotConnected(const json& slot_data)
 {
-	APAll_InitMessageQueue();
-	try
+	if (gameInProgress) // Reconnected mid game -- our old data should be fine.
 	{
-		if (slot_data.at("NetVersion") != APTYRIAN_NET_VERSION)
-			throw std::runtime_error("Version mismatch. You may need to update APTyrian.");
-
-		APSeedSettings.Tyrian2000Mode = slot_data.at("Settings").at("RequireT2K").template get<bool>();
-
-		if (!tyrian2000detected && APSeedSettings.Tyrian2000Mode)
-			throw std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
-
-		multiworldSeedName = slot_data.at("Seed").template get<std::string>();
-
-		APSeedSettings.PlayEpisodes = slot_data["Settings"].at("Episodes").template get<int>();
-		APSeedSettings.GoalEpisodes = slot_data["Settings"].at("Goal").template get<int>();
-		APSeedSettings.Difficulty = slot_data["Settings"].at("Difficulty").template get<int>();
-
-		APSeedSettings.ShopMenu = slot_data["Settings"].at("ShopMenu").template get<int>();
-		APSeedSettings.SpecialMenu = slot_data["Settings"].at("SpecialMenu").template get<bool>();
-		APSeedSettings.HardContact = slot_data["Settings"].at("HardContact").template get<bool>();
-		APSeedSettings.ExcessArmor = slot_data["Settings"].at("ExcessArmor").template get<bool>();
-		APSeedSettings.TwiddleInputs = slot_data["Settings"].at("ShowTwiddles").template get<bool>();
-		APSeedSettings.ArchipelagoRadar = slot_data["Settings"].at("APRadar").template get<bool>();
-		APSeedSettings.Christmas = slot_data["Settings"].at("Christmas").template get<bool>();
-		APSeedSettings.DeathLink = slot_data["Settings"].at("DeathLink").template get<bool>();
-
-		totalLocationCount = slot_data.at("LocationMax").template get<int>();
-
-		std::string obfuscated;
-		json resultJSON;
-
-		obfuscated = slot_data.at("ShopData").template get<std::string>();
-		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-		APAll_ParseShopData(resultJSON);
-
-		obfuscated = slot_data.at("WeaponCost").template get<std::string>();
-		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-		APAll_ParseWeaponCost(resultJSON);
-
-		obfuscated = slot_data.at("ProgressionData").template get<std::string>();
-		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-		APRemote_ParseProgressionData(resultJSON);
-
-		// Attempt to load old game first
-		if (!Archipelago_Load())
+		// Except it's _NOT_ fine, if the seed doesn't match.
+		// We need to check for this, because the Archipelago server can potentially close our currently running game
+		// and then open up an entirely different game on the same port, in extreme circumstances.
+		try
 		{
-			// Not able to load, load start state and start new game
-			obfuscated = slot_data.at("StartState").template get<std::string>();
-			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-			APAll_ParseStartState(resultJSON);
+			std::string newSeedName = slot_data.at("Seed").template get<std::string>();
+			if (newSeedName != multiworldSeedName)
+			{
+				APRemote_FatalError("Game seed mismatch after reconnecting.");
+				return;
+			}
+		}
+		catch (...)
+		{
+			// Slot data JSON wasn't formed like expected to be
+			APRemote_FatalError("Invalid or corrupt data received.");
+			return;
 		}
 
-		// If all goals are already completed, pre-emptively change our status to "Goal Complete"
-		if (!APStats.RestGoalEpisodes)
-			ap->StatusUpdate(APClient::ClientStatus::GOAL);
+		apmsg_enqueue("<45Reconnected to Archipelago server.");
 	}
-	catch (std::runtime_error& e)
+	else // Initial connection to the server.
 	{
-		APRemote_FatalError(e.what());
-		return;
-	}
-	catch (...)
-	{
-		// Slot data JSON wasn't formed like expected to be
-		APRemote_FatalError("Invalid or corrupt data received.");
-		return;
+		APAll_InitMessageQueue();
+		try
+		{
+			if (slot_data.at("NetVersion") != APTYRIAN_NET_VERSION)
+				throw std::runtime_error("Version mismatch. You may need to update APTyrian.");
+
+			APSeedSettings.Tyrian2000Mode = slot_data.at("Settings").at("RequireT2K").template get<bool>();
+
+			if (!tyrian2000detected && APSeedSettings.Tyrian2000Mode)
+				throw std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
+
+			multiworldSeedName = slot_data.at("Seed").template get<std::string>();
+
+			APSeedSettings.PlayEpisodes = slot_data["Settings"].at("Episodes").template get<int>();
+			APSeedSettings.GoalEpisodes = slot_data["Settings"].at("Goal").template get<int>();
+			APSeedSettings.Difficulty = slot_data["Settings"].at("Difficulty").template get<int>();
+
+			APSeedSettings.ShopMenu = slot_data["Settings"].at("ShopMenu").template get<int>();
+			APSeedSettings.SpecialMenu = slot_data["Settings"].at("SpecialMenu").template get<bool>();
+			APSeedSettings.HardContact = slot_data["Settings"].at("HardContact").template get<bool>();
+			APSeedSettings.ExcessArmor = slot_data["Settings"].at("ExcessArmor").template get<bool>();
+			APSeedSettings.TwiddleInputs = slot_data["Settings"].at("ShowTwiddles").template get<bool>();
+			APSeedSettings.ArchipelagoRadar = slot_data["Settings"].at("APRadar").template get<bool>();
+			APSeedSettings.Christmas = slot_data["Settings"].at("Christmas").template get<bool>();
+			APSeedSettings.DeathLink = slot_data["Settings"].at("DeathLink").template get<bool>();
+
+			totalLocationCount = slot_data.at("LocationMax").template get<int>();
+
+			std::string obfuscated;
+			json resultJSON;
+
+			obfuscated = slot_data.at("ShopData").template get<std::string>();
+			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+			APAll_ParseShopData(resultJSON);
+
+			obfuscated = slot_data.at("WeaponCost").template get<std::string>();
+			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+			APAll_ParseWeaponCost(resultJSON);
+
+			obfuscated = slot_data.at("ProgressionData").template get<std::string>();
+			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+			APRemote_ParseProgressionData(resultJSON);
+
+			// Attempt to load old game first
+			if (!Archipelago_Load())
+			{
+				// Not able to load, load start state and start new game
+				obfuscated = slot_data.at("StartState").template get<std::string>();
+				resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+				APAll_ParseStartState(resultJSON);
+			}
+
+			// If all goals are already completed, pre-emptively change our status to "Goal Complete"
+			if (!APStats.RestGoalEpisodes)
+				ap->StatusUpdate(APClient::ClientStatus::GOAL);
+
+			// When initially connecting, enable DeathLink client side if the game has it set.
+			APOptions.EnableDeathLink = APSeedSettings.DeathLink;
+
+			// Init other data.
+			locationsPerRegion.clear(); // Will be properly init later (after data package is received)
+			gameInProgress = true;
+		}
+		catch (std::runtime_error& e)
+		{
+			APRemote_FatalError(e.what());
+			return;
+		}
+		catch (...)
+		{
+			// Slot data JSON wasn't formed like expected to be
+			APRemote_FatalError("Invalid or corrupt data received.");
+			return;
+		}
 	}
 
 	std::cout << "Successfully connected." << std::endl;
@@ -1444,36 +1508,46 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 
 	// Resend all checks to make sure server is up to date.
 	Archipelago_ResendAllChecks();
-
-	// Init other data.
-	locationsPerRegion.clear(); // Will be properly init later (after data package is received)
-	gameInProgress = true;
 }
 
 // ----------------------------------------------------------------------------
-
-void Archipelago_SetDefaultConnectionDetails(const char *address)
-{
-	std::string cppAddress = address;
-	std::string::size_type at_sign = cppAddress.find("@");
-
-	connection_slot_name = cppAddress.substr(0, at_sign);
-	connection_server_address = cppAddress.substr(at_sign + 1);
-
-	std::cout << "Will connect to Archipelago server ("
-	          << connection_slot_name      << "@"
-	          << connection_server_address << ")" << std::endl;
-}
 
 void Archipelago_SetDefaultConnectionPassword(const char *connectionPassword)
 {
 	connection_password = connectionPassword;
 }
 
-void Archipelago_Connect(void)
+void Archipelago_Connect(const char *address)
 {
 	if (gameInProgress)
 		return;
+
+	if (!address)
+	{
+		connection_slot_name = "";
+		connection_server_address = "";
+	}
+	else
+	{
+		std::string cppAddress = address;
+		std::string::size_type at_sign = cppAddress.find("@");
+
+		if (at_sign == std::string::npos)
+		{
+			connection_slot_name = "";
+			connection_server_address = cppAddress;
+		}
+		else
+		{
+			connection_slot_name = cppAddress.substr(0, at_sign);
+			connection_server_address = cppAddress.substr(at_sign + 1);
+		}
+	}
+
+	if (connection_server_address.empty())
+		return APRemote_FatalError("Please provide a server address to connect to.");
+	if (connection_slot_name.empty())
+		return APRemote_FatalError("Please provide a slot name.");
 
 	std::cout << "Connecting to Archipelago server ("
 	          << connection_slot_name      << "@"
@@ -1481,11 +1555,6 @@ void Archipelago_Connect(void)
 	ap.reset();
 
 	APOptions.EnableDeathLink = true;
-
-	if (connection_server_address.empty())
-		return APRemote_FatalError("Please provide a server address to connect to.");
-	if (connection_slot_name.empty())
-		return APRemote_FatalError("Please provide a slot name.");
 
 	std::string cert = std::filesystem::exists("./cacert.pem") ? "./cacert.pem" : "";
 	std::cout << cert << std::endl;
@@ -1525,22 +1594,25 @@ void Archipelago_Poll(void)
 	if (!ap)
 		return;
 
-	if (connection_ever_made)
+	if (connection_stat == APCONN_FATAL_ERROR)
 	{
-		// Just keep retrying.
+		// Fatal error. Disconnect from the Archipelago server and don't retry.
+		Archipelago_Disconnect();
+	}
+	else if (connection_ever_made)
+	{
+		// Momentary connection errors are fine. Just keep retrying.
 		ap->poll();
 	}
 	else
 	{
-		if (connection_stat == APCONN_NOT_CONNECTED // Fatal error occurred
 #if SDL_VERSION_ATLEAST(2, 0, 18)
-			|| (connection_stat == APCONN_CONNECTING && SDL_GetTicks64() > connection_start_time + 10000)
+		if (connection_stat == APCONN_CONNECTING && SDL_GetTicks64() > connection_start_time + 10000)
 #else
-			|| (connection_stat == APCONN_CONNECTING && !SDL_TICKS_PASSED(SDL_GetTicks(), connection_start_time + 10000))
+		if (connection_stat == APCONN_CONNECTING && !SDL_TICKS_PASSED(SDL_GetTicks(), connection_start_time + 10000))
 #endif
-		)
 		{
-			// Fatal error or connection timeout, disconnect and remove game info
+			// Connection timeout, disconnect from the server and don't retry further.
 			Archipelago_Disconnect();
 		}
 		else
@@ -1559,7 +1631,8 @@ void Archipelago_Disconnect(void)
 		return;
 
 	printf("Disconnecting from Archipelago server.\n");
-	connection_stat = APCONN_NOT_CONNECTED;
+	if (connection_stat != APCONN_FATAL_ERROR)
+		connection_stat = APCONN_NOT_CONNECTED;
 	ap.reset();
 }
 

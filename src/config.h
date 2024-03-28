@@ -123,7 +123,7 @@ extern int damagePerSecondHist[3];
 extern float damagePerSecondAvg;
 #endif
 
-extern bool skipIntroLogos;
+extern bool skipToGameplay;
 
 extern Config opentyrian_config;
 

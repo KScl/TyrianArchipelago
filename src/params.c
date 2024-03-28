@@ -91,7 +91,7 @@ void JE_paramCheck(int argc, char *argv[])
 
 		case 257:
 #ifdef DEBUG_OPTIONS
-			skipIntroLogos = true;
+			skipToGameplay = true;
 			debugDamageViewer = true;
 #endif
 			break;
@@ -137,8 +137,8 @@ void JE_paramCheck(int argc, char *argv[])
 				goto connect_slot_error;
 			}
 
-			skipIntroLogos = true;
-			Archipelago_SetDefaultConnectionDetails(option.arg);
+			skipToGameplay = true;
+			Archipelago_Connect(option.arg);
 			break;
 
 		connect_slot_error:

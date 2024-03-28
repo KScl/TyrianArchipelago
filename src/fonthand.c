@@ -36,7 +36,7 @@ const int font_ascii[256] =
 	 -1,  26,  33,  60,  61,  62,  -1,  32,  64,  65,  63,  84,  29,  83,  28,  80, //  !"#$%&'()*+,-./
 	 79,  70,  71,  72,  73,  74,  75,  76,  77,  78,  31,  30,  -1,  85,  -1,  27, // 0123456789:;<=>?
 	 -1,   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14, // @ABCDEFGHIJKLMNO
-	 15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  68,  82,  69,  -1,  -1, // PQRSTUVWXYZ[\]^_
+	 15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  68,  82,  69,  -1,  83, // PQRSTUVWXYZ[\]^_
 	 -1,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47,  48, // `abcdefghijklmno
 	 49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  66,  81,  67,  -1,  -1, // pqrstuvwxyz{|}~⌂
 
@@ -347,6 +347,8 @@ void fonthand_outTextColorize(SDL_Surface *screen, int x, int y, const char *s, 
 
 	for (; *s; ++s)
 	{
+		int spriteID;
+		int y_offset = 0; // Used for underscore hack
 		switch (*s)
 		{
 			case ' ': 
@@ -370,16 +372,19 @@ void fonthand_outTextColorize(SDL_Surface *screen, int x, int y, const char *s, 
 				s += 2;
 				continue; // outer for loop
 
+			case '_':
+				y_offset = 2;
+				// fall through
 			default:
+				spriteID = font_ascii[(unsigned char)*s];
 				break;
 		}
 
-		int spriteID = font_ascii[(unsigned char)*s];
 		if (spriteID != -1 && sprite_exists(TINY_FONT, spriteID))
 		{
 			if (darken)
-				blit_sprite_dark(screen, x + 1, y + 1, TINY_FONT, spriteID, false);
-			blit_sprite_hv_unsafe(screen, x, y, TINY_FONT, spriteID, hue, val);
+				blit_sprite_dark(screen, x + 1, y + y_offset + 1, TINY_FONT, spriteID, false);
+			blit_sprite_hv_unsafe(screen, x, y + y_offset, TINY_FONT, spriteID, hue, val);
 			x += sprite(TINY_FONT, spriteID)->width + 1;
 		}
 	}
@@ -433,7 +438,7 @@ void fonthand_outTextPartial(SDL_Surface *screen, int x, int y, int xlb, int xrb
 			case '~':
 				bright = (bright == 0) ? 4 : 0;
 				continue; // outer for loop
-			default:
+			default: // '_' has identical font_ascii to '-'
 				spriteID = font_ascii[(unsigned char)*s];
 				break;
 		}
@@ -457,6 +462,7 @@ void fonthand_outTextPartial(SDL_Surface *screen, int x, int y, int xlb, int xrb
 
 	for (; *s && x < xrb; ++s)
 	{
+		int y_offset = 0; // Used for underscore hack
 		switch (*s)
 		{
 			case ' ':
@@ -465,6 +471,9 @@ void fonthand_outTextPartial(SDL_Surface *screen, int x, int y, int xlb, int xrb
 			case '~':
 				bright = (bright == 0) ? 4 : 0;
 				continue; // outer for loop
+			case '_':
+				y_offset = 2;
+				// fall through
 			default:
 				spriteID = font_ascii[(unsigned char)*s];
 				break;
@@ -473,8 +482,8 @@ void fonthand_outTextPartial(SDL_Surface *screen, int x, int y, int xlb, int xrb
 		if (spriteID != -1 && sprite_exists(TINY_FONT, spriteID))
 		{
 			if (darken)
-				blit_sprite_dark(screen, x + 1, y + 1, TINY_FONT, spriteID, false);
-			blit_sprite_hv_unsafe(screen, x, y, TINY_FONT, spriteID, hue, val + bright);
+				blit_sprite_dark(screen, x + 1, y + y_offset + 1, TINY_FONT, spriteID, false);
+			blit_sprite_hv_unsafe(screen, x, y + y_offset, TINY_FONT, spriteID, hue, val + bright);
 
 			x += sprite(TINY_FONT, spriteID)->width + 1;
 		}

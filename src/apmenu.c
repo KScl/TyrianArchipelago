@@ -28,6 +28,10 @@
 #include "archipelago/apitems.h"
 #include "archipelago/customship.h"
 
+// ============================================================================
+// Mouse Targets (unified mouse handling)
+// ============================================================================
+
 typedef struct { 
 	int count;
 	struct {
@@ -58,7 +62,72 @@ static int apmenu_mouseInTarget(const mousetargets_t *targets, int x, int y)
 	return -1;
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
+// Text Input
+// ============================================================================
+
+typedef struct {
+	Uint8  defaultHue;
+	Uint8  errorHue;
+	Uint8  textLenMax;
+
+	Uint8  textLen;
+	Uint8  flashTime;
+	char text[256];
+} textinput_t;
+
+static void apmenu_textInputRender(SDL_Surface *screen, textinput_t *input, Sint16 x, Sint16 y, Sint16 w)
+{
+	w -= 7; // Space for cursor
+
+	const Sint16 textWidth = JE_textWidth(input->text, TINY_FONT);
+	const Sint16 textEndX = (textWidth > w) ? x + w : x + textWidth; // Used for cursor placement
+	const Sint16 textStartX = (textWidth > w) ? textEndX - textWidth : x; // Used to align text
+
+	if (textWidth > 0)
+		fonthand_outTextPartial(screen, textStartX, y, x, x + w, input->text, input->defaultHue, 1, true);
+
+	// Cursor flash and draw
+	if (!input->flashTime)
+		input->flashTime = 49;
+	else
+		--input->flashTime;
+
+	const int cursorHue = (input->textLen == input->textLenMax) ? input->errorHue : input->defaultHue;
+	const int cursorVal = (input->flashTime >= 25) ? 12 : 8;
+	fill_rectangle_xy(screen, textEndX + 2, y + 1, textEndX + 6, y + 6, 14<<4 | 2);
+	fill_rectangle_xy(screen, textEndX + 1, y, textEndX + 5, y + 5, cursorHue<<4 | cursorVal);
+}
+
+static bool apmenu_textInputCapture(textinput_t *input)
+{
+	if (newkey && lastkey_scan == SDL_SCANCODE_RETURN)
+	{
+		input->text[input->textLen] = 0; // Just absolutely ensure there's a null terminator
+		return true;
+	}
+	else if (newkey && lastkey_scan == SDL_SCANCODE_BACKSPACE)
+	{
+		if (input->textLen)
+			input->text[--input->textLen] = 0; // Erase character
+	}
+	else if (new_text)
+	{
+		for (char *input_p = last_text; *input_p; ++input_p)
+		{
+			if (input->textLen >= input->textLenMax)
+				break; // Input box full
+			else if (*input_p == ' ' || *input_p == '_') // Space and underscore excepted from below rule
+				input->text[input->textLen++] = *input_p;
+			else if ((unsigned char)*input_p < 127 && font_ascii[(unsigned char)*input_p] != -1)
+				input->text[input->textLen++] = *input_p;
+		}
+		input->text[input->textLen] = 0;
+	}
+	return false;
+}
+
+// ============================================================================
 
 // Does basic init steps as we initiate an Archipelago game.
 void apmenu_initArchipelagoGame(void)
@@ -127,7 +196,7 @@ bool ap_connectScreen(void)
 
 		switch(Archipelago_ConnectionStatus())
 		{
-			case APCONN_NOT_CONNECTED:
+			case APCONN_FATAL_ERROR:
 				if (error_time)
 				{
 					--error_time;
@@ -138,12 +207,14 @@ bool ap_connectScreen(void)
 					draw_font_hv_shadow(VGAScreen, 160, 100, "Failed to connect to the Archipelago server:", small_font, centered, 4, visual_pulse, false, 1);
 					draw_font_hv_shadow(VGAScreen, 160, 110, Archipelago_GetConnectionError(), small_font, centered, 4, visual_pulse, false, 1);
 				}
+			// fall through
 
+			case APCONN_NOT_CONNECTED:
 				if (newkey && lastkey_scan == SDL_SCANCODE_RETURN)
 				{
 					error_time = 300;
 					visual_time = 0;
-					Archipelago_Connect();
+					Archipelago_Connect("0.0.0.0:38281");
 				}
 				else if (newkey && lastkey_scan == SDL_SCANCODE_ESCAPE)
 				{
@@ -259,6 +330,13 @@ bool ap_titleScreen(void)
 {
 	if (shopSpriteSheet.data == NULL)
 		JE_loadCompShapes(&shopSpriteSheet, '1');  // need mouse pointer sprites
+
+	if (skipToGameplay)
+	{
+		skipToGameplay = false;
+		if (ap_connectScreen())
+			return true;
+	}
 
 	bool first_load = true; // On startup or after quit game
 	bool reload = true;
@@ -2332,16 +2410,12 @@ static void sidebarSimulateShots(void)
 // Chat Box
 // ------------------------------------------------------------------
 
-static char userChatEntry[256];
-static Uint8 userChatEntryLen = 0;
+textinput_t chatTextEntry;
 
 static void apmenu_chatbox(void)
 {
 	Uint8 scrollbackPos = 1;
 	int lines = 1;
-
-	Uint8 inputFlashVal = 8;
-	Uint8 inputFlashTime = 32;
 
 	JE_playSampleNum(S_SPRING);
 
@@ -2372,6 +2446,7 @@ static void apmenu_chatbox(void)
 	}
 	lines = 16;
 
+	chatTextEntry.flashTime = 0;
 	service_SDL_events(true); // Get fresh events
 	while (true)
 	{
@@ -2394,28 +2469,12 @@ static void apmenu_chatbox(void)
 		if (newkey && (lastkey_scan == SDL_SCANCODE_TAB || lastkey_scan == SDL_SCANCODE_ESCAPE))
 			break;
 
-		if (newkey && lastkey_scan == SDL_SCANCODE_RETURN && userChatEntryLen)
+		if (apmenu_textInputCapture(&chatTextEntry) && chatTextEntry.textLen)
 		{
-			userChatEntry[userChatEntryLen] = 0; // Just absolutely ensure there's a null terminator
-			Archipelago_ChatMessage(userChatEntry);
-			userChatEntry[0] = 0;
-			userChatEntryLen = 0;
+			Archipelago_ChatMessage(chatTextEntry.text);
+			chatTextEntry.text[0] = 0;
+			chatTextEntry.textLen = 0;
 			scrollbackPos = 1;
-		}
-		else if (newkey && lastkey_scan == SDL_SCANCODE_BACKSPACE && userChatEntryLen)
-		{
-			userChatEntry[--userChatEntryLen] = 0; // Erase character
-		}
-		else if (new_text)
-		{
-			for (char *input_p = last_text; *input_p; ++input_p)
-			{
-				if (userChatEntryLen == 255)
-					break; // Input box full
-				if ((unsigned char)*input_p < 127 && (*input_p == ' ' || font_ascii[(unsigned char)*input_p] != -1))
-					userChatEntry[userChatEntryLen++] = *input_p;
-			}
-			userChatEntry[userChatEntryLen] = 0;
 		}
 
 		fill_rectangle_xy(VGAScreen, 0, 180 - (lines * 9), 319, 180, 228);
@@ -2423,33 +2482,8 @@ static void apmenu_chatbox(void)
 		apmsg_drawScrollBack(scrollbackPos, lines);
 		blit_sprite2(VGAScreen, 303, 160 - (scrollbackPos >> 1), shopSpriteSheet, 247);
 
-		// Output user typing onto the screen
-		const int chatWidth = JE_textWidth(userChatEntry, TINY_FONT);
-		const int chatBoxMaxWidth = 250;
-		int chatStartX = 10;
-		int chatEndX = 10;
-
-		if (chatWidth > chatBoxMaxWidth)
-		{
-			chatEndX = 10 + chatBoxMaxWidth;
-			chatStartX = chatEndX - chatWidth;
-		}
-		else
-			chatEndX = chatStartX + chatWidth;
-
 		fill_rectangle_xy(VGAScreen, 9, 187, 267, 187+9, 228);
-		if (chatStartX != chatEndX)
-			fonthand_outTextPartial(VGAScreen, chatStartX, 187, 10, chatEndX, userChatEntry, 14, 1, true);
-
-		// Cursor flash and draw
-		if (!(--inputFlashTime))
-		{
-			inputFlashVal = (inputFlashVal == 8) ? 12 : 8;
-			inputFlashTime = 24;
-		}
-		const int inputFlashHue = (userChatEntryLen == 255) ? 4 : 14;
-		fill_rectangle_xy(VGAScreen, chatEndX+2, 188, chatEndX+6, 188+5, 14<<4 | 2);
-		fill_rectangle_xy(VGAScreen, chatEndX+1, 187, chatEndX+5, 187+5, inputFlashHue<<4 | inputFlashVal);
+		apmenu_textInputRender(VGAScreen, &chatTextEntry, 10, 187, 257);
 
 		service_SDL_events(true);
 		JE_mouseStart();
@@ -2514,8 +2548,10 @@ int apmenu_itemScreen(void)
 	itemSubMenus[SUBMENU_MAIN].initFunc();
 
 	// Clear chat box when entering menu
-	memset(userChatEntry, 0, sizeof(userChatEntry));
-	userChatEntryLen = 0;
+	memset(&chatTextEntry, 0, sizeof(chatTextEntry));
+	chatTextEntry.defaultHue = 14;
+	chatTextEntry.errorHue = 4;
+	chatTextEntry.textLenMax = 255;
 
 	service_SDL_events(true); // Flush events before starting
 	Archipelago_Save();

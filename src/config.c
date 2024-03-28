@@ -155,7 +155,7 @@ int damagePerSecondHist[3];
 float damagePerSecondAvg;
 #endif
 
-bool skipIntroLogos = false;
+bool skipToGameplay = false;
 
 Config opentyrian_config;  // implicitly initialized
 

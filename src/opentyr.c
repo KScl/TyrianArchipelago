@@ -853,7 +853,7 @@ int main(int argc, char *argv[])
 	}
 
 #ifdef NDEBUG
-	if (!skipIntroLogos)
+	if (!skipToGameplay)
 		intro_logos();
 #endif
 
