@@ -67,8 +67,8 @@ static int apmenu_mouseInTarget(const mousetargets_t *targets, int x, int y)
 // ============================================================================
 
 typedef struct {
-	Uint8  defaultHue;
-	Uint8  errorHue;
+	Uint8  textColor;
+	Uint8  errorColor;
 	Uint8  textLenMax;
 
 	Uint8  textLen;
@@ -86,8 +86,11 @@ static void apmenu_textInputRender(SDL_Surface *screen, textinput_t *input, Sint
 	const Sint16 textEndX = (textWidth > w) ? x + w : x + textWidth; // Used for cursor placement
 	const Sint16 textStartX = (textWidth > w) ? textEndX - textWidth : x; // Used to align text
 
+	const int colorHue = input->textColor >> 4;
+	const int colorVal = (input->textColor & 0xF) - 7;
+
 	if (textWidth > 0)
-		fonthand_outTextPartial(screen, textStartX, y, x, x + w, input->text, input->defaultHue, 1, true);
+		fonthand_outTextPartial(screen, textStartX, y, x, x + w, input->text, colorHue, colorVal, true);
 
 	if (!input->isCaptured)
 	{
@@ -102,10 +105,12 @@ static void apmenu_textInputRender(SDL_Surface *screen, textinput_t *input, Sint
 	else
 		--input->flashTime;
 
-	const int cursorHue = (input->textLen == input->textLenMax) ? input->errorHue : input->defaultHue;
-	const int cursorVal = (input->flashTime >= 25) ? 12 : 8;
+	Uint8 baseColor = (input->textLen == input->textLenMax) ? input->errorColor : input->textColor;
+	if (input->flashTime >= 25)
+		baseColor += 4;
+
 	JE_barShade(screen, textEndX + 2, y + 1, textEndX + 6, y + 6);
-	fill_rectangle_xy(screen, textEndX + 1, y, textEndX + 5, y + 5, cursorHue<<4 | cursorVal);
+	fill_rectangle_xy(screen, textEndX + 1, y, textEndX + 5, y + 5, baseColor);
 }
 
 // Capture text input in this text box.
@@ -166,8 +171,8 @@ size_t connectSel_ModeChoice = 0;
 size_t connectSel_Online = 0;
 
 // Text input for Online menu
-textinput_t inputServerAddr = { /* Normal Hue */ 15, /* Error Hue */ 14, /* Max Length */ 127};
-textinput_t inputSlotName   = { /* Normal Hue */ 15, /* Error Hue */ 14, /* Max Length */ 16};
+textinput_t inputServerAddr = { /* Text Color */ 250, /* Error Color */ 228, /* Max Length */ 127};
+textinput_t inputSlotName   = { /* Text Color */ 250, /* Error Color */ 228, /* Max Length */ 16};
 
 // Does basic init steps as we initiate an Archipelago game.
 void apmenu_initArchipelagoGame(void)
@@ -288,7 +293,7 @@ static void ap_connectSubmenuOnline(void)
 
 	drawConnectOption(VGAScreen, "Address",            60, (connectSel_Online == 0));
 	drawConnectOption(VGAScreen, "Slot Name",          90, (connectSel_Online == 1));
-	drawConnectOption(VGAScreen, "Connect to Server", 120, (connectSel_Online == 2));
+	drawConnectOption(VGAScreen, "Connect to Server", 160, (connectSel_Online == 2));
 }
 
 
@@ -2596,7 +2601,7 @@ static void sidebarSimulateShots(void)
 // Chat Box
 // ------------------------------------------------------------------
 
-textinput_t chatTextEntry;
+textinput_t chatTextEntry = { /* Text Color */ 232, /* Error Color */ 72, /* Max Length */ 255};
 
 static void apmenu_chatbox(void)
 {
@@ -2658,8 +2663,7 @@ static void apmenu_chatbox(void)
 		if (apmenu_textInputCapture(&chatTextEntry) && chatTextEntry.textLen)
 		{
 			Archipelago_ChatMessage(chatTextEntry.text);
-			chatTextEntry.text[0] = 0;
-			chatTextEntry.textLen = 0;
+			apmenu_textInputUpdate(&chatTextEntry, "");
 			scrollbackPos = 1;
 		}
 
@@ -2670,6 +2674,13 @@ static void apmenu_chatbox(void)
 
 		fill_rectangle_xy(VGAScreen, 9, 187, 267, 187+9, 228);
 		apmenu_textInputRender(VGAScreen, &chatTextEntry, 10, 187, 257);
+
+		// Draw online/offline marker
+		fill_rectangle_xy(VGAScreen, 282, 187, 312, 187+9, 228);
+		if (Archipelago_ConnectionStatus() == APCONN_READY)
+			JE_outTextAndDarken(VGAScreen, 284, 187, "Online", 12, 3, TINY_FONT);
+		else
+			JE_outTextAndDarken(VGAScreen, 282, 187, "Offline", 4, 3, TINY_FONT);
 
 		service_SDL_events(true);
 		JE_mouseStart();
@@ -2734,10 +2745,7 @@ int apmenu_itemScreen(void)
 	itemSubMenus[SUBMENU_MAIN].initFunc();
 
 	// Clear chat box when entering menu
-	memset(&chatTextEntry, 0, sizeof(chatTextEntry));
-	chatTextEntry.defaultHue = 14;
-	chatTextEntry.errorHue = 4;
-	chatTextEntry.textLenMax = 255;
+	apmenu_textInputUpdate(&chatTextEntry, "");
 
 	service_SDL_events(true); // Flush events before starting
 	Archipelago_Save();
