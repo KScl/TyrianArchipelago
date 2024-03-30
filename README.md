@@ -14,17 +14,16 @@ data files will work for all seeds.
 * [Tyrian 2.1](https://www.camanis.net/tyrian/tyrian21.zip)
 * [Tyrian 2000](https://www.camanis.net/tyrian/tyrian2000.zip)
 
-### Important Notes (alpha1)
+### Important Notes (alpha2)
 
-The menu for choosing a server / slot name to connect to is currently
-unfinished. You will need to start APTyrian with the command line option:
+Connecting to an Archipelago server can be done through the in-game menus, or
+alternatively through the command line with the following option:
 * `--connect="<slot_name>@archipelago.gg:<port_number>"`
 
-Then, after choosing "Start Game", press ENTER on the otherwise empty screen
-to start connecting to the Archipelago server.
-
-Alternatively, if you have a single player .aptyrian file, drag and drop it onto
-the game window while on the empty "Start Game" screen to start playing it.
+If you have a single player .aptyrian file, drag and drop it over the game
+window while in the "Select Game Mode" menu to start playing it. The option
+within that menu to play a local game will eventually open a file dialog, but
+that has yet to be implemented.
 
 The menu for modifying controls has not been reimplemented yet. You'll need to
 start the game once, and then modify "aptyrian.cfg" in the "save" subdirectory
