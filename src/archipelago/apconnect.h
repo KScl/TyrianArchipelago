@@ -54,8 +54,9 @@ void Archipelago_Save(void);
 // Local Game
 // ----------------------------------------------------------------------------
 
-bool Archipelago_StartDebugGame(void);
-bool Archipelago_StartLocalGame(FILE *file);
+// These return NULL on success or error string on failure.
+const char *Archipelago_StartDebugGame(void);
+const char *Archipelago_StartLocalGame(FILE *file);
 
 // ----------------------------------------------------------------------------
 // Remote Game

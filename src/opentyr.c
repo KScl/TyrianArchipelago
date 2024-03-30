@@ -869,7 +869,7 @@ int main(int argc, char *argv[])
 #ifdef DEBUG_OPTIONS
 		if (debugDamageViewer)
 		{
-			if (!Archipelago_StartDebugGame())
+			if (Archipelago_StartDebugGame()) // non-NULL: error
 				JE_tyrianHalt(1);
 			apmenu_initArchipelagoGame();
 		}

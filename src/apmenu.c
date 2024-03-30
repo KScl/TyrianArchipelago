@@ -73,9 +73,11 @@ typedef struct {
 
 	Uint8  textLen;
 	Uint8  flashTime;
+	Uint8  isCaptured;
 	char text[256];
 } textinput_t;
 
+// Display this text box.
 static void apmenu_textInputRender(SDL_Surface *screen, textinput_t *input, Sint16 x, Sint16 y, Sint16 w)
 {
 	w -= 7; // Space for cursor
@@ -87,6 +89,13 @@ static void apmenu_textInputRender(SDL_Surface *screen, textinput_t *input, Sint
 	if (textWidth > 0)
 		fonthand_outTextPartial(screen, textStartX, y, x, x + w, input->text, input->defaultHue, 1, true);
 
+	if (!input->isCaptured)
+	{
+		input->flashTime = 0;
+		return;
+	}
+	input->isCaptured = false;
+
 	// Cursor flash and draw
 	if (!input->flashTime)
 		input->flashTime = 49;
@@ -95,12 +104,14 @@ static void apmenu_textInputRender(SDL_Surface *screen, textinput_t *input, Sint
 
 	const int cursorHue = (input->textLen == input->textLenMax) ? input->errorHue : input->defaultHue;
 	const int cursorVal = (input->flashTime >= 25) ? 12 : 8;
-	fill_rectangle_xy(screen, textEndX + 2, y + 1, textEndX + 6, y + 6, 14<<4 | 2);
+	JE_barShade(screen, textEndX + 2, y + 1, textEndX + 6, y + 6);
 	fill_rectangle_xy(screen, textEndX + 1, y, textEndX + 5, y + 5, cursorHue<<4 | cursorVal);
 }
 
+// Capture text input in this text box.
 static bool apmenu_textInputCapture(textinput_t *input)
 {
+	input->isCaptured = true;
 	if (newkey && lastkey_scan == SDL_SCANCODE_RETURN)
 	{
 		input->text[input->textLen] = 0; // Just absolutely ensure there's a null terminator
@@ -127,7 +138,36 @@ static bool apmenu_textInputCapture(textinput_t *input)
 	return false;
 }
 
+// Update input box with new text.
+static void apmenu_textInputUpdate(textinput_t *input, const char *newText)
+{
+	snprintf(input->text, 256, "%s", newText);
+	input->text[input->textLenMax] = 0;
+	input->textLen = (Uint8)strlen(input->text);
+}
+
 // ============================================================================
+// Server Connection / Game Init Menus
+// ============================================================================
+
+// Last successful online server input
+char lastGoodServerAddr[128] = "archipelago.gg:";
+char lastGoodSlotName[20] = "";
+
+// If true, aborts menu processing (fading everything out) to show connection progress instead.
+bool showGameInfo = false;
+int currentMenuState = 0; // 1 for online, 2 for offline, 0 for selection menu
+
+// Used by local games to show error messages.
+const char *localErrorStr;
+
+// Cursor locations for each submenu
+size_t connectSel_ModeChoice = 0;
+size_t connectSel_Online = 0;
+
+// Text input for Online menu
+textinput_t inputServerAddr = { /* Normal Hue */ 15, /* Error Hue */ 14, /* Max Length */ 127};
+textinput_t inputSlotName   = { /* Normal Hue */ 15, /* Error Hue */ 14, /* Max Length */ 16};
 
 // Does basic init steps as we initiate an Archipelago game.
 void apmenu_initArchipelagoGame(void)
@@ -142,105 +182,251 @@ void apmenu_initArchipelagoGame(void)
 
 // ----------------------------------------------------------------------------
 
-static void ap_connectDrawOnlineOffline(void)
+static void drawInputBox(SDL_Surface *screen, int x, int y, int w, int h, int c_outer, int c_inner)
 {
-	//draw_font_hv_shadow(VGAScreen, 40, 100, "Connect to an Archipelago Multiworld server, to", small_font, left_aligned, 15, 3, false, 1);
-	//draw_font_hv_shadow(VGAScreen, 40, 110, "play a randomized game with other players.", small_font, left_aligned, 15, 3, false, 1);
-	//draw_font_hv_shadow(VGAScreen, 40, 160, "Play a pre-generated randomized game offline.", small_font, left_aligned, 15, 3, false, 1);
-	//draw_font_hv_shadow(VGAScreen, 40, 170, "play a randomized game with other players.", small_font, left_aligned, 15, 3, false, 1);
-
+	// Border
+	JE_rectangle(screen, x-5, y-3, x+w+5 - 1, y+h+3 - 1, c_outer);
+	JE_rectangle(screen, x-4, y-4, x+w+4 - 1, y+h+4 - 1, c_outer + 2);
+	JE_rectangle(screen, x-3, y-5, x+w+3 - 1, y+h+5 - 1, c_outer);
+	// Inner fill
+	fill_rectangle_wh(screen, x-2, y-2, w+2+2, h+2+2, c_inner);
 }
+
+static void drawConnectOption(SDL_Surface *screen, const char *c, int y, bool highlighted)
+{
+	const int brightness = highlighted ? -1 : -3;
+	draw_font_hv_shadow(screen, 30, y, c, SMALL_FONT_SHAPES, left_aligned, 15, brightness, false, 2);
+}
+
+// ----------------------------------------------------------------------------
+
+static void ap_connectSubmenuModeChoice(void)
+{
+	if (currentMenuState < 0)
+		; // View only -- No operation
+	else if (fileDropped) // Handle file drops on this menu
+	{
+		FILE *f = fopen(fileDropped, "r");
+		localErrorStr = Archipelago_StartLocalGame(f);
+		fclose(f);
+
+		showGameInfo = true;
+		clearFileDropped();
+	}
+	else if (newkey && (lastkey_scan == SDL_SCANCODE_DOWN || lastkey_scan == SDL_SCANCODE_UP))
+	{
+		JE_playSampleNum(S_CURSOR);
+		connectSel_ModeChoice ^= 1;
+	}
+	else if (newkey && lastkey_scan == SDL_SCANCODE_RETURN)
+	{
+		JE_playSampleNum(S_SELECT);
+		if (connectSel_ModeChoice == 0)
+			currentMenuState = 1;
+		else
+			JE_playSampleNum(S_SPRING);
+	}
+
+	draw_font_hv_shadow(VGAScreen, 160, 10, "Select Game Mode", large_font, centered, 15, -3, false, 2);
+
+	drawConnectOption(VGAScreen, "Online via Archipelago Server", 60, (connectSel_ModeChoice == 0));
+	drawConnectOption(VGAScreen, "Play Local Game",               120, (connectSel_ModeChoice == 1));
+
+	draw_font_hv_shadow(VGAScreen, 40, 60+16, "Connect to an Archipelago Multiworld server, to", small_font, left_aligned, 15, 3, false, 1);
+	draw_font_hv_shadow(VGAScreen, 40, 60+25, "play a randomized game with other players.", small_font, left_aligned, 15, 3, false, 1);
+
+	draw_font_hv_shadow(VGAScreen, 40, 120+16, "Play a pre-generated randomized game offline.", small_font, left_aligned, 15, 3, false, 1);
+}
+
+// ----------------------------------------------------------------------------
+
+static void ap_connectSubmenuOnline(void)
+{
+	if (currentMenuState < 0)
+		; // View only -- No operation
+	else if (newkey && lastkey_scan == SDL_SCANCODE_DOWN)
+	{
+		JE_playSampleNum(S_CURSOR);
+		connectSel_Online = (connectSel_Online >= 2) ? 0 : connectSel_Online + 1;
+	}
+	else if (newkey && lastkey_scan == SDL_SCANCODE_UP)
+	{
+		JE_playSampleNum(S_CURSOR);
+		connectSel_Online = (connectSel_Online == 0) ? 2 : connectSel_Online - 1;
+	}
+	else if (newkey && lastkey_scan == SDL_SCANCODE_RETURN)
+	{
+		JE_playSampleNum(S_SELECT);
+		if (connectSel_Online < 2)
+			++connectSel_Online;
+		else
+		{
+			char connectAddress[160];
+			snprintf(connectAddress, 160, "%s@%s", inputSlotName.text, inputServerAddr.text);
+
+			Archipelago_Connect(connectAddress);			
+			showGameInfo = true;
+		}
+	}
+
+	if (currentMenuState >= 0)
+	{
+		switch (connectSel_Online)
+		{
+			case 0:  apmenu_textInputCapture(&inputServerAddr); break;
+			case 1:  apmenu_textInputCapture(&inputSlotName); break;
+			default: break;
+		}		
+	}
+
+	draw_font_hv_shadow(VGAScreen, 160, 10, "Archipelago Server", large_font, centered, 15, -3, false, 2);
+
+	drawInputBox(VGAScreen, 160, 60, 120, 12, (connectSel_Online == 0) ? 248 : 226, 224);
+	drawInputBox(VGAScreen, 160, 90, 120, 12, (connectSel_Online == 1) ? 248 : 226, 224);
+	apmenu_textInputRender(VGAScreen, &inputServerAddr, 160 + 2, 60 + 2, 120 - 4);
+	apmenu_textInputRender(VGAScreen, &inputSlotName,   160 + 2, 90 + 2, 120 - 4);
+
+	drawConnectOption(VGAScreen, "Address",            60, (connectSel_Online == 0));
+	drawConnectOption(VGAScreen, "Slot Name",          90, (connectSel_Online == 1));
+	drawConnectOption(VGAScreen, "Connect to Server", 120, (connectSel_Online == 2));
+}
+
 
 bool ap_connectScreen(void)
 {
+	bool game_ready = false;
+
 	clearFileDropped();
 
 	JE_loadPic(VGAScreen2, 2, false);
 	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
-	fade_palette(colors, 10, 0, 255);
-	ap_connectDrawOnlineOffline();
-	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 
-	int error_time = 0;
-	int visual_time = 0;
-	int visual_pulse = 0;
+	currentMenuState = -1; // View only until loaded
+	connectSel_ModeChoice = 0;
+	connectSel_Online = 0;
+	apmenu_textInputUpdate(&inputServerAddr, lastGoodServerAddr);
+	apmenu_textInputUpdate(&inputSlotName, lastGoodSlotName);
 
-// void draw_font_hv_shadow(SDL_Surface *surface, int x, int y, const char *text, Font font, FontAlignment alignment, Uint8 hue, Sint8 value, bool black, int shadow_dist)
-
-	bool game_ready = false;
-	while (!game_ready)
+	if (skipToGameplay)
 	{
+		showGameInfo = true;
+		skipToGameplay = false; // Clear flag so we don't get stuck in loops later
+		ap_connectSubmenuOnline(); // To draw it once
+		currentMenuState = 1;
+	}
+	else
+	{
+		ap_connectSubmenuModeChoice(); // To draw it once
+		currentMenuState = 0;
+	}
+
+	fade_palette(colors, 10, 0, 255);
+
+	while (!game_ready && currentMenuState != -1)
+	{
+		memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 		push_joysticks_as_keyboard();
 		service_SDL_events(true);
 
-		if (fileDropped)
+		if (newkey && lastkey_scan == SDL_SCANCODE_ESCAPE)
 		{
-			FILE *f = fopen(fileDropped, "r");
-			clearFileDropped();
-			game_ready = Archipelago_StartLocalGame(f);
-			fclose(f);
-
-			if (game_ready)
-				break;
+			JE_playSampleNum(S_SPRING);
+			currentMenuState = (currentMenuState > 0) ? 0 : -1;
 		}
 
-		++visual_time;
-		visual_time &= 0x1F;
+		switch (currentMenuState)
+		{
+			default:
+			case 0:  ap_connectSubmenuModeChoice(); break;
+			case 1:  ap_connectSubmenuOnline(); break;
+			case 2:  break;
+		}
+		if (showGameInfo)
+		{
+			int visual_time = 0;
+			int visual_pulse = 0;
 
-		if (visual_time & 0x10)
-			visual_pulse = -2 + ((visual_time ^ 0x1F) >> 2);
+			JE_barShade(VGAScreen, 0, 0, 319, 199);
+
+			while (showGameInfo)
+			{
+				push_joysticks_as_keyboard();
+				service_SDL_events(true);
+
+				++visual_time;
+				visual_time &= 0x1F;
+
+				if (visual_time & 0x10)
+					visual_pulse = -2 + ((visual_time ^ 0x1F) >> 2);
+				else
+					visual_pulse = -2 + ( visual_time         >> 2);
+
+				if (currentMenuState != 1)
+				{
+					if (!localErrorStr)
+					{
+						showGameInfo = false;
+						game_ready = true;
+					}
+					else
+					{
+						drawInputBox(VGAScreen, 40, 100-11, 240, 22, 232, 224);
+						draw_font_hv_shadow(VGAScreen, 160,  91, "Can't start local game:", small_font, centered, 14, 2, false, 1);
+						draw_font_hv_shadow(VGAScreen, 160, 101, localErrorStr, small_font, centered, 14, 2, false, 1);
+
+						if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_ESCAPE))
+						{
+							JE_playSampleNum((lastkey_scan == SDL_SCANCODE_RETURN) ? S_SELECT : S_SPRING);
+							showGameInfo = false;
+						}
+					}
+				}
+				else switch (Archipelago_ConnectionStatus())
+				{
+					default:
+						drawInputBox(VGAScreen, 40, 100-11, 240, 22, 232, 224);
+						draw_font_hv_shadow(VGAScreen, 160,  91, "Failed to connect to the Archipelago server:", small_font, centered, 14, 2, false, 1);
+						draw_font_hv_shadow(VGAScreen, 160, 101, Archipelago_GetConnectionError(), small_font, centered, 14, 2, false, 1);
+
+						if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_ESCAPE))
+						{
+							JE_playSampleNum((lastkey_scan == SDL_SCANCODE_RETURN) ? S_SELECT : S_SPRING);
+							showGameInfo = false;
+						}
+						break;
+					case APCONN_CONNECTING:
+						drawInputBox(VGAScreen, 120, 100-6, 80, 12, 200, 224);
+						draw_font_hv_shadow(VGAScreen, 160, 96, "Connecting...", small_font, centered, 12, visual_pulse, false, 1);
+						break;
+					case APCONN_TENTATIVE:
+						drawInputBox(VGAScreen, 120, 100-6, 80, 12, 200, 224);
+						draw_font_hv_shadow(VGAScreen, 160, 96, "Authenticating...", small_font, centered, 12, visual_pulse, false, 1);
+						break;
+					case APCONN_READY:
+						memcpy(lastGoodServerAddr, inputServerAddr.text, 128);
+						memcpy(lastGoodSlotName, inputSlotName.text, 20);
+						lastGoodServerAddr[127] = 0;
+						lastGoodSlotName[19] = 0;
+						showGameInfo = false;
+						game_ready = true;
+						break;
+				}
+
+				JE_showVGA();
+				SDL_Delay(16);
+			}
+		}
 		else
-			visual_pulse = -2 + ( visual_time         >> 2);
-
-		draw_font_hv_shadow(VGAScreen, 40, 100, "Connect to an Archipelago Multiworld server and", small_font, left_aligned, 15, 4, false, 1);
-
-		switch(Archipelago_ConnectionStatus())
 		{
-			case APCONN_FATAL_ERROR:
-				if (error_time)
-				{
-					--error_time;
-					visual_pulse = 6;
-					if (--error_time < 60)
-						visual_pulse = -8 + (error_time >> 2);
-
-					draw_font_hv_shadow(VGAScreen, 160, 100, "Failed to connect to the Archipelago server:", small_font, centered, 4, visual_pulse, false, 1);
-					draw_font_hv_shadow(VGAScreen, 160, 110, Archipelago_GetConnectionError(), small_font, centered, 4, visual_pulse, false, 1);
-				}
-			// fall through
-
-			case APCONN_NOT_CONNECTED:
-				if (newkey && lastkey_scan == SDL_SCANCODE_RETURN)
-				{
-					error_time = 300;
-					visual_time = 0;
-					Archipelago_Connect("0.0.0.0:38281");
-				}
-				else if (newkey && lastkey_scan == SDL_SCANCODE_ESCAPE)
-				{
-					JE_playSampleNum(S_SPRING);
-					fade_black(15);
-					return false;
-				}
-				break;
-
-			case APCONN_CONNECTING:
-				draw_font_hv_shadow(VGAScreen, 160, 100, "Connecting...", small_font, centered, 12, visual_pulse, false, 1);
-				break;
-
-			case APCONN_TENTATIVE:
-				draw_font_hv_shadow(VGAScreen, 160, 100, "Authenticating...", small_font, centered, 12, visual_pulse, false, 1);
-				break;
-
-			case APCONN_READY:
-				// Ready to start the game
-				game_ready = true;
-				break;
+			JE_showVGA();
+			SDL_Delay(16);
 		}
+	}
 
-		JE_showVGA();
-		SDL_Delay(16);
-		memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
+	if (currentMenuState < 0)
+	{
+		fade_black(15);
+		return false;
 	}
 
 	JE_playSampleNum(S_SELECT);
@@ -333,7 +519,7 @@ bool ap_titleScreen(void)
 
 	if (skipToGameplay)
 	{
-		skipToGameplay = false;
+		play_song(SONG_TITLE);
 		if (ap_connectScreen())
 			return true;
 	}

@@ -1186,10 +1186,14 @@ void Archipelago_UpdateDeathLinkState(void)
 // Local Play : File I/O
 // ============================================================================
 
-bool Archipelago_StartDebugGame(void)
+std::string localErrorString;
+
+// Starts a game with a predefined "save" with all items and levels unlocked.
+// Returns NULL on success, or error string on failure.
+const char *Archipelago_StartDebugGame(void)
 {
 	if (gameInProgress || ap)
-		return false;
+		return "Game already in progress.";
 
 	APAll_InitMessageQueue();
 
@@ -1220,13 +1224,15 @@ bool Archipelago_StartDebugGame(void)
 	totalLocationCount = 0;
 
 	gameInProgress = true;
-	return true;
+	return NULL;
 }
 
-bool Archipelago_StartLocalGame(FILE *file)
+// Starts a game from a local aptyrian file.
+// Returns NULL on success, or error string on failure.
+const char *Archipelago_StartLocalGame(FILE *file)
 {
 	if (gameInProgress || ap)
-		return false;
+		return "Game already in progress.";
 
 	APAll_InitMessageQueue();
 	try
@@ -1284,20 +1290,22 @@ bool Archipelago_StartLocalGame(FILE *file)
 	}
 	catch (const std::runtime_error& e)
 	{
-		std::cout << "Can't start game: " << e.what() << std::endl;
-		return false;
+		localErrorString = e.what();
+		std::cout << "Can't start game: " << localErrorString << std::endl;
+		return localErrorString.c_str();
 	}
 	catch (...)
 	{
 		// Slot data JSON wasn't formed like expected to be
-		std::cout << "Can't start game: Invalid or corrupt data received." << std::endl;
-		return false;
+		localErrorString = "Invalid or corrupt data in file.";
+		std::cout << "Can't start game: " << localErrorString << std::endl;
+		return localErrorString.c_str();
 	}
 
 	// Init other data (can't fail)
 	APLocal_InitLocationsPerRegion();
 	gameInProgress = true;
-	return true;
+	return NULL;
 }
 
 // ============================================================================
@@ -1631,8 +1639,7 @@ void Archipelago_Disconnect(void)
 		return;
 
 	printf("Disconnecting from Archipelago server.\n");
-	if (connection_stat != APCONN_FATAL_ERROR)
-		connection_stat = APCONN_NOT_CONNECTED;
+	connection_stat = APCONN_NOT_CONNECTED;
 	ap.reset();
 }
 
