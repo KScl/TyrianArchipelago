@@ -431,8 +431,10 @@ JE_boolean JE_inGameSetup(void)
 			const char *const name = inGameText[i];
 
 			const bool selected = i == selectedIndex;
+			const bool disabled = (i == MENU_ITEM_GAME_SPEED && APSeedSettings.ForceGameSpeed);
 
-			draw_font_hv_shadow(VGAScreen, xMenuItemName, y, name, normal_font, left_aligned, 15, -4 + (selected ? 2 : 0), false, 2);
+			draw_font_hv_shadow(VGAScreen, xMenuItemName, y, name, normal_font, left_aligned, 15,
+				(disabled ? -8 : -4) + (selected ? 2 : 0), false, 2);
 
 			switch (i)
 			{
@@ -448,12 +450,18 @@ JE_boolean JE_inGameSetup(void)
 			}
 			case MENU_ITEM_DETAIL_LEVEL:
 			{
-				draw_font_hv_shadow(VGAScreen, xMenuItemValue, y, detailLevel[processorType-1], normal_font, left_aligned, 15, -4 + (selected ? 2 : 0), false, 2);
+				draw_font_hv_shadow(VGAScreen, xMenuItemValue, y, detailLevel[processorType-1], normal_font, left_aligned, 15,
+					(disabled ? -8 : -4) + (selected ? 2 : 0), false, 2);
 				break;
 			}
 			case MENU_ITEM_GAME_SPEED:
 			{
-				draw_font_hv_shadow(VGAScreen, xMenuItemValue, y, gameSpeedText[gameSpeed-1], normal_font, left_aligned, 15, -4 + (selected ? 2 : 0), false, 2);
+				const char *gameSpeedName = (APSeedSettings.ForceGameSpeed)
+					? gameSpeedText[APSeedSettings.ForceGameSpeed - 1]
+					: gameSpeedText[gameSpeed - 1];
+
+				draw_font_hv_shadow(VGAScreen, xMenuItemValue, y, gameSpeedName, normal_font, left_aligned, 15,
+					(disabled ? -8 : -4) + (selected ? 2 : 0), false, 2);
 				break;
 			}
 			}
@@ -710,6 +718,12 @@ JE_boolean JE_inGameSetup(void)
 			}
 			case MENU_ITEM_GAME_SPEED:
 			{
+				if (APSeedSettings.ForceGameSpeed)
+				{
+					JE_playSampleNum(S_CLINK);
+					break;
+				}
+
 				JE_playSampleNum(S_CURSOR);
 
 #ifdef UNBOUNDED_SPEED
@@ -754,6 +768,12 @@ JE_boolean JE_inGameSetup(void)
 			}
 			case MENU_ITEM_GAME_SPEED:
 			{
+				if (APSeedSettings.ForceGameSpeed)
+				{
+					JE_playSampleNum(S_CLINK);
+					break;
+				}
+
 				JE_playSampleNum(S_CURSOR);
 
 #ifdef UNBOUNDED_SPEED
@@ -992,90 +1012,52 @@ bool replay_demo_keys(void)
 /*Street Fighter codes*/
 void JE_SFCodes(JE_byte playerNum_, JE_integer PX_, JE_integer PY_, JE_integer mouseX_, JE_integer mouseY_)
 {
-	JE_byte temp, temp2, temp3, temp4, temp5;
+	JE_byte buttonCount = (mouseY_ > PY_) +    /*UP*/
+	                      (mouseY_ < PY_) +    /*DOWN*/
+	                      (PX_ < mouseX_) +    /*LEFT*/
+	                      (PX_ > mouseX_);     /*RIGHT*/
+	JE_byte inputCode = (mouseY_ > PY_) * 1 + /*UP*/
+	                    (mouseY_ < PY_) * 2 + /*DOWN*/
+	                    (PX_ < mouseX_) * 3 + /*LEFT*/
+	                    (PX_ > mouseX_) * 4;  /*RIGHT*/
 
-	uint ship = player[playerNum_-1].items.ship;
+	// If no directions are being pressed, and fire isn't either, that's input code 9
+	if (buttonCount == 0 && !button[0])
+		inputCode = 9;
 
-	/*Get direction*/
-	if (playerNum_ == 2 && ship < 15)
+	// Otherwise, only proceed if exactly one direction pressed
+	else if (buttonCount != 1)
+		return;
+
+	// Add in the fire button state.
+	inputCode += button[0] * 4;
+
+	for (int i = 0; i < APTwiddles.Count; i++)
 	{
-		ship = 0;
-	}
+		aptwiddle_t *curCode = &APTwiddles.Code[i];
+		JE_byte nextInputCode = curCode->Command[SFCurrentCode[playerNum_-1][i]];
 
-	if (ship < 15)
-	{
-
-		temp2 = (mouseY_ > PY_) +    /*UP*/
-		        (mouseY_ < PY_) +    /*DOWN*/
-		        (PX_ < mouseX_) +    /*LEFT*/
-		        (PX_ > mouseX_);     /*RIGHT*/
-		temp = (mouseY_ > PY_) * 1 + /*UP*/
-		       (mouseY_ < PY_) * 2 + /*DOWN*/
-		       (PX_ < mouseX_) * 3 + /*LEFT*/
-		       (PX_ > mouseX_) * 4;  /*RIGHT*/
-
-		if (temp == 0) // no direction being pressed
+		if (nextInputCode == inputCode) // correct key
 		{
-			if (!button[0]) // if fire button is released
+			++SFCurrentCode[playerNum_-1][i];
+
+			nextInputCode = curCode->Command[SFCurrentCode[playerNum_-1][i]];
+			if (nextInputCode > 100 && nextInputCode <= 100 + SPECIAL_NUM)
 			{
-				temp = 9;
-				temp2 = 1;
-			}
-			else
-			{
-				temp2 = 0;
-				temp = 99;
+				SFCurrentCode[playerNum_-1][i] = 0;
+				SFExecuted[playerNum_-1] = i + 1;
 			}
 		}
-
-		if (temp2 == 1) // if exactly one direction pressed or fire button is released
+		else
 		{
-			temp += button[0] * 4;
-
-			temp3 = superTyrian ? 21 : 3;
-			for (temp2 = 0; temp2 < temp3; temp2++)
+			if ((inputCode != 9) &&
+			    (nextInputCode - 1) % 4 != (inputCode - 1) % 4 &&
+			    (SFCurrentCode[playerNum_-1][i] == 0 ||
+			     curCode->Command[SFCurrentCode[playerNum_-1][i]-1] != inputCode))
 			{
-
-				/*Use SuperTyrian ShipCombos or not?*/
-				temp5 = superTyrian ? shipCombosB[temp2] : shipCombos[ship][temp2];
-
-				// temp5 == selected combo in ship
-				if (temp5 == 0) /* combo doesn't exists */
-				{
-					// mark twiddles as cancelled/finished
-					SFCurrentCode[playerNum_-1][temp2] = 0;
-				}
-				else
-				{
-					// get next combo key
-					temp4 = keyboardCombos[temp5-1][SFCurrentCode[playerNum_-1][temp2]];
-
-					// correct key
-					if (temp4 == temp)
-					{
-						SFCurrentCode[playerNum_-1][temp2]++;
-
-						temp4 = keyboardCombos[temp5-1][SFCurrentCode[playerNum_-1][temp2]];
-						if (temp4 > 100 && temp4 <= 100 + SPECIAL_NUM)
-						{
-							SFCurrentCode[playerNum_-1][temp2] = 0;
-							SFExecuted[playerNum_-1] = temp4 - 100;
-						}
-					}
-					else
-					{
-						if ((temp != 9) &&
-						    (temp4 - 1) % 4 != (temp - 1) % 4 &&
-						    (SFCurrentCode[playerNum_-1][temp2] == 0 ||
-						     keyboardCombos[temp5-1][SFCurrentCode[playerNum_-1][temp2]-1] != temp))
-						{
-							SFCurrentCode[playerNum_-1][temp2] = 0;
-						}
-					}
-				}
+				SFCurrentCode[playerNum_-1][i] = 0;
 			}
 		}
-
 	}
 }
 
@@ -1084,10 +1066,10 @@ void JE_inGameDisplays(void)
 	char stemp[21];
 	char tempstr[256];
 
+#ifdef DEBUG_OPTIONS
 	snprintf(tempstr, sizeof(tempstr), "%s", difficultyNameB[difficultyLevel+1]);
 	JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
 
-#ifdef DEBUG_OPTIONS
 	if (debugDamageViewer)
 	{
 		snprintf(tempstr, sizeof(tempstr), "%.2f", damagePerSecondAvg);
@@ -2875,20 +2857,6 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 					// allow special (flag-setting) scoreitems
 					if (enemy[z].special)
 						mainint_handleEnemyFlag(&enemy[z]);
-
-					switch (enemy[z].special)
-					{
-						case ENEMYFLAG_SET:
-							globalFlags[enemy[z].flagnum-1] = enemy[z].setto;
-							break;
-						case ENEMYFLAG_INCREMENT:
-							globalFlags[enemy[z].flagnum-1] = enemy[z].setto;
-					}
-					if (enemy[z].special)
-					{
-						assert((unsigned int) enemy[z].flagnum-1 < COUNTOF(globalFlags));
-						globalFlags[enemy[z].flagnum-1] = enemy[z].setto;
-					}
 				}
 				else if (this_player->invulnerable_ticks == 0 && enemyAvail[z] == 0 &&
 				         (enemyDat[enemy[z].enemytype].explosiontype & 1) == 0) // explosiontype & 1 == 0: not ground enemy

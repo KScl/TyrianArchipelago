@@ -30,6 +30,8 @@ typedef struct {
 	bool SpecialMenu;
 	bool HardContact;
 	bool ExcessArmor;
+
+	int ForceGameSpeed;
 	bool TwiddleInputs;
 	bool ArchipelagoRadar;
 	bool Christmas;
@@ -147,6 +149,23 @@ int Archipelago_GetRegionCheckCount(int firstCheckID);
 Uint32 Archipelago_GetRegionWasCheckedList(int firstCheckID);
 int Archipelago_GetTotalCheckCount(void);
 int Archipelago_GetTotalWasCheckedCount(void);
+
+// ----------------------------------------------------------------------------
+// Twiddles / SF Codes
+// ----------------------------------------------------------------------------
+
+typedef struct {
+	char Name[32]; // Displayed in menus
+	Uint8 Command[8]; // Max 7 inputs, end with (100 + special_id)
+	Uint8 Cost; // Uses same formula as original game
+} aptwiddle_t;
+
+typedef struct {
+	int Count;
+	aptwiddle_t Code[3];
+} aptwiddlelist_t;
+
+extern aptwiddlelist_t APTwiddles;
 
 // ----------------------------------------------------------------------------
 // Shops

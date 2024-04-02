@@ -406,7 +406,7 @@ void JE_tyrianHalt(JE_byte code)
 	exit(code);
 }
 
-void JE_specialComplete(JE_byte playerNum, JE_byte specialType)
+void JE_specialComplete(JE_byte playerNum, JE_byte specialType, JE_byte sfCodeCost)
 {
 	nextSpecialWait = 0;
 	switch (special[specialType].stype)
@@ -525,30 +525,30 @@ void JE_specialComplete(JE_byte playerNum, JE_byte specialType)
 				case 16:
 					specialWeaponFilter = -99;
 					specialWeaponFreq = 8;
-					flareDuration = temp2 * 16 + 8;
+					flareDuration = sfCodeCost * 16 + 8;
 					linkToPlayer = true;
 					spraySpecial = true;
 					break;
 			}
 			break;
 		case 12:
-			player[playerNum-1].invulnerable_ticks = temp2 * 10;
-
-			if (superArcadeMode > 0 && superArcadeMode <= SA)
+			if (!sfCodeCost)
 			{
+				player[playerNum-1].invulnerable_ticks = 100;
 				shotRepeat[SHOT_SPECIAL] = 250;
-				b = player_shot_create(0, SHOT_SPECIAL2, player[0].x, player[0].y, mouseX, mouseY, 707, 1);
-				player[0].invulnerable_ticks = 100;
+			}
+			else
+			{
+				player[playerNum-1].invulnerable_ticks = sfCodeCost * 10;
 			}
 			break;
 		case 13:
-			player[0].armor += temp2 / 4 + 1;
-
+			player_boostArmor(&player[0], sfCodeCost / 4 + 1);
 			soundQueue[3] = S_POWERUP;
 			break;
+#if 0 // Dummied out the following cases, because they don't work in AP context.
 		case 14:
-			player[1].armor += temp2 / 4 + 1;
-
+			player_boostArmor(&player[1], sfCodeCost / 4 + 1);
 			soundQueue[3] = S_POWERUP;
 			break;
 
@@ -578,6 +578,7 @@ void JE_specialComplete(JE_byte playerNum, JE_byte specialType)
 
 			shotMultiPos[RIGHT_SIDEKICK] = 0;
 			break;
+#endif
 	}
 }
 
@@ -591,39 +592,40 @@ void JE_doSpecialShot(JE_byte playerNum, uint *armor, uint *shield)
 	{
 		specialWait--;
 	}
-	temp = SFExecuted[playerNum-1];
-	if (temp > 0 && shotRepeat[SHOT_SPECIAL] == 0 && flareDuration == 0)
-	{
-		temp2 = special[temp].pwr;
 
+	JE_byte sfCodeIdx = SFExecuted[playerNum-1];
+	if (sfCodeIdx > 0 && sfCodeIdx <= APTwiddles.Count && shotRepeat[SHOT_SPECIAL] == 0 && flareDuration == 0)
+	{
+		JE_byte sfCost = APTwiddles.Code[sfCodeIdx - 1].Cost;
+		JE_byte sfCommand = APTwiddles.Code[sfCodeIdx - 1].Command[7] - 100;
 		bool can_afford = true;
 
-		if (temp2 > 0)
+		if (sfCost > 0)
 		{
-			if (temp2 < 98)  // costs some shield
+			if (sfCost < 98)  // costs some shield
 			{
-				if (*shield >= temp2)
-					*shield -= temp2;
+				if (*shield >= sfCost)
+					*shield -= sfCost;
 				else
 					can_afford = false;
 			}
-			else if (temp2 == 98)  // costs all shield
+			else if (sfCost == 98)  // costs all shield
 			{
 				if (*shield < 4)
 					can_afford = false;
-				temp2 = *shield;
+				sfCost = *shield;
 				*shield = 0;
 			}
-			else if (temp2 == 99)  // costs half shield
+			else if (sfCost == 99)  // costs half shield
 			{
-				temp2 = *shield / 2;
-				*shield = temp2;
+				sfCost = *shield / 2;
+				*shield = sfCost;
 			}
 			else  // costs some armor
 			{
-				temp2 -= 100;
-				if (*armor > temp2)
-					*armor -= temp2;
+				sfCost -= 100;
+				if (*armor > sfCost)
+					*armor -= sfCost;
 				else
 					can_afford = false;
 			}
@@ -633,7 +635,7 @@ void JE_doSpecialShot(JE_byte playerNum, uint *armor, uint *shield)
 		shotMultiPos[SHOT_SPECIAL2] = 0;
 
 		if (can_afford)
-			JE_specialComplete(playerNum, temp);
+			JE_specialComplete(playerNum, sfCommand, sfCost);
 
 		SFExecuted[playerNum-1] = 0;
 
@@ -656,7 +658,7 @@ void JE_doSpecialShot(JE_byte playerNum, uint *armor, uint *shield)
 		else if (shotRepeat[SHOT_SPECIAL] == 0 && !fireButtonHeld && !(flareDuration > 0) && specialWait == 0)
 		{
 			fireButtonHeld = true;
-			JE_specialComplete(playerNum, player[0].items.special);
+			JE_specialComplete(playerNum, player[0].items.special, 0);
 		}
 
 	}  /*Main End*/

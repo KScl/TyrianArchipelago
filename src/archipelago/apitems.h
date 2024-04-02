@@ -139,7 +139,7 @@ static const char *const apitems_AllNames[1000] = {
 	"HotDog (Front)",                 // 513
 	"Hyper Pulse",                    // 514
 	"Guided Bombs",                   // 515
-	"Shuruiken Field",                // 516
+	"Shuriken Field",                 // 516
 	"Poison Bomb",                    // 517
 	"Protron Wave",                   // 518
 	"The Orange Juicer",              // 519
@@ -565,7 +565,7 @@ static const Uint8 apitems_FrontPorts[64] = {
 	25, // HotDog
 	27, // Hyper Pulse
 	31, // Guided Bombs
-	32, // Shuruiken Field
+	32, // Shuriken Field
 	33, // Poison Bomb
 	34, // Protron Wave
 	35, // The Orange Juicer

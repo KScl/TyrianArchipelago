@@ -1080,6 +1080,7 @@ start_level_first:
 
 	initialize_starfield();
 
+	JE_initProcessorType();
 	JE_setNewGameSpeed();
 
 	set_volume(tyrMusicVolume, fxVolume);
@@ -1335,8 +1336,12 @@ level_loop:
 
 		if (APUpdateRequest.Armor)
 			player_boostArmor(&player[0], APUpdateRequest.Armor);
-		if (APUpdateRequest.Shield)
+		if (APUpdateRequest.Armor || APUpdateRequest.Shield)
+		{
+			player_wipeShieldArmorBars();
 			player_drawShield();
+			player_drawArmor();
+		}
 		memset(&APUpdateRequest, 0, sizeof(APUpdateRequest));
 
 		/*------------------------Shield Gen-------------------------*/

@@ -456,7 +456,12 @@ void JE_initProcessorType(void)
 			break;
 	}
 
-	switch (gameSpeed)
+	// Allow AP to override, but don't overwrite player settings.
+	JE_byte localGameSpeed = gameSpeed;
+	if (APSeedSettings.ForceGameSpeed)
+		localGameSpeed = APSeedSettings.ForceGameSpeed;
+
+	switch (localGameSpeed)
 	{
 		case 1:  /* Slug Mode */
 			fastPlay = 3;
@@ -473,11 +478,11 @@ void JE_initProcessorType(void)
 		case 5: /* Pentium Hyper */
 			fastPlay = 1;
 			break;
-#ifdef UNBOUNDED_SPEED
 		case 6: /* Unbounded */
+#ifdef UNBOUNDED_SPEED
 			fastPlay = 6;
-			break;
 #endif
+			break;
 	}
 
 }
@@ -485,14 +490,6 @@ void JE_initProcessorType(void)
 void JE_setNewGameSpeed(void)
 {
 	pentiumMode = false;
-
-#ifndef UNBOUNDED_SPEED
-	if (gameSpeed == 6)
-	{
-		gameSpeed = 4;
-		fastPlay = 0;
-	}
-#endif
 
 	Uint16 speed;
 	switch (fastPlay)

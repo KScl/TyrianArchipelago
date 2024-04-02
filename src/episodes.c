@@ -262,22 +262,30 @@ void JE_loadItemDat(FILE *f)
 		}
 	}
 
+	// ------------------------------------------------------------------------
+	// Apply patches to item data.
+	// I can't be bothered to move this into the JSON patcher yet.
+	// ------------------------------------------------------------------------
+
 	// Weapons which were designed for Super Arcade Mode all have very low poweruse settings,
 	// because Super Arcade mode does not use generator power. So we set some more reasonable
 	// values here, based on their damage output and rate of fire.
-	weaponPort[ 6].poweruse =  80; // Protron Z
+	weaponPort[ 6].poweruse =  70; // Protron Z
 	weaponPort[23].poweruse =  50; // Banana Blast (Front)
-	weaponPort[24].poweruse =  80; // Banana Blast (Rear)
-	weaponPort[31].poweruse =  80; // Guided Bombs
-	weaponPort[32].poweruse = 100; // Shuruiken Field
-	weaponPort[33].poweruse = 180; // Poison Bomb
-	weaponPort[34].poweruse =  50; // Protron Wave
-	weaponPort[35].poweruse =  60; // The Orange Juicer
-	weaponPort[36].poweruse =  80; // NortShip Super Pulse
-	weaponPort[37].poweruse =  80; // NortShip Spreader
-	weaponPort[38].poweruse =  80; // NortShip Spreader B
-	weaponPort[39].poweruse = 110; // Atomic RailGun
+	weaponPort[24].poweruse =  60; // Banana Blast (Rear)
+	weaponPort[31].poweruse =  70; // Guided Bombs
+	weaponPort[32].poweruse =  80; // Shuriken Field
+	weaponPort[33].poweruse = 120; // Poison Bomb
+	weaponPort[35].poweruse =  50; // The Orange Juicer
+	weaponPort[36].poweruse =  70; // NortShip Super Pulse
+	weaponPort[37].poweruse =  70; // NortShip Spreader
+	weaponPort[38].poweruse =  70; // NortShip Spreader B
+	weaponPort[39].poweruse = 100; // Atomic RailGun
 	weaponPort[37].opnum = 1; // Normally unused mode switch to Spreader B from Spreader A removed
+
+	// Correct typos in item names.
+	snprintf(weaponPort[32].name, 30, "Shuriken Field");
+	snprintf(powerSys[5].name, 30, "Advanced MicroFusion");
 }
 
 void JE_initEpisode(JE_byte newEpisode)

@@ -326,7 +326,7 @@ static const int hud_sidekick_y[2][2] =
 void JE_drawOptions(void);
 
 void JE_tyrianHalt(JE_byte code); /* This ends the game */
-void JE_specialComplete(JE_byte playernum, JE_byte specialType);
+void JE_specialComplete(JE_byte playernum, JE_byte specialType, JE_byte sfCodeCost);
 void JE_doSpecialShot(JE_byte playernum, uint *armor, uint *shield);
 
 void JE_setupExplosion(signed int x, signed int y, signed int delta_y, unsigned int type, bool fixed_position, bool follow_player);

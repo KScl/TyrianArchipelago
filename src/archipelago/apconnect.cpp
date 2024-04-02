@@ -115,7 +115,7 @@ static bool gameInProgress = false;
 #define ARCHIPELAGO_BASE_ID 20031000
 
 // Should match TyrianWorld.aptyrian_net_version
-#define APTYRIAN_NET_VERSION 2
+#define APTYRIAN_NET_VERSION 3
 
 static std::unique_ptr<APClient> ap;
 
@@ -1097,6 +1097,46 @@ unsigned int Archipelago_GetTotalUpgradeCost(Uint16 localItemID, int powerLevel)
 }
 
 // ============================================================================
+// Other Gameplay Elements
+// ============================================================================
+
+aptwiddlelist_t APTwiddles; // Street Fighter-like codes, for Twiddle randomizer
+
+// ----------------------------------------------------------------------------
+
+static void APAll_ParseTwiddleData(json& j)
+{
+	memset(&APTwiddles, 0, sizeof(APTwiddles));
+
+	for (auto &twiddle : j)
+	{
+		aptwiddle_t *ThisTwiddle = &APTwiddles.Code[APTwiddles.Count++];
+
+		std::string twiddleName = twiddle.at("Name").template get<std::string>();
+		strncpy(ThisTwiddle->Name, twiddleName.c_str(), 32 - 1);
+		ThisTwiddle->Name[32 - 1] = 0;
+
+		int i = 0;
+		for (auto &command : twiddle.at("Command"))
+		{
+			ThisTwiddle->Command[i] = command.template get<Uint8>();
+			if (++i >= 7)
+				break;
+		}
+		for (; i < 8; ++i)
+			ThisTwiddle->Command[i] = twiddle.at("Action").template get<Uint8>() + 100;
+		ThisTwiddle->Cost = twiddle.at("Cost").template get<Uint8>();
+	}
+}
+
+static void APAll_ParseBossWeaknessData(json& j)
+{
+	std::cout << "TODO: APAll_ParseBossWeaknessData" << std::endl;
+	std::cout << j << std::endl;
+}
+
+
+// ============================================================================
 // DeathLink
 // ============================================================================
 
@@ -1257,6 +1297,8 @@ const char *Archipelago_StartLocalGame(FILE *file)
 		APSeedSettings.SpecialMenu = aptyrianJSON["Settings"].at("SpecialMenu").template get<bool>();
 		APSeedSettings.HardContact = aptyrianJSON["Settings"].at("HardContact").template get<bool>();
 		APSeedSettings.ExcessArmor = aptyrianJSON["Settings"].at("ExcessArmor").template get<bool>();
+
+		APSeedSettings.ForceGameSpeed = aptyrianJSON["Settings"].at("GameSpeed").template get<int>();
 		APSeedSettings.TwiddleInputs = aptyrianJSON["Settings"].at("ShowTwiddles").template get<bool>();
 		APSeedSettings.ArchipelagoRadar = aptyrianJSON["Settings"].at("APRadar").template get<bool>();
 		APSeedSettings.Christmas = aptyrianJSON["Settings"].at("Christmas").template get<bool>();
@@ -1264,6 +1306,14 @@ const char *Archipelago_StartLocalGame(FILE *file)
 
 		std::string obfuscated;
 		json resultJSON;
+
+		obfuscated = aptyrianJSON.value<std::string>("TwiddleData", "?6"); // Optional
+		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+		APAll_ParseTwiddleData(resultJSON);
+
+		obfuscated = aptyrianJSON.value<std::string>("BossWeaknesses", ")t"); // Optional
+		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+		APAll_ParseBossWeaknessData(resultJSON);
 
 		obfuscated = aptyrianJSON.at("ShopData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
@@ -1460,6 +1510,14 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 
 			std::string obfuscated;
 			json resultJSON;
+
+			obfuscated = slot_data.value<std::string>("TwiddleData", "?6"); // Optional
+			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+			APAll_ParseTwiddleData(resultJSON);
+
+			obfuscated = slot_data.value<std::string>("BossWeaknesses", ")t"); // Optional
+			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+			APAll_ParseBossWeaknessData(resultJSON);
 
 			obfuscated = slot_data.at("ShopData").template get<std::string>();
 			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
