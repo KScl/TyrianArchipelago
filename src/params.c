@@ -141,8 +141,8 @@ void JE_paramCheck(int argc, char *argv[])
 			temp -= (intptr_t)option.arg;
 			strncpy(lastGoodServerAddr, &option.arg[temp + 1], sizeof(lastGoodServerAddr)-1);
 			lastGoodServerAddr[sizeof(lastGoodServerAddr) - 1] = 0;
-			strncpy(lastGoodSlotName, option.arg, sizeof(lastGoodSlotName)-1);
-			lastGoodSlotName[temp] = 0;
+			strncpy(lastGoodSlotName, option.arg, 17); // Size 20, but 16 char max
+			lastGoodSlotName[temp < 16 ? temp : 16] = 0;
 
 			skipToGameplay = true;
 			Archipelago_Connect(option.arg);
