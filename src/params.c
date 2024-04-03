@@ -18,6 +18,7 @@
  */
 #include "params.h"
 
+#include "apmenu.h"
 #include "arg_parse.h"
 #include "file.h"
 #include "joystick.h"
@@ -136,6 +137,12 @@ void JE_paramCheck(int argc, char *argv[])
 				fprintf(stderr, "%s: error: %s: no slot name specified\n", argv[0], argv[option.argn]);
 				goto connect_slot_error;
 			}
+
+			temp -= (intptr_t)option.arg;
+			strncpy(lastGoodServerAddr, &option.arg[temp + 1], sizeof(lastGoodServerAddr)-1);
+			lastGoodServerAddr[sizeof(lastGoodServerAddr) - 1] = 0;
+			strncpy(lastGoodSlotName, option.arg, sizeof(lastGoodSlotName)-1);
+			lastGoodSlotName[temp] = 0;
 
 			skipToGameplay = true;
 			Archipelago_Connect(option.arg);

@@ -1,6 +1,10 @@
 #ifndef APMENU_H
 #define APMENU_H
 
+// Last good server/slot names
+extern char lastGoodServerAddr[128];
+extern char lastGoodSlotName[20];
+
 // Basic init steps after an Archipelago game is loaded CPP side
 void apmenu_initArchipelagoGame(void);
 

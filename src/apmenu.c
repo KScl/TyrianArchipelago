@@ -160,19 +160,19 @@ char lastGoodServerAddr[128] = "archipelago.gg:";
 char lastGoodSlotName[20] = "";
 
 // If true, aborts menu processing (fading everything out) to show connection progress instead.
-bool showGameInfo = false;
-int currentMenuState = 0; // 1 for online, 2 for offline, 0 for selection menu
+static bool showGameInfo = false;
+static int currentMenuState = 0; // 1 for online, 2 for offline, 0 for selection menu
 
 // Used by local games to show error messages.
-const char *localErrorStr;
+static const char *localErrorStr;
 
 // Cursor locations for each submenu
-size_t connectSel_ModeChoice = 0;
-size_t connectSel_Online = 0;
+static size_t connectSel_ModeChoice = 0;
+static size_t connectSel_Online = 0;
 
 // Text input for Online menu
-textinput_t inputServerAddr = { /* Text Color */ 250, /* Error Color */ 228, /* Max Length */ 127};
-textinput_t inputSlotName   = { /* Text Color */ 250, /* Error Color */ 228, /* Max Length */ 16};
+static textinput_t inputServerAddr = { /* Text Color */ 250, /* Error Color */ 228, /* Max Length */ 127};
+static textinput_t inputSlotName   = { /* Text Color */ 250, /* Error Color */ 228, /* Max Length */ 16};
 
 // Does basic init steps as we initiate an Archipelago game.
 void apmenu_initArchipelagoGame(void)
@@ -2601,7 +2601,7 @@ static void sidebarSimulateShots(void)
 // Chat Box
 // ------------------------------------------------------------------
 
-textinput_t chatTextEntry = { /* Text Color */ 232, /* Error Color */ 72, /* Max Length */ 255};
+static textinput_t chatTextEntry = { /* Text Color */ 232, /* Error Color */ 72, /* Max Length */ 255};
 
 static void apmenu_chatbox(void)
 {
