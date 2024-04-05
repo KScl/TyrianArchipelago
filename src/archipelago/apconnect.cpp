@@ -98,9 +98,9 @@ archipelago_settings_t APSeedSettings;
 // Local options.
 archipelago_options_t APOptions;
 
-static std::string connection_slot_name = "";
-static std::string connection_server_address = "";
-static std::string connection_password = "";
+static std::string ourSlotName = "";
+static std::string cx_serverAddress = "";
+static std::string cx_serverPassword = "";
 
 static std::string clientUUID = "";
 
@@ -116,6 +116,8 @@ static bool gameInProgress = false;
 
 // Should match TyrianWorld.aptyrian_net_version
 #define APTYRIAN_NET_VERSION 3
+
+static APClient::Version targetAPVersion = {0, 4, 5};
 
 static std::unique_ptr<APClient> ap;
 
@@ -252,8 +254,12 @@ static void APAll_InitMessageQueue(void)
 
 void Archipelago_Save(void)
 {
+	if (multiworldSeedName.empty())
+		return; // Debug game, don't save data (it'll get ignored anyway)
+
 	json saveData;
 
+	saveData["Seed"] = multiworldSeedName;
 	saveData["APItems"] += APItems.FrontPorts;
 	saveData["APItems"] += APItems.RearPorts;
 	saveData["APItems"] += APItems.Specials;
@@ -300,9 +306,10 @@ void Archipelago_Save(void)
 	}
 
 	std::stringstream saveFileName;
-	saveFileName << get_user_directory() << "/AP" << multiworldSeedName << ".sav";
+	saveFileName << "AP" << multiworldSeedName << "_" << ourSlotName << ".sav";
+	std::string saveFileAbsoluteName = get_user_directory() + std::string("/") + saveFileName.str();
 
-	std::ofstream saveFile(saveFileName.str(), std::ios::trunc | std::ios::binary);
+	std::ofstream saveFile(saveFileAbsoluteName, std::ios::trunc | std::ios::binary);
 	json::to_msgpack(saveData, saveFile);
 }
 
@@ -311,15 +318,20 @@ static bool Archipelago_Load(void)
 	APAll_FreshInit();
 
 	std::stringstream saveFileName;
-	saveFileName << get_user_directory() << "/AP" << multiworldSeedName << ".sav";
+	saveFileName << "AP" << multiworldSeedName << "_" << ourSlotName << ".sav";
+	std::string saveFileAbsoluteName = get_user_directory() + std::string("/") +  saveFileName.str();
 
-	std::ifstream saveFile(saveFileName.str(), std::ios::binary);
+	std::ifstream saveFile(saveFileAbsoluteName, std::ios::binary);
 	if (!saveFile.is_open())
 		return false;
 
 	try
 	{
 		json saveData = json::from_msgpack(saveFile);
+
+		// Make sure seed matches and someone's not just trying to copy files over
+		if (multiworldSeedName != saveData.at("Seed"))
+			throw std::runtime_error("Save file not for this game");
 
 		APItems.FrontPorts = saveData["APItems"].at(0).template get<Uint64>();
 		APItems.RearPorts = saveData["APItems"].at(1).template get<Uint64>();
@@ -390,14 +402,14 @@ static bool Archipelago_Load(void)
 	}
 	catch (...)
 	{
-		std::cout << "Couldn't load save file " << multiworldSeedName << ".sav; starting new game" << std::endl;
+		std::cout << "Couldn't load save file " << saveFileName.str() << "; starting new game" << std::endl;
 
 		// Clear everything AGAIN so we start on a fresh slate...
 		APAll_FreshInit();
 		return false;
 	}
 
-	std::cout << "Loaded save file " << multiworldSeedName << ".sav" << std::endl;
+	std::cout << "Loaded save file " << saveFileName.str() << std::endl;
 	return true;
 }
 
@@ -1194,7 +1206,7 @@ void Archipelago_SendDeathLink(damagetype_t source)
 		return; // Prevent chained deathlinks
 
 	int entry = rand() % death_messages[source].size();
-	std::string cause = connection_slot_name + death_messages[source][entry];
+	std::string cause = ourSlotName + death_messages[source][entry];
 	lastBounceTime = ap->get_server_time();
 
 	json bounceData = { {"time", lastBounceTime}, {"cause", cause}, {"source", ap->get_slot()} };
@@ -1422,7 +1434,7 @@ static void APRemote_CB_Error(const std::string& error)
 static void APRemote_CB_RoomInfo()
 {
 	connection_stat = APCONN_TENTATIVE;
-	ap->ConnectSlot(connection_slot_name, connection_password, 0b011, {}, {0,4,4});
+	ap->ConnectSlot(ourSlotName, cx_serverPassword, 0b011, {}, targetAPVersion);
 }
 
 // *** Callback for "ConnectionRefused" ***
@@ -1435,9 +1447,9 @@ static void APRemote_CB_SlotRefused(const std::list<std::string>& reasons)
 			all_reasons += " ";
 
 		if (reason == "InvalidSlot")
-			all_reasons += "Slot '" + connection_slot_name + "' does not exist.";
+			all_reasons += "Slot '" + ourSlotName + "' does not exist.";
 		else if (reason == "InvalidGame")
-			all_reasons += "Slot '" + connection_slot_name + "' is not playing Tyrian.";
+			all_reasons += "Slot '" + ourSlotName + "' is not playing Tyrian.";
 		else if (reason == "IncompatibleVersion")
 			all_reasons += "Server version incompatible with this client.";
 		else if (reason == "InvalidPassword")
@@ -1489,7 +1501,7 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			APSeedSettings.Tyrian2000Mode = slot_data.at("Settings").at("RequireT2K").template get<bool>();
 
 			if (!tyrian2000detected && APSeedSettings.Tyrian2000Mode)
-				throw std::runtime_error("Slot '" + connection_slot_name + "' requires data from Tyrian 2000.");
+				throw std::runtime_error("Slot '" + ourSlotName + "' requires data from Tyrian 2000.");
 
 			multiworldSeedName = slot_data.at("Seed").template get<std::string>();
 
@@ -1580,7 +1592,7 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 
 void Archipelago_SetDefaultConnectionPassword(const char *connectionPassword)
 {
-	connection_password = connectionPassword;
+	cx_serverPassword = connectionPassword;
 }
 
 void Archipelago_Connect(const char *address)
@@ -1590,8 +1602,8 @@ void Archipelago_Connect(const char *address)
 
 	if (!address)
 	{
-		connection_slot_name = "";
-		connection_server_address = "";
+		ourSlotName = "";
+		cx_serverAddress = "";
 	}
 	else
 	{
@@ -1600,31 +1612,31 @@ void Archipelago_Connect(const char *address)
 
 		if (at_sign == std::string::npos)
 		{
-			connection_slot_name = "";
-			connection_server_address = cppAddress;
+			ourSlotName = "";
+			cx_serverAddress = cppAddress;
 		}
 		else
 		{
-			connection_slot_name = cppAddress.substr(0, at_sign);
-			connection_server_address = cppAddress.substr(at_sign + 1);
+			ourSlotName = cppAddress.substr(0, at_sign);
+			cx_serverAddress = cppAddress.substr(at_sign + 1);
 		}
 	}
 
-	if (connection_server_address.empty())
+	if (cx_serverAddress.empty())
 		return APRemote_FatalError("Please provide a server address to connect to.");
-	if (connection_slot_name.empty())
+	if (ourSlotName.empty())
 		return APRemote_FatalError("Please provide a slot name.");
 
 	std::cout << "Connecting to Archipelago server ("
-	          << connection_slot_name      << "@"
-	          << connection_server_address << ")" << std::endl;
+	          << ourSlotName      << "@"
+	          << cx_serverAddress << ")" << std::endl;
 	ap.reset();
 
 	APOptions.EnableDeathLink = true;
 
 	std::string cert = std::filesystem::exists("./cacert.pem") ? "./cacert.pem" : "";
 	std::cout << cert << std::endl;
-	ap.reset(new APClient(clientUUID, "Tyrian", connection_server_address));
+	ap.reset(new APClient(clientUUID, "Tyrian", cx_serverAddress));
 
 	// Chat and other communications
 	ap->set_print_json_handler(APRemote_CB_ReceivePrint);
