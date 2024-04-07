@@ -1189,7 +1189,15 @@ static void APRemote_CB_Bounce(const json& bounceJSON)
 
 		APDeathLinkReceived = true;
 
-		std::string output = "<45" + bounceJSON["data"].at("cause").template get<std::string>();
+		std::stringstream s;
+		if (bounceJSON["data"].contains("cause"))
+			s << "<45" << bounceJSON["data"]["cause"].template get<std::string>();
+		else if (bounceJSON["data"].contains("source"))
+			s << "<45Killed by " << bounceJSON["data"]["source"].template get<std::string>();
+		else
+			s << "<45Killed by DeathLink";
+
+		std::string output = s.str();
 		apmsg_enqueue(output.c_str());
 	}
 }
