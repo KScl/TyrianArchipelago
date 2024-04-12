@@ -158,7 +158,6 @@ typedef enum {
 
 Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t damageType );
 void player_handleDeathLink(Player *this_player);
-void player_debugCauseDeathLink(void);
 void player_resetDeathLink(void);
 
 #endif // PLAYER_H

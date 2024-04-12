@@ -1975,7 +1975,7 @@ static const Uint16 baseItemList_Rear[] = {
 static const Uint16 baseItemList_Special[] = {
 	0, // "None" available for this menu
 	700, 703, 704, 702, 701, 705, 706, 707, 708, 709, 710, 711, 712, 713, 714, 715,
-	716, 717, 718, 719, 720, 721, 722,
+	716, 717, 718, 719, 720, 721,
 	// Tyrian 2000
 	723, 724,
 	0xFFFF // End

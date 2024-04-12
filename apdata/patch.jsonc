@@ -468,17 +468,7 @@
 	// ========================================================================
 	// Episode 2 - Treachery
 	// ========================================================================
-	// Level status: 7/10
-	// - TORM: Complete
-	// - GYGES: Complete
-	// - ASTCITY: Complete
-	// - GEM WAR: Nothing even present
-	// - MARKERS: Complete
-	// - MISTAKES: Complete
-	// - SOH JIN: Nothing even present
-	// - BOTANY A: Nothing even present
-	// - BOTANY B: Complete
-	// - GRYPHON: Complete
+	// Level status: 10/10 (thankfully...)
 	"Episode2 TORM": {
 		// Addition of Archipelago Items
 		"244:REPLACE": { "time": 751, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum": 12, "movement":"static" },
@@ -525,21 +515,33 @@
 	},
 	// --------------------------------------------------------------
 	"Episode2 GEM WAR": {
+		// Addition of Archipelago Items
+		"10:REPLACE":  { "time":  60, "event":201, /* AP_CheckFromEnemy */ "ap_id":210, "linknum":  1, "movement":"falling", "backup":397 },
+		"40:REPLACE":  { "time": 560, "event":201, /* AP_CheckFromEnemy */ "ap_id":211, "linknum":  2, "movement":"falling", "backup":397 },
+		"149:REPLACE": { "time":1560, "event":201, /* AP_CheckFromEnemy */ "ap_id":212, "linknum":  3, "movement":"falling", "backup":397 },
+		"258:REPLACE": { "time":2500, "event":201, /* AP_CheckFromEnemy */ "ap_id":213, "linknum":  4, "movement":"falling", "backup":397 },
+		"326:APPEND":  { "time":3030, "event":201, /* AP_CheckFromEnemy */ "ap_id":214, "linknum":254, "movement":"swaying" },
+		"509:APPEND":  { "time":4930, "event":201, /* AP_CheckFromEnemy */ "ap_id":215, "linknum":254, "movement":"swaying" },
+
+		// Additional callouts for contact_bypasses_shields
+		"21:APPEND":   { "time": 350, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"332:REPLACE": { "time":3150, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"332:APPEND":  { "time":3150, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false }
 	},
 	// --------------------------------------------------------------
 	"Episode2 MARKERS": {
 		// Addition of Archipelago Items
-		"329:REPLACE": { "time":1240, "event":201, /* AP_CheckFromEnemy */ "ap_id":210, "linknum":10, "movement":"falling" },
-		"528:APPEND":  { "time":1990, "event":201, /* AP_CheckFromEnemy */ "ap_id":211, "linknum":16, "movement":"falling" },
-		"764:REPLACE": { "time":2750, "event":201, /* AP_CheckFromEnemy */ "ap_id":213, "linknum":10, "movement":"falling" },
-		"870:REPLACE": { "time":3150, "event":201, /* AP_CheckFromEnemy */ "ap_id":214, "linknum":11, "movement":"falling" },
+		"329:REPLACE": { "time":1240, "event":201, /* AP_CheckFromEnemy */ "ap_id":220, "linknum":10, "movement":"falling" },
+		"528:APPEND":  { "time":1990, "event":201, /* AP_CheckFromEnemy */ "ap_id":221, "linknum":16, "movement":"falling" },
+		"764:REPLACE": { "time":2750, "event":201, /* AP_CheckFromEnemy */ "ap_id":223, "linknum":10, "movement":"falling" },
+		"870:REPLACE": { "time":3150, "event":201, /* AP_CheckFromEnemy */ "ap_id":224, "linknum":11, "movement":"falling" },
 
 		// Car Destroyer Secret
 		// There's a chain of cars that only spawns if you destroy the previous one in the chain
 		// This is like usual secret item drops, but whatever effect the last one would've had seems to be removed from vanilla
 		"672:APPEND": [
 			{ "time": 2466, "event": 61, /* Skip_IfFlagSet */ "flag":3, "value":0, "skip_events":1 },
-			{ "time": 2466, "event":201, /* AP_CheckFromEnemy */ "ap_id":212, "linknum":201, "movement":"static", "backup":397 }		
+			{ "time": 2466, "event":201, /* AP_CheckFromEnemy */ "ap_id":222, "linknum":201, "movement":"static", "backup":397 }		
 		],
 
 		// Additional callouts for contact_bypasses_shields
@@ -622,11 +624,55 @@
 	},
 	// --------------------------------------------------------------
 	"Episode2 SOH JIN": {
+		// Addition of Archipelago Items
+		"126:REPLACE": { "time": 420, "event":201, /* AP_CheckFromEnemy */ "ap_id":240, "linknum": 14, "movement":"falling" },
+		"527:REPLACE": { "time":1780, "event":201, /* AP_CheckFromEnemy */ "ap_id":241, "linknum": 32, "movement":"falling" },
+		"671:APPEND": [
+			{ "time":2470, "event":201, /* AP_CheckFromEnemy */ "ap_id":242, "linknum":164, "movement":"falling" },
+			{ "time":2470, "event":201, /* AP_CheckFromEnemy */ "ap_id":243, "linknum": 64, "movement":"falling" }
+		],
+		"928:APPEND": [
+			{ "time":3670, "event":201, /* AP_CheckFromEnemy */ "ap_id":246, "linknum":164, "movement":"falling" },
+			{ "time":3670, "event":201, /* AP_CheckFromEnemy */ "ap_id":247, "linknum": 64, "movement":"falling" }
+		],
+		"1184:REPLACE": { "time":4850, "event":201, /* AP_CheckFromEnemy */ "ap_id":245, "linknum": 32, "movement":"falling" },
+
+		// Add in boss bar and other related events for boss orbs
+		"912:APPEND": { "time":3630, "event": 16, /* VoicedCallout */ "output":"** Danger! **" },
+		"931:APPEND": { "time":3670, "event": 79, /* SetBossBar */ "linknum":[164, 0] }
 	},
 	// --------------------------------------------------------------
 	"Episode2 BOTANY A ver2.1": {
+		"38:APPEND":  { "time": 300, "event":201, /* AP_CheckFromEnemy */ "ap_id":250, "linknum": 2, "movement":"falling" },
+		"255:APPEND": { "time":2596, "event":201, /* AP_CheckFromEnemy */ "ap_id":251, "linknum": 2, "movement":"falling" },
+		"459:APPEND": { "time":3970, "event":201, /* AP_CheckFromEnemy */ "ap_id":254, "linknum": 3, "movement":"falling" },
+		"682:APPEND": { "time":4900, "event":201, /* AP_CheckFromEnemy */ "ap_id":255, "linknum":64, "movement":"swaying", "is_boss":true },
+
+		// End of Path Secrets
+		"282:APPEND": [
+			{ "time":2926, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 1, "shot_freq":[14] },
+			{ "time":2926, "event":201, /* AP_CheckFromEnemy */ "ap_id":252, "linknum": 1, "movement":"falling" }
+		],
+		"356:APPEND": [
+			{ "time":3266, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 9, "shot_freq":[14] },
+			{ "time":3266, "event":201, /* AP_CheckFromEnemy */ "ap_id":253, "linknum": 9, "movement":"falling" }
+		]
 	},
 	"Episode2 BOTANY A ver2000": {
+		"38:APPEND":  { "time": 300, "event":201, /* AP_CheckFromEnemy */ "ap_id":250, "linknum": 2, "movement":"falling" },
+		"255:APPEND": { "time":2596, "event":201, /* AP_CheckFromEnemy */ "ap_id":251, "linknum": 2, "movement":"falling" },
+		"459:APPEND": { "time":3981, "event":201, /* AP_CheckFromEnemy */ "ap_id":254, "linknum": 3, "movement":"falling" },
+		"676:APPEND": { "time":4900, "event":201, /* AP_CheckFromEnemy */ "ap_id":255, "linknum":64, "movement":"swaying", "is_boss":true },
+
+		// End of Path Secrets
+		"282:APPEND": [
+			{ "time":2926, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 1, "shot_freq":[14] },
+			{ "time":2926, "event":201, /* AP_CheckFromEnemy */ "ap_id":252, "linknum": 1, "movement":"falling" }
+		],
+		"356:APPEND": [
+			{ "time":3266, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 9, "shot_freq":[14] },
+			{ "time":3266, "event":201, /* AP_CheckFromEnemy */ "ap_id":253, "linknum": 9, "movement":"falling" }
+		]
 	},
 	// --------------------------------------------------------------
 	"Episode2 BOTANY B": {
@@ -635,7 +681,8 @@
 		"93:APPEND":  { "time":1225, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":261, "movement":"falling" },
 		"205:APPEND": { "time":1981, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":262, "movement":"falling" },
 		"255:APPEND": { "time":2681, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":263, "movement":"falling" },
-		"272:APPEND": { "time":3044, "event":201, /* AP_CheckFromEnemy */ "ap_id":264, "linknum":11, "movement":"falling" }
+		"272:APPEND": { "time":3044, "event":201, /* AP_CheckFromEnemy */ "ap_id":264, "linknum":11, "movement":"falling" },
+		"422:APPEND": { "time":4900, "event":201, /* AP_CheckFromEnemy */ "ap_id":265, "linknum":64, "movement":"swaying", "is_boss":true }
 	},
 	// --------------------------------------------------------------
 	"Episode2 GRYPHON":{

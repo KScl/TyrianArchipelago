@@ -284,6 +284,7 @@ void JE_drawEnemy(int enemyOffset) // actually does a whole lot more than just d
 		if (enemyAvail[i] == 1)
 			continue;
 
+#if 0 // Keeping old code around for now because it spots some items useful for testing.
 		if (enemy[i].ex + tempMapXOfs > -29 && enemy[i].ex + tempMapXOfs < 300)
 		{
 			if (enemy[i].enemydie == 533
@@ -295,6 +296,27 @@ void JE_drawEnemy(int enemyOffset) // actually does a whole lot more than just d
 				tyrian_blitAPRadar(VGAScreen, i);
 			}
 		}
+#else
+		if (!(enemy[i].enemydie >= ARCHIPELAGO_ITEM && enemy[i].enemydie <= ARCHIPELAGO_ITEM_MAX))
+			continue;
+
+		if (!enemy[i].linknum)
+		{
+			if (enemy[i].ex + tempMapXOfs > -29 && enemy[i].ex + tempMapXOfs < 300)
+				tyrian_blitAPRadar(VGAScreen, i);
+		}
+		else
+		{
+			// Highlight all enemies with same linknum as one that contains an AP item
+			for (int j = enemyOffset - 25; j < enemyOffset; j++)
+			{
+				if (enemy[j].linknum != enemy[i].linknum)
+					continue;
+				if (enemy[j].ex + tempMapXOfs > -29 && enemy[j].ex + tempMapXOfs < 300)
+					tyrian_blitAPRadar(VGAScreen, j);
+			}
+		}
+#endif
 	}
 
 	// ------------------------------------------------------------------------
@@ -740,7 +762,7 @@ draw_enemy_end:
 		;
 	}
 
-#if 0
+#ifdef DEBUG_SHOW_ENEMY_HEALTH
 	for (int i = enemyOffset - 25; i < enemyOffset; i++)
 	{
 		if (enemyAvail[i] != 0 || !enemy[i].armorleft)

@@ -67,6 +67,9 @@ void setupMenu(void);
 // Enables debug options like DPS tests
 #define DEBUG_OPTIONS
 
+// Show enemy health on screen numerically, useful when making logic.
+//#define DEBUG_SHOW_ENEMY_HEALTH
+
 // Enables "Unbounded" speed option for quickly advancing.
 #define UNBOUNDED_SPEED
 

@@ -481,11 +481,6 @@ void player_handleDeathLink(Player *this_player)
 	player_takeDamage(this_player, 1, DAMAGE_DEATHLINK);
 }
 
-void player_debugCauseDeathLink(void)
-{
-	APDeathLinkReceived = true;
-}
-
 void player_resetDeathLink(void)
 {
 	APDeathLinkReceived = false;
