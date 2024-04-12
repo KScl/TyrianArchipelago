@@ -644,14 +644,14 @@
 	// --------------------------------------------------------------
 	"Episode2 BOTANY A ver2.1": {
 		"38:APPEND":  { "time": 300, "event":201, /* AP_CheckFromEnemy */ "ap_id":250, "linknum": 2, "movement":"falling" },
-		"255:APPEND": { "time":2596, "event":201, /* AP_CheckFromEnemy */ "ap_id":251, "linknum": 2, "movement":"falling" },
+		"255:APPEND": { "time":2596, "event":201, /* AP_CheckFromEnemy */ "ap_id":252, "linknum": 2, "movement":"falling" },
 		"459:APPEND": { "time":3970, "event":201, /* AP_CheckFromEnemy */ "ap_id":254, "linknum": 3, "movement":"falling" },
 		"682:APPEND": { "time":4900, "event":201, /* AP_CheckFromEnemy */ "ap_id":255, "linknum":64, "movement":"swaying", "is_boss":true },
 
 		// End of Path Secrets
-		"282:APPEND": [
-			{ "time":2926, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 1, "shot_freq":[14] },
-			{ "time":2926, "event":201, /* AP_CheckFromEnemy */ "ap_id":252, "linknum": 1, "movement":"falling" }
+		"252:APPEND": [
+			{ "time":2494, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 1, "shot_freq":[14] },
+			{ "time":2494, "event":201, /* AP_CheckFromEnemy */ "ap_id":251, "linknum": 1, "movement":"falling" }
 		],
 		"356:APPEND": [
 			{ "time":3266, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 9, "shot_freq":[14] },
