@@ -409,10 +409,10 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 		return 0;
 
 	soundQueue[7] = S_SHIELD_HIT;
-	if (APSeedSettings.HardContact && damageType == DAMAGE_CONTACT)
+	if (APSeedSettings.HardContact && damageType == DAMAGE_CONTACT && this_player->shield != 0)
 	{
 		this_player->shield = 0;
-		damageAmount = 1;
+		damageAmount >>= 1;
 	}
 
 	if (damageAmount <= this_player->shield)
