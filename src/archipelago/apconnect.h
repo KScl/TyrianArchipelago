@@ -175,8 +175,8 @@ typedef struct {
 	Uint16 LocationID;
 	Uint16 Cost;
 	Uint16 Icon;
-	char   ItemName[96];
-	char   PlayerName[32];
+	char   ItemName[128];
+	char   PlayerName[17];
 } shopitem_t;
 
 // Returns count of items contained in *items

@@ -1046,8 +1046,8 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 			if (playerID != ap->get_player_number())
 			{
 				std::string playerName = APRemote_GetPlayerName(playerID);
-				strncpy(shopItemBuffer[i].PlayerName, playerName.c_str(), 32 - 1);
-				shopItemBuffer[i].PlayerName[32 - 1] = 0;
+				strncpy(shopItemBuffer[i].PlayerName, playerName.c_str(), 17 - 1);
+				shopItemBuffer[i].PlayerName[17 - 1] = 0;
 			}
 
 			if (itemID >= ARCHIPELAGO_BASE_ID && itemID <= ARCHIPELAGO_BASE_ID+999)
@@ -1064,8 +1064,17 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 			shopItemBuffer[i].Icon = 9003;
 		}
 
-		strncpy(shopItemBuffer[i].ItemName, itemName.c_str(), 96 - 1);
-		shopItemBuffer[i].ItemName[96 - 1] = 0;
+		strncpy(shopItemBuffer[i].ItemName, itemName.c_str(), 128);
+
+		// If it's not null-terminated, then the name's too long to fit.
+		if (shopItemBuffer[i].ItemName[127])
+		{
+			// Add the null terminator back, and then an ellipsis to indicate truncation.
+			shopItemBuffer[i].ItemName[127] = '\0';
+			shopItemBuffer[i].ItemName[126] = '.';
+			shopItemBuffer[i].ItemName[125] = '.';
+			shopItemBuffer[i].ItemName[124] = '.';
+		}
 	}
 	*shopItems = (i == 0) ? NULL : shopItemBuffer;
 	return i;
