@@ -1292,6 +1292,7 @@ const char *Archipelago_StartDebugGame(void)
 
 	totalLocationCount = 0;
 
+	ourSlotName = "local";
 	gameInProgress = true;
 	return NULL;
 }
@@ -1383,6 +1384,7 @@ const char *Archipelago_StartLocalGame(FILE *file)
 
 	// Init other data (can't fail)
 	APLocal_InitLocationsPerRegion();
+	ourSlotName = "local";
 	gameInProgress = true;
 	return NULL;
 }
