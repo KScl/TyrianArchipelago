@@ -1555,7 +1555,7 @@ bool currentSelectionValid = false;
 // Mouse Controls Specific Behavior
 // ------------------------------------------------------------------
 
-static const mousetargets_t upgradeItemListTargets = {19, {
+static const mousetargets_t upgradeItemListTargets = {20, {
 	{171,  38, 129,  8},
 	{171,  47, 129,  8},
 	{171,  56, 129,  8},
@@ -1577,6 +1577,8 @@ static const mousetargets_t upgradeItemListTargets = {19, {
 	// Power up/down
 	{ 24, 149,  12,  19, MOUSE_POINTER_LEFT},
 	{120, 149,  12,  19, MOUSE_POINTER_RIGHT},
+	// Mode change
+	{  3,  56,  14,  16},
 }};
 
 static int upgradeLastHover = -1;
@@ -1679,6 +1681,16 @@ static void upgrade_changePower(apweapon_t *selWeapon, int offset)
 		selWeapon->Item, selWeapon->PowerLevel);
 }
 
+static void upgrade_changeMode(apweapon_t *selWeapon)
+{
+	if (!currentSelectionValid || !(selWeapon->Item >= 600 && selWeapon->Item < 664))
+		return;
+
+	APItemChoices.RearMode2 = !APItemChoices.RearMode2;
+	currentSelectionValid = player_overrideItemChoice(currentSubMenu - SUBMENU_UP_FRONTPORT,
+		selWeapon->Item, selWeapon->PowerLevel);
+}
+
 static void upgrade_confirm(apweapon_t *selWeapon)
 {
 	if (subMenuSelections[currentSubMenu] < 0)
@@ -1757,6 +1769,9 @@ static void submenuUpAll_Run(void)
 				if (currentSubMenu == SUBMENU_UP_FRONTPORT || currentSubMenu == SUBMENU_UP_REARPORT)
 					upgrade_changePower(mainChoice, 1);
 				break;
+			case 19:
+				upgrade_changeMode(mainChoice);
+				break;
 			default:
 				upgrade_setWeapon(mouseDownTarget);
 				break;
@@ -1781,6 +1796,8 @@ static void submenuUpAll_Run(void)
 					upgrade_changePower(selWeapon, -1);
 				else if (newkey && lastkey_scan == SDL_SCANCODE_RIGHT)
 					upgrade_changePower(selWeapon, 1);
+				else if (newkey && lastkey_scan == SDL_SCANCODE_SLASH)
+					upgrade_changeMode(selWeapon);
 			}
 		}
 	}

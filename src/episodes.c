@@ -271,15 +271,12 @@ void JE_loadItemDat(FILE *f)
 	// because Super Arcade mode does not use generator power. So we set some more reasonable
 	// values here, based on their damage output and rate of fire.
 	weaponPort[ 6].poweruse =  70; // Protron Z
-	weaponPort[23].poweruse =  50; // Banana Blast (Front)
-	weaponPort[24].poweruse =  60; // Banana Blast (Rear)
 	weaponPort[31].poweruse =  70; // Guided Bombs
-	weaponPort[32].poweruse =  80; // Shuriken Field
+	weaponPort[32].poweruse =  70; // Shuriken Field
 	weaponPort[33].poweruse = 120; // Poison Bomb
-	weaponPort[35].poweruse =  50; // The Orange Juicer
-	weaponPort[36].poweruse =  70; // NortShip Super Pulse
-	weaponPort[37].poweruse =  70; // NortShip Spreader
-	weaponPort[38].poweruse =  70; // NortShip Spreader B
+	weaponPort[36].poweruse =  50; // NortShip Super Pulse
+	weaponPort[37].poweruse =  50; // NortShip Spreader
+	weaponPort[38].poweruse =  90; // NortShip Spreader B
 	weaponPort[39].poweruse = 100; // Atomic RailGun
 	weaponPort[37].opnum = 1; // Normally unused mode switch to Spreader B from Spreader A removed
 

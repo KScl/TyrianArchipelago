@@ -1072,6 +1072,8 @@ void JE_inGameDisplays(void)
 
 	if (debugDamageViewer)
 	{
+		//snprintf(tempstr, sizeof(tempstr), "Gen: %02d", powerSys[6].power);
+		//JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
 		snprintf(tempstr, sizeof(tempstr), "%.2f", damagePerSecondAvg);
 	}
 	else
@@ -1172,6 +1174,16 @@ void JE_mainKeyboardInput(void)
 			skipStarShowVGA = true;
 		}
 	}
+
+#if 0 // Uncomment this to finely control generator power for testing.
+	if (debugDamageViewer)
+	{
+		if (keysactive[SDL_SCANCODE_F8])
+			++powerSys[6].power;
+		if (keysactive[SDL_SCANCODE_F7])
+			--powerSys[6].power;
+	}
+#endif
 
 #ifdef LEVEL_CHEATS
 	// Cheat: Invulnerability
@@ -2145,6 +2157,7 @@ redo:
 						else if (++this_player->weapon_mode > player_getPortConfigCount(playerNum_ - 1))
 							this_player->weapon_mode = 1;
 
+						APItemChoices.RearMode2 = (this_player->weapon_mode == 2);
 						player_drawPortConfigButtons();
 						portConfigDone = false;
 					}

@@ -1264,6 +1264,7 @@ const char *Archipelago_StartDebugGame(void)
 	if (gameInProgress || ap)
 		return "Game already in progress.";
 
+	ourSlotName = "local";
 	APAll_InitMessageQueue();
 
 	memset(&APSeedSettings, 0, sizeof(APSeedSettings));
@@ -1292,7 +1293,6 @@ const char *Archipelago_StartDebugGame(void)
 
 	totalLocationCount = 0;
 
-	ourSlotName = "local";
 	gameInProgress = true;
 	return NULL;
 }
@@ -1360,6 +1360,7 @@ const char *Archipelago_StartLocalGame(FILE *file)
 		totalLocationCount = allLocationData.size();
 
 		// Attempt to load old game first
+		ourSlotName = "local";
 		if (!Archipelago_Load())
 		{
 			// Not able to load, load start state and start new game
@@ -1384,7 +1385,6 @@ const char *Archipelago_StartLocalGame(FILE *file)
 
 	// Init other data (can't fail)
 	APLocal_InitLocationsPerRegion();
-	ourSlotName = "local";
 	gameInProgress = true;
 	return NULL;
 }

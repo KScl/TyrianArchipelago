@@ -477,8 +477,8 @@
 		"493:REPLACE": { "time":1701, "event":201, /* AP_CheckFromEnemy */ "ap_id":163, "linknum": 18, "movement":"static" },
 		"681:REPLACE": { "time":2541, "event":201, /* AP_CheckFromEnemy */ "ap_id":164, "linknum":  9, "movement":"static" },
 		"1128:APPEND": { "time":4960, "event":201, /* AP_CheckFromEnemy */ "ap_id":165, "linknum": 14, "movement":"static" },
-		"1128:APPEND": { "time":5101, "event":201, /* AP_CheckFromEnemy */ "ap_id":166, "linknum": 14, "movement":"swaying", "is_boss":true },
-		"1484:APPEND": { "time":6600, "event":201, /* AP_CheckFromEnemy */ "ap_id":167, "linknum":143, "movement":"swaying", "is_boss":true }
+		"1156:APPEND": { "time":5101, "event":201, /* AP_CheckFromEnemy */ "ap_id":166, "linknum":143, "movement":"swaying", "is_boss":true },
+		"1484:APPEND": { "time":6600, "event":201, /* AP_CheckFromEnemy */ "ap_id":167, "linknum": 64, "movement":"swaying", "is_boss":true }
 	},
 	// --------------------------------------------------------------
 	"Episode2 GYGES": {
@@ -632,10 +632,10 @@
 			{ "time":2470, "event":201, /* AP_CheckFromEnemy */ "ap_id":243, "linknum": 64, "movement":"falling" }
 		],
 		"928:APPEND": [
-			{ "time":3670, "event":201, /* AP_CheckFromEnemy */ "ap_id":246, "linknum":164, "movement":"falling" },
-			{ "time":3670, "event":201, /* AP_CheckFromEnemy */ "ap_id":247, "linknum": 64, "movement":"falling" }
+			{ "time":3670, "event":201, /* AP_CheckFromEnemy */ "ap_id":245, "linknum":164, "movement":"falling" },
+			{ "time":3670, "event":201, /* AP_CheckFromEnemy */ "ap_id":246, "linknum": 64, "movement":"falling" }
 		],
-		"1184:REPLACE": { "time":4850, "event":201, /* AP_CheckFromEnemy */ "ap_id":245, "linknum": 32, "movement":"falling" },
+		"1184:REPLACE": { "time":4850, "event":201, /* AP_CheckFromEnemy */ "ap_id":244, "linknum": 32, "movement":"falling" },
 
 		// Add in boss bar and other related events for boss orbs
 		"912:APPEND": { "time":3630, "event": 16, /* VoicedCallout */ "output":"** Danger! **" },

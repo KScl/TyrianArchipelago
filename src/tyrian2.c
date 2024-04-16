@@ -281,7 +281,7 @@ void JE_drawEnemy(int enemyOffset) // actually does a whole lot more than just d
 	// Draw AP Radar behind all enemies, to better highlight larger enemies
 	for (int i = enemyOffset - 25; i < enemyOffset; i++)
 	{
-		if (enemyAvail[i] == 1)
+		if (enemyAvail[i])
 			continue;
 
 #if 0 // Keeping old code around for now because it spots some items useful for testing.
@@ -310,7 +310,7 @@ void JE_drawEnemy(int enemyOffset) // actually does a whole lot more than just d
 			// Highlight all enemies with same linknum as one that contains an AP item
 			for (int j = enemyOffset - 25; j < enemyOffset; j++)
 			{
-				if (enemy[j].linknum != enemy[i].linknum)
+				if (enemyAvail[j] || enemy[j].linknum != enemy[i].linknum)
 					continue;
 				if (enemy[j].ex + tempMapXOfs > -29 && enemy[j].ex + tempMapXOfs < 300)
 					tyrian_blitAPRadar(VGAScreen, j);
