@@ -19,14 +19,21 @@ typedef enum {
 	APSFX_CHAT,
 } archipelago_sound_t;
 
+typedef enum {
+	SHOP_MODE_NONE = 0,
+	SHOP_MODE_STANDARD,
+	SHOP_MODE_HIDDEN,
+	SHOP_MODE_SHOPS_ONLY,
+} archipelago_shopmode_t;
+
 typedef struct {
 	bool Tyrian2000Mode;
 
-	int PlayEpisodes;
-	int GoalEpisodes;
+	unsigned int PlayEpisodes; // One bit per episode
+	unsigned int GoalEpisodes; // e.g. 0b11111 for all 5 episodes
 	int Difficulty;
 
-	int ShopMenu;
+	int ShopMode; // "ShopMenu" in JSON for legacy reasons
 	bool SpecialMenu;
 	bool HardContact;
 	bool ExcessArmor;

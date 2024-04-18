@@ -1109,14 +1109,14 @@ static const mousetargets_t mainMenuTargetsNoShop = {5, {
 
 static void submenuMain_Run(void)
 {
-	const mousetargets_t *mousenav = (APSeedSettings.ShopMenu == 0)
+	const mousetargets_t *mousenav = (APSeedSettings.ShopMode == SHOP_MODE_NONE)
 		? &mainMenuTargetsNoShop : &mainMenuTargets;
 
 	if (defaultMenuNavigation(mousenav) == MENUNAV_SELECT)
 	{
 		JE_playSampleNum(S_CLICK);
 		int localSelection = subMenuSelections[SUBMENU_MAIN];
-		if (APSeedSettings.ShopMenu == 0 && localSelection > 1)
+		if (APSeedSettings.ShopMode == SHOP_MODE_NONE && localSelection > 1)
 			++localSelection;
 
 		switch (localSelection)
@@ -1141,7 +1141,7 @@ static void submenuMain_Run(void)
 
 	defaultMenuOptionDraw("Play Next Level", 38 + 0,  false, SELECTED(0));
 	defaultMenuOptionDraw("Ship Specs",      38 + 16,  true, SELECTED(1));
-	if (APSeedSettings.ShopMenu == 0)
+	if (APSeedSettings.ShopMode == SHOP_MODE_NONE)
 	{
 		defaultMenuOptionDraw("Upgrade Ship",    38 + 32, false, SELECTED(2));
 		defaultMenuOptionDraw("Options",         38 + 48, false, SELECTED(3));

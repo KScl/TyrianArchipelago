@@ -1045,7 +1045,7 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 
 		std::string itemName;
 
-		if (APSeedSettings.ShopMenu == 2)
+		if (APSeedSettings.ShopMode == SHOP_MODE_HIDDEN)
 		{
 			// Hidden shop contents mode (local or remote, doesn't matter)
 			itemName = "Archipelago Item " + i;
@@ -1346,7 +1346,7 @@ const char *Archipelago_StartLocalGame(FILE *file)
 		APSeedSettings.GoalEpisodes = aptyrianJSON["Settings"].at("Goal").template get<int>();
 		APSeedSettings.Difficulty = aptyrianJSON["Settings"].at("Difficulty").template get<int>();
 
-		APSeedSettings.ShopMenu = aptyrianJSON["Settings"].at("ShopMenu").template get<int>();
+		APSeedSettings.ShopMode = aptyrianJSON["Settings"].at("ShopMenu").template get<int>();
 		APSeedSettings.SpecialMenu = aptyrianJSON["Settings"].at("SpecialMenu").template get<bool>();
 		APSeedSettings.HardContact = aptyrianJSON["Settings"].at("HardContact").template get<bool>();
 		APSeedSettings.ExcessArmor = aptyrianJSON["Settings"].at("ExcessArmor").template get<bool>();
@@ -1551,7 +1551,7 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			APSeedSettings.GoalEpisodes = slot_data["Settings"].at("Goal").template get<int>();
 			APSeedSettings.Difficulty = slot_data["Settings"].at("Difficulty").template get<int>();
 
-			APSeedSettings.ShopMenu = slot_data["Settings"].at("ShopMenu").template get<int>();
+			APSeedSettings.ShopMode = slot_data["Settings"].at("ShopMenu").template get<int>();
 			APSeedSettings.SpecialMenu = slot_data["Settings"].at("SpecialMenu").template get<bool>();
 			APSeedSettings.HardContact = slot_data["Settings"].at("HardContact").template get<bool>();
 			APSeedSettings.ExcessArmor = slot_data["Settings"].at("ExcessArmor").template get<bool>();
