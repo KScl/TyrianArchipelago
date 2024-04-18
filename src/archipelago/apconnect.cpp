@@ -480,22 +480,46 @@ static std::string APRemote_GetPlayerName(int slot, int team = -1)
 // Chat / Game displays
 // ============================================================================
 
-static Uint8 APLocal_GetItemFlags(Uint16 localItemID, Uint16 localCheckID)
+static Uint8 APLocal_GetItemFlags(Uint16 localItemID)
 {
-	if (localItemID < 500 || Archipelago_CheckHasProgression(localCheckID))
-		return 1;
+	if (localItemID < 500) // All Levels
+		return 3; // Progression + Useful
+	else if (localItemID < 700) // All Front and Rear Weapons
+		return 1; // Progression
 	else switch (localItemID)
 	{
-		case 700: case 719: case 900: case 901: case 902:
-		case 903: case 904: case 905: case 906: case 907:
-			return 1;
-		case 503: case 504: case 521: case 721: case 805:
-		case 806: case 807: case 808: case 908: case 909:
-			return 2;
+		case 700: // Repulsor
+		case 719: // Invulnerability
+		case 900: // Advanced MR-12
+		case 901: // Gencore Custom MR-12
+		case 902: // Standard MicroFusion
+		case 903: // Advanced MicroFusion
+		case 904: // Gravitron Pulse-Wave
+		case 905: // Progressive Generator
+		case 906: // Maximum Power Up
+		case 907: // Armor Up
+		case 911: // Data Cube (Episode 1)
+		case 912: // Data Cube (Episode 2)
+		case 913: // Data Cube (Episode 3)
+		case 914: // Data Cube (Episode 4)
+		case 915: // Data Cube (Episode 5)
+			return 1; // Progression
+		case 721: // SDF Main Gun
+		case 805: // MegaMissile
+		case 806: // Atom Bombs
+		case 807: // Phoenix Device
+		case 808: // Plasma Storm
+		case 813: // 8-Way MicroBomb
+		case 821: // BattleShip-Class Firebomb
+		case 824: // Protron Cannon Tangerine
+		case 827: // Beno Protron System -B-
+		case 831: // Flying Punch
+		case 908: // Shield Up
+		case 909: // Solar Shields
+			return 2; // Useful
 		default:
-			break;
+			return 0; // Filler
 	}
-	return 0;
 }
 
 static std::string APLocal_BuildANSIString(Uint16 localItemID, Uint8 flags)
@@ -504,7 +528,8 @@ static std::string APLocal_BuildANSIString(Uint16 localItemID, Uint8 flags)
 		return "";
 
 	std::stringstream s;
-	if      (flags & 1) s << "\u001b[35;1m"; // Progression
+	if (flags == 3)     s << "\u001b[35;1m"; // Progression + Useful
+	else if (flags & 1) s << "\u001b[35;1m"; // Progression
 	else if (flags & 2) s << "\u001b[34;1m"; // Useful
 	else if (flags & 4) s << "\u001b[31;1m"; // Trap (none currently in local pool, may change)
 	else                s << "\u001b[36;1m"; // Filler
@@ -519,8 +544,9 @@ static std::string APLocal_BuildItemString(Uint16 localItemID, Uint8 flags)
 		return "";
 
 	std::stringstream s;
-	if      (flags & 1) s << "<95"; // Progression
-	else if (flags & 2) s << "<83"; // Useful
+	if (flags == 3)     s << "<25"; // Progression + Useful
+	else if (flags & 1) s << "<55"; // Progression
+	else if (flags & 2) s << "<35"; // Useful
 	else if (flags & 4) s << "<45"; // Trap (none currently in local pool, may change)
 	else                s << "<06"; // Filler
 	s << apitems_AllNames[localItemID] << ">";
@@ -538,8 +564,9 @@ static std::string APRemote_BuildItemString(const APClient::NetworkItem &item, i
 	std::string itemName = ap->get_item_name(item.item, ap->get_player_game(playerID));
 
 	std::stringstream s;
-	if      (item.flags & 1) s << "<95"; // Progression
-	else if (item.flags & 2) s << "<83"; // Useful
+	if (item.flags == 3)     s << "<25"; // Progression + Useful
+	else if (item.flags & 1) s << "<55"; // Progression
+	else if (item.flags & 2) s << "<35"; // Useful
 	else if (item.flags & 4) s << "<45"; // Trap
 	else                     s << "<06"; // Filler
 	s << APRemote_CleanString(itemName) << ">";
@@ -647,8 +674,6 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 
 // ----------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------
-
 void Archipelago_ChatMessage(const char *userMessage)
 {
 	std::string text = userMessage;
@@ -672,15 +697,13 @@ static const int remoteCashItemValues[] =
 
 // Based on item ID, adjusts APItems or APStats appropriately to mark it as acquired.
 // Uses local IDs, but is called in both local and remote play.
-static void APAll_ResolveItem(int item)
+static void APAll_ResolveItem(int64_t item, bool is_local)
 {
-	// Automatically subtract the AP Base ID if we notice it.
-	if (item >= ARCHIPELAGO_BASE_ID)
+	if (!is_local) // Subtract the AP Base ID from remote item IDs
 		item -= ARCHIPELAGO_BASE_ID;
 
-	assert(item >= 0 && item <= 999);
 	if (item < 0 || item > 999)
-		return;
+		return; // May have received an AP Global item (e.g. Nothing, at ID -1), just ignore
 
 	// Items (weapons, levels, etc.)
 	if      (item < 100) APItems.Levels[0]  |= (Uint32)1 << (item );
@@ -732,7 +755,7 @@ static void APAll_ParseStartState(json &j)
 	if (j.contains("Items"))
 	{
 		for (auto const &item : j["Items"])
-			APAll_ResolveItem(item.template get<Sint16>());
+			APAll_ResolveItem(item.template get<Sint16>(), true);
 	}
 	APStats.ArmorLevel = 10 + (j.value<int>("Armor", 0) * 2);
 	APStats.ShieldLevel = 10 + (j.value<int>("Shield", 0) * 2);
@@ -820,9 +843,9 @@ static void APLocal_ReceiveItem(int64_t locationID)
 
 	++lastItemIndex;
 	Uint16 localItemID = allLocationData[locationID];
-	APAll_ResolveItem(localItemID);
+	APAll_ResolveItem(localItemID, true);
 
-	Uint8 flags = APLocal_GetItemFlags(localItemID, locationID);
+	Uint8 flags = APLocal_GetItemFlags(localItemID);
 	std::string output = "You got your " + APLocal_BuildItemString(localItemID, flags);
 	apmsg_enqueue(output.c_str());
 	apmsg_playSFX(localItemID >= 980 ? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
@@ -893,7 +916,7 @@ static void APRemote_CB_ReceiveItem(const std::list<APClient::NetworkItem>& item
 		if (item.index > lastItemIndex)
 		{
 			lastItemIndex = item.index;
-			APAll_ResolveItem(item.item);
+			APAll_ResolveItem(item.item, false);
 		}
 	}
 }
