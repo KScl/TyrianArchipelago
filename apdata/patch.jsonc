@@ -1104,16 +1104,16 @@
 	},
 	// --------------------------------------------------------------
 	"Episode5 STATION": {
-		"12:REPLACE":  { "time":  20, "event":201, /* AP_CheckFromEnemy */ "ap_id":630, "linknum": 13, "movement":"sky_falling" },
-		"66:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":631, "linknum": 13, "movement":"sky_falling" },
-		"104:REPLACE": { "time": 520, "event":201, /* AP_CheckFromEnemy */ "ap_id":632, "linknum": 14, "movement":"sky_falling" },
-		"215:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":633, "linknum": 15, "movement":"sky_falling" }, 
-		"255:REPLACE": { "time":1120, "event":201, /* AP_CheckFromEnemy */ "ap_id":634, "linknum": 20, "movement":"sky_falling" },
-		"356:REPLACE": { "time":1850, "event":201, /* AP_CheckFromEnemy */ "ap_id":635, "linknum":  8, "movement":"sky_falling" },
-		"480:REPLACE": { "time":2500, "event":201, /* AP_CheckFromEnemy */ "ap_id":636, "linknum": 59, "movement":"sky_falling" },
-		"527:REPLACE": { "time":2620, "event":201, /* AP_CheckFromEnemy */ "ap_id":637, "linknum": 13, "movement":"sky_falling" },
-		"585:REPLACE": { "time":2820, "event":201, /* AP_CheckFromEnemy */ "ap_id":638, "linknum": 13, "movement":"sky_falling" },
-		"723:APPEND":  { "time":3350, "event":201, /* AP_CheckFromEnemy */ "ap_id":639, "linknum":254, "movement":"swaying", "is_boss":true },
+		"12:REPLACE":  { "time":  20, "event":201, /* AP_CheckFromEnemy */ "ap_id":640, "linknum": 13, "movement":"sky_falling" },
+		"66:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":641, "linknum": 13, "movement":"sky_falling" },
+		"104:REPLACE": { "time": 520, "event":201, /* AP_CheckFromEnemy */ "ap_id":642, "linknum": 14, "movement":"sky_falling" },
+		"215:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":643, "linknum": 15, "movement":"sky_falling" },
+		"255:REPLACE": { "time":1120, "event":201, /* AP_CheckFromEnemy */ "ap_id":644, "linknum": 20, "movement":"sky_falling" },
+		"356:REPLACE": { "time":1850, "event":201, /* AP_CheckFromEnemy */ "ap_id":645, "linknum":  8, "movement":"sky_falling" },
+		"480:REPLACE": { "time":2500, "event":201, /* AP_CheckFromEnemy */ "ap_id":646, "linknum": 59, "movement":"sky_falling" },
+		"527:REPLACE": { "time":2620, "event":201, /* AP_CheckFromEnemy */ "ap_id":647, "linknum": 13, "movement":"sky_falling" },
+		"585:REPLACE": { "time":2820, "event":201, /* AP_CheckFromEnemy */ "ap_id":648, "linknum": 13, "movement":"sky_falling" },
+		"723:APPEND":  { "time":3350, "event":201, /* AP_CheckFromEnemy */ "ap_id":649, "linknum":254, "movement":"swaying", "is_boss":true },
 
 		// Give time for the AP item to drop.
 		"1000:PREPEND": [
@@ -1126,7 +1126,7 @@
 	},
 	// --------------------------------------------------------------
 	"Episode5 FRUIT": {
-		"165:REPLACE": { "time": 760, "event":201, /* AP_CheckFromEnemy */ "ap_id":640, "linknum": 5, "movement":"sky_falling" }
+		"165:REPLACE": { "time": 760, "event":201, /* AP_CheckFromEnemy */ "ap_id":650, "linknum": 5, "movement":"sky_falling" }
 	},
 
 	// ========================================================================
