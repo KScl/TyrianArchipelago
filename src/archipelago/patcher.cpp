@@ -67,6 +67,21 @@ static std::list<int> patchEvents;
 // 
 static int eventCount = 0;
 
+static void assignFromArrayDat2(json &j, Uint16 x)
+{
+	if (!j.is_array())
+		return;
+	try
+	{
+		eventRec[x].eventdat2 = j.at(0).template get<Sint16>();
+		eventRec[x].eventdat3 = j.at(1).template get<Sint8>();
+		eventRec[x].eventdat4 = j.at(2).template get<Uint8>();
+		eventRec[x].eventdat5 = j.at(3).template get<Sint8>();
+		eventRec[x].eventdat6 = j.at(4).template get<Sint8>();
+	}
+	catch (json::out_of_range&) {} // expected, do nothing more
+}
+
 static void assignFromArray(json &j, Uint16 x)
 {
 	if (!j.is_array())
@@ -267,6 +282,10 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat2 = j.value<Sint16>("jump_time", 0);
 			eventRec[x].eventdat3 = j.value<Sint8> ("value", 0);
 			break;
+
+		case  70: // Jump_SearchFor
+			assignFromArrayDat2(j["types"], x);
+			goto commonjump_rejoin;
 
 		case  71: // Jump_IfMapPositionUnder
 			eventRec[x].eventdat2 = j.value<Sint16>("position", 0);

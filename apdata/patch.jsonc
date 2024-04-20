@@ -478,7 +478,23 @@
 		"681:REPLACE": { "time":2541, "event":201, /* AP_CheckFromEnemy */ "ap_id":164, "linknum":  9, "movement":"static" },
 		"1128:APPEND": { "time":4960, "event":201, /* AP_CheckFromEnemy */ "ap_id":165, "linknum": 14, "movement":"static" },
 		"1156:APPEND": { "time":5101, "event":201, /* AP_CheckFromEnemy */ "ap_id":166, "linknum":143, "movement":"swaying", "is_boss":true },
-		"1484:APPEND": { "time":6600, "event":201, /* AP_CheckFromEnemy */ "ap_id":167, "linknum": 64, "movement":"swaying", "is_boss":true }
+		"1484:APPEND": { "time":6600, "event":201, /* AP_CheckFromEnemy */ "ap_id":167, "linknum": 64, "movement":"swaying", "is_boss":true },
+
+		// There are periodic jumps during the boss that check if the boss ship exists, and if not,
+		// jumps 10 time units away from the end of the level. At worst case this can stop a player from
+		// being able to pick up the boss check. So we fix every single one to give more time.
+		"1486:REPLACE": { "time":6650, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1511:REPLACE": { "time":6700, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1519:REPLACE": { "time":6750, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1527:REPLACE": { "time":6800, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1534:REPLACE": { "time":6850, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1543:REPLACE": { "time":6900, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1549:REPLACE": { "time":6950, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1566:REPLACE": { "time":7000, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1574:REPLACE": { "time":7050, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1580:REPLACE": { "time":7100, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1585:REPLACE": { "time":7150, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] },
+		"1590:REPLACE": { "time":7200, "event":70, /* Jump_SearchFor */ "jump_time":8750, "types":[64] }
 	},
 	// --------------------------------------------------------------
 	"Episode2 GYGES": {
@@ -651,27 +667,27 @@
 		// End of Path Secrets
 		"252:APPEND": [
 			{ "time":2494, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 1, "shot_freq":[14] },
-			{ "time":2494, "event":201, /* AP_CheckFromEnemy */ "ap_id":251, "linknum": 1, "movement":"falling" }
+			{ "time":2494, "event":201, /* AP_CheckFromEnemy */ "ap_id":251, "linknum": 1, "movement":"falling", "backup":396 }
 		],
 		"356:APPEND": [
 			{ "time":3266, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 9, "shot_freq":[14] },
-			{ "time":3266, "event":201, /* AP_CheckFromEnemy */ "ap_id":253, "linknum": 9, "movement":"falling" }
+			{ "time":3266, "event":201, /* AP_CheckFromEnemy */ "ap_id":253, "linknum": 9, "movement":"falling", "backup":396 }
 		]
 	},
 	"Episode2 BOTANY A ver2000": {
 		"38:APPEND":  { "time": 300, "event":201, /* AP_CheckFromEnemy */ "ap_id":250, "linknum": 2, "movement":"falling" },
-		"255:APPEND": { "time":2596, "event":201, /* AP_CheckFromEnemy */ "ap_id":251, "linknum": 2, "movement":"falling" },
+		"255:APPEND": { "time":2596, "event":201, /* AP_CheckFromEnemy */ "ap_id":252, "linknum": 2, "movement":"falling" },
 		"459:APPEND": { "time":3981, "event":201, /* AP_CheckFromEnemy */ "ap_id":254, "linknum": 3, "movement":"falling" },
 		"676:APPEND": { "time":4900, "event":201, /* AP_CheckFromEnemy */ "ap_id":255, "linknum":64, "movement":"swaying", "is_boss":true },
 
 		// End of Path Secrets
-		"282:APPEND": [
-			{ "time":2926, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 1, "shot_freq":[14] },
-			{ "time":2926, "event":201, /* AP_CheckFromEnemy */ "ap_id":252, "linknum": 1, "movement":"falling" }
+		"252:APPEND": [
+			{ "time":2494, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 1, "shot_freq":[14] },
+			{ "time":2494, "event":201, /* AP_CheckFromEnemy */ "ap_id":251, "linknum": 1, "movement":"falling", "backup":396 }
 		],
 		"356:APPEND": [
 			{ "time":3266, "event": 31, /* EnemyGlobal_FireOverride */ "linknum": 9, "shot_freq":[14] },
-			{ "time":3266, "event":201, /* AP_CheckFromEnemy */ "ap_id":253, "linknum": 9, "movement":"falling" }
+			{ "time":3266, "event":201, /* AP_CheckFromEnemy */ "ap_id":253, "linknum": 9, "movement":"falling", "backup":396 }
 		]
 	},
 	// --------------------------------------------------------------
