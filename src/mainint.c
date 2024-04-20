@@ -1067,17 +1067,19 @@ void JE_inGameDisplays(void)
 	char tempstr[256];
 
 #ifdef DEBUG_OPTIONS
-	snprintf(tempstr, sizeof(tempstr), "%s", difficultyNameB[difficultyLevel+1]);
-	JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
-
 	if (debugDamageViewer)
 	{
-		//snprintf(tempstr, sizeof(tempstr), "Gen: %02d", powerSys[6].power);
-		//JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
+		snprintf(tempstr, sizeof(tempstr), "Gen: %02d", powerSys[6].power);
+		JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
 		snprintf(tempstr, sizeof(tempstr), "%.2f", damagePerSecondAvg);
 	}
 	else
 	{
+		if (debug)
+		{
+			snprintf(tempstr, sizeof(tempstr), "%s", difficultyNameB[difficultyLevel+1]);
+			JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
+		}
 		const Uint64 totalCash = APStats.Cash + player[0].cash;
 		snprintf(tempstr, sizeof(tempstr), "%llu", (unsigned long long)totalCash);
 	}
