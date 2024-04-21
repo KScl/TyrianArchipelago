@@ -14,7 +14,7 @@ data files will work for all seeds.
 * [Tyrian 2.1](https://www.camanis.net/tyrian/tyrian21.zip)
 * [Tyrian 2000](https://www.camanis.net/tyrian/tyrian2000.zip)
 
-### Important Notes (alpha2)
+### Important Notes
 
 Connecting to an Archipelago server can be done through the in-game menus, or
 alternatively through the command line with the following option:
@@ -29,4 +29,16 @@ The menu for modifying controls has not been reimplemented yet. You'll need to
 start the game once, and then modify "aptyrian.cfg" in the "save" subdirectory
 that is automatically created. Sorry.
 
-Progress is automatically saved after exiting a level or on quitting the game.
+The following things are planned, but not yet implemented:
+* Logic:
+  * Most logic for Episode 3
+  * All logic for Episodes 4 and 5
+* Options:
+  * Boss Weaknesses: On
+    * Fully accounted for in logic, but client doesn't respect it
+  * Twiddles: Chaos
+    * Not yet implemented (errors on generation)
+  * Show Twiddle Inputs: On
+    * Not respected by the client ("Ship Info" isn't implemented at all yet)
+* Other things:
+  * Rebinding inputs still isn't possible from in game yet

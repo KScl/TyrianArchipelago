@@ -1,4 +1,4 @@
-Archipelago Tyrian v0.4.4-alpha1
+Archipelago Tyrian v0.4.5-alpha4
 
 == Setup =======================================================================
 
@@ -15,21 +15,24 @@ Tyrian 2000:
 
 == Important Notes =============================================================
 
-The menu for choosing a server / slot name to connect to is currently
-unfinished. You will need to start APTyrian with the command line option:
+Connecting to an Archipelago server can be done through the in-game menus, or
+alternatively through the command line with the following option:
   --connect="<slot_name>@archipelago.gg:<port_number>"
 
-Then, after choosing "Start Game", press ENTER on the otherwise empty screen
-to start connecting to the Archipelago server.
-
-Alternatively, if you have a single player .aptyrian file, drag and drop it onto
-the game window while on the empty "Start Game" screen to start playing it.
-
-The menu for modifying controls has not been reimplemented yet. You'll need to
-start the game once, and then modify "aptyrian.cfg" in the "save" subdirectory
-that is automatically created. Sorry.
+If you have a single player .aptyrian file, drag and drop it over the game
+window while in the "Select Game Mode" menu to start playing it. The option
+within that menu to play a local game will eventually open a file dialog, but
+that has yet to be implemented.
 
 Progress is automatically saved after exiting a level or on quitting the game.
+
+The following things are planned but not yet implemented:
+- Logic for Episodes 3, 4, and 5
+- Rebinding inputs in game; If you want to do this, you'll still have to edit
+  save/aptyrian.cfg yourself for now, sorry
+- "Chaos" Twiddles (full randomizer, instead of giving random vanilla twiddles)
+- Boss Weaknesses (require specific weapons to beat the boss of a goal episode)
+- "Ship Info" display
 
 == Keyboard Controls ===========================================================
 
