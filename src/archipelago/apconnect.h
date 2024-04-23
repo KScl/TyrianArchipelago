@@ -32,8 +32,9 @@ typedef struct {
 	unsigned int PlayEpisodes; // One bit per episode
 	unsigned int GoalEpisodes; // e.g. 0b11111 for all 5 episodes
 	int Difficulty;
+	int DataCubesNeeded; // 0 if off, otherwise count of data cubes to open goal levels
 
-	int ShopMode; // "ShopMenu" in JSON for legacy reasons
+	int ShopMode;
 	bool SpecialMenu;
 	bool HardContact;
 	bool ExcessArmor;
@@ -115,6 +116,9 @@ typedef struct {
 typedef struct {
 	Uint32 Clears[5]; // One bit per level, per episode
 	Uint8  RestGoalEpisodes; // See APSeedSettings.GoalEpisodes - when 0, game is complete
+
+	Uint16 DataCubes; // For data cube goals, total collected
+	bool   CubeRewardGiven; // True if goal levels have been given to the player
 
 	Uint8  PowerMaxLevel; // 0 - 10; +1 per "Maximum Power Up"
 	Uint8  GeneratorLevel; // 1 - 6; +1 per "Progressive Generator"

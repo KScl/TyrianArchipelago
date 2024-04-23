@@ -2574,6 +2574,18 @@ static void sidebarArchipelagoInfo(void)
 		JE_textShade(VGAScreen, 24, 128, "Generator:", 15, 4, DARKEN);
 		JE_textShade(VGAScreen, 24, 136, powerSys[item].name, 15, 6, DARKEN);
 	}
+
+	// If in Data Cube Hunt mode, display cubes obtained/goal
+	if (APSeedSettings.DataCubesNeeded > 0)
+	{
+		char local_buf[32];
+
+		blit_sprite(VGAScreenSeg, 86, 17, OPTION_SHAPES, 34);  // Data Cube
+		snprintf(local_buf, sizeof(local_buf), "%d", APStats.DataCubes);
+		JE_textShade(VGAScreen, 66 - JE_textWidth(local_buf, TINY_FONT), 21, local_buf, 15, 6, DARKEN);		
+		snprintf(local_buf, sizeof(local_buf), "/%d", APSeedSettings.DataCubesNeeded);
+		JE_textShade(VGAScreen, 66, 21, local_buf, 15, 4, DARKEN);
+	}
 }
 
 // ------------------------------------------------------------------

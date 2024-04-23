@@ -115,7 +115,7 @@ static bool gameInProgress = false;
 #define ARCHIPELAGO_BASE_ID 20031000
 
 // Should match TyrianWorld.aptyrian_net_version
-#define APTYRIAN_NET_VERSION 3
+#define APTYRIAN_NET_VERSION 4
 
 static APClient::Version targetAPVersion = {0, 4, 5};
 
@@ -276,6 +276,7 @@ void Archipelago_Save(void)
 	saveData["APStats"] += APStats.ArmorLevel;
 	saveData["APStats"] += APStats.ShieldLevel | (APStats.SolarShield ? 0x80 : 0x00);
 	saveData["APStats"] += APStats.Cash;
+	saveData["APStats"] += APStats.DataCubes | (APStats.CubeRewardGiven ? 0x8000 : 0x0000);
 	// QueuedSuperBombs is not saved
 
 	saveData["APPlayData"] += APPlayData.TimeInLevel;
@@ -354,10 +355,16 @@ static bool Archipelago_Load(void)
 		APStats.ArmorLevel = saveData["APStats"].at(8).template get<Uint8>();
 		APStats.ShieldLevel = saveData["APStats"].at(9).template get<Uint8>();
 		APStats.Cash = saveData["APStats"].at(10).template get<Uint64>();
+		APStats.DataCubes = saveData["APStats"].at(11).template get<Uint16>();
 		if (APStats.ShieldLevel & 0x80)
 		{
 			APStats.SolarShield = true;
 			APStats.ShieldLevel &= 0x7F;
+		}
+		if (APStats.DataCubes & 0x8000)
+		{
+			APStats.CubeRewardGiven = true;
+			APStats.DataCubes &= 0x7FFF;
 		}
 
 		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 3)
@@ -695,8 +702,12 @@ void Archipelago_ChatMessage(const char *userMessage)
 static const int remoteCashItemValues[] =
 	{50, 75, 100, 150, 200, 300, 375, 500, 750, 800, 1000, 2000, 5000, 7500, 10000, 20000, 40000, 75000, 100000, 1000000};
 
+// Quick lookup table of unlock items for goal levels, used for Data Cube Hunt
+// (when data cube target reached, it "gives" these items to the player)
+static const int goalLevelQuickLookup[5] = {15, 111, 211, 317, 406};
+
 // Based on item ID, adjusts APItems or APStats appropriately to mark it as acquired.
-// Uses local IDs, but is called in both local and remote play.
+// Whether it uses local or global item IDs is determined by is_local
 static void APAll_ResolveItem(int64_t item, bool is_local)
 {
 	if (!is_local) // Subtract the AP Base ID from remote item IDs
@@ -743,9 +754,38 @@ static void APAll_ResolveItem(int64_t item, bool is_local)
 
 	else if (item == 909) APStats.SolarShield = true;
 	else if (item == 910) ++APStats.QueuedSuperBombs;
+	else if (item == 911) ++APStats.DataCubes;
 	else if (item >= 980) APStats.Cash += remoteCashItemValues[item - 980];
 
 	std::cout << "Item resolved: " << item << std::endl;
+}
+
+// Sends goal levels to the local player in data cube hunt mode, if enough data cubes collected
+static void APAll_CheckDataCubeCount(void)
+{
+	// Not in cube hunt mode? Or reward already given?
+	if (APSeedSettings.DataCubesNeeded <= 0 || APStats.CubeRewardGiven)
+		return;
+
+	if (APStats.DataCubes >= APSeedSettings.DataCubesNeeded)
+	{
+		for (int episode = 0; episode < 5; ++episode)
+		{
+			if (!AP_BITSET(APSeedSettings.GoalEpisodes, episode))
+				continue;
+
+			// This is technically "locally" handled even in remote play
+			const int localItemID = goalLevelQuickLookup[episode];
+			const Uint8 flags = APLocal_GetItemFlags(localItemID);
+
+			APAll_ResolveItem(localItemID, true);
+			std::string output = "You got your " + APLocal_BuildItemString(localItemID, flags);
+			apmsg_enqueue(output.c_str());
+		}
+
+		// Execute once only.
+		APStats.CubeRewardGiven = true;
+	}
 }
 
 // Parses "StartState" structure. In all JSON blobs.
@@ -763,6 +803,7 @@ static void APAll_ParseStartState(json &j)
 	APStats.GeneratorLevel = 1 + j.value<int>("Generator", 0);
 	APStats.SolarShield = j.value<bool>("SolarShield", false);
 	APStats.Cash = j.value<int64_t>("Credits", 0);
+	APStats.DataCubes = j.value<int64_t>("DataCubes", 0);
 
 	// Default the player's front port to whatever they've started with.
 	// If they started with multiple (via starting_inventory), use the first one in ID order.
@@ -789,6 +830,10 @@ static void APAll_ParseStartState(json &j)
 			}
 		}
 	}
+
+	// It's entirely possible for someone to start_inventory enough data cubes to reach their target,
+	// so we have to be ready to handle that case.
+	APAll_CheckDataCubeCount();
 }
 
 // ============================================================================
@@ -853,6 +898,9 @@ static void APLocal_ReceiveItem(int64_t locationID)
 	std::cout << "You got your "
 	          << APLocal_BuildANSIString(localItemID, flags)
 	          << " (" << lastItemIndex + 1 << "/" << totalLocationCount << ")" << std::endl;
+
+	// Check for data cubes after every receive.
+	APAll_CheckDataCubeCount();
 }
 
 // ----------------------------------------------------------------------------
@@ -919,6 +967,9 @@ static void APRemote_CB_ReceiveItem(const std::list<APClient::NetworkItem>& item
 			APAll_ResolveItem(item.item, false);
 		}
 	}
+
+	// Check for data cube hunt completion after every receive.
+	APAll_CheckDataCubeCount();
 }
 
 // ----------------------------------------------------------------------------
@@ -1173,13 +1224,6 @@ static void APAll_ParseTwiddleData(json& j)
 	}
 }
 
-static void APAll_ParseBossWeaknessData(json& j)
-{
-	std::cout << "TODO: APAll_ParseBossWeaknessData" << std::endl;
-	std::cout << j << std::endl;
-}
-
-
 // ============================================================================
 // DeathLink
 // ============================================================================
@@ -1342,20 +1386,23 @@ const char *Archipelago_StartLocalGame(FILE *file)
 
 		multiworldSeedName = aptyrianJSON.at("Seed").template get<std::string>();
 
-		APSeedSettings.PlayEpisodes = aptyrianJSON["Settings"].at("Episodes").template get<int>();
-		APSeedSettings.GoalEpisodes = aptyrianJSON["Settings"].at("Goal").template get<int>();
+		// Settings required to be present
+		APSeedSettings.PlayEpisodes = aptyrianJSON["Settings"].at("Episodes").template get<unsigned int>();
+		APSeedSettings.GoalEpisodes = aptyrianJSON["Settings"].at("Goal").template get<unsigned int>();
 		APSeedSettings.Difficulty = aptyrianJSON["Settings"].at("Difficulty").template get<int>();
 
-		APSeedSettings.ShopMode = aptyrianJSON["Settings"].at("ShopMenu").template get<int>();
-		APSeedSettings.SpecialMenu = aptyrianJSON["Settings"].at("SpecialMenu").template get<bool>();
-		APSeedSettings.HardContact = aptyrianJSON["Settings"].at("HardContact").template get<bool>();
-		APSeedSettings.ExcessArmor = aptyrianJSON["Settings"].at("ExcessArmor").template get<bool>();
+		// Optional settings
+		APSeedSettings.DataCubesNeeded = aptyrianJSON["Settings"].value<int>("DataCubesNeeded", 0);
+		APSeedSettings.HardContact = aptyrianJSON["Settings"].value<bool>("HardContact", false);
+		APSeedSettings.ExcessArmor = aptyrianJSON["Settings"].value<bool>("ExcessArmor", false);
+		APSeedSettings.ForceGameSpeed = aptyrianJSON["Settings"].value<int>("GameSpeed", 0);
 
-		APSeedSettings.ForceGameSpeed = aptyrianJSON["Settings"].at("GameSpeed").template get<int>();
-		APSeedSettings.TwiddleInputs = aptyrianJSON["Settings"].at("ShowTwiddles").template get<bool>();
-		APSeedSettings.ArchipelagoRadar = aptyrianJSON["Settings"].at("APRadar").template get<bool>();
-		APSeedSettings.Christmas = aptyrianJSON["Settings"].at("Christmas").template get<bool>();
-		APSeedSettings.DeathLink = false;
+		APSeedSettings.ShopMode = aptyrianJSON["Settings"].value<int>("ShopMode", SHOP_MODE_NONE);
+		APSeedSettings.SpecialMenu = aptyrianJSON["Settings"].value<bool>("SpecialMenu", false);
+		APSeedSettings.TwiddleInputs = aptyrianJSON["Settings"].value<bool>("ShowTwiddles", false);
+		APSeedSettings.ArchipelagoRadar = aptyrianJSON["Settings"].value<bool>("APRadar", false);
+		APSeedSettings.Christmas = aptyrianJSON["Settings"].value<bool>("Christmas", false);
+		APSeedSettings.DeathLink = false; // No reason to enable in local play
 
 		std::string obfuscated;
 		json resultJSON;
@@ -1363,10 +1410,6 @@ const char *Archipelago_StartLocalGame(FILE *file)
 		obfuscated = aptyrianJSON.value<std::string>("TwiddleData", "?6"); // Optional
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 		APAll_ParseTwiddleData(resultJSON);
-
-		obfuscated = aptyrianJSON.value<std::string>("BossWeaknesses", ")t"); // Optional
-		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-		APAll_ParseBossWeaknessData(resultJSON);
 
 		obfuscated = aptyrianJSON.at("ShopData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
@@ -1547,18 +1590,23 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 
 			multiworldSeedName = slot_data.at("Seed").template get<std::string>();
 
-			APSeedSettings.PlayEpisodes = slot_data["Settings"].at("Episodes").template get<int>();
-			APSeedSettings.GoalEpisodes = slot_data["Settings"].at("Goal").template get<int>();
+			// Settings required to be present
+			APSeedSettings.PlayEpisodes = slot_data["Settings"].at("Episodes").template get<unsigned int>();
+			APSeedSettings.GoalEpisodes = slot_data["Settings"].at("Goal").template get<unsigned int>();
 			APSeedSettings.Difficulty = slot_data["Settings"].at("Difficulty").template get<int>();
 
-			APSeedSettings.ShopMode = slot_data["Settings"].at("ShopMenu").template get<int>();
-			APSeedSettings.SpecialMenu = slot_data["Settings"].at("SpecialMenu").template get<bool>();
-			APSeedSettings.HardContact = slot_data["Settings"].at("HardContact").template get<bool>();
-			APSeedSettings.ExcessArmor = slot_data["Settings"].at("ExcessArmor").template get<bool>();
-			APSeedSettings.TwiddleInputs = slot_data["Settings"].at("ShowTwiddles").template get<bool>();
-			APSeedSettings.ArchipelagoRadar = slot_data["Settings"].at("APRadar").template get<bool>();
-			APSeedSettings.Christmas = slot_data["Settings"].at("Christmas").template get<bool>();
-			APSeedSettings.DeathLink = slot_data["Settings"].at("DeathLink").template get<bool>();
+			// Optional settings
+			APSeedSettings.DataCubesNeeded = slot_data["Settings"].value<int>("DataCubesNeeded", 0);
+			APSeedSettings.HardContact = slot_data["Settings"].value<bool>("HardContact", false);
+			APSeedSettings.ExcessArmor = slot_data["Settings"].value<bool>("ExcessArmor", false);
+			APSeedSettings.ForceGameSpeed = slot_data["Settings"].value<int>("GameSpeed", 0);
+
+			APSeedSettings.ShopMode = slot_data["Settings"].value<int>("ShopMode", SHOP_MODE_NONE);
+			APSeedSettings.SpecialMenu = slot_data["Settings"].value<bool>("SpecialMenu", false);
+			APSeedSettings.TwiddleInputs = slot_data["Settings"].value<bool>("ShowTwiddles", false);
+			APSeedSettings.ArchipelagoRadar = slot_data["Settings"].value<bool>("APRadar", false);
+			APSeedSettings.Christmas = slot_data["Settings"].value<bool>("Christmas", false);
+			APSeedSettings.DeathLink = slot_data["Settings"].value<bool>("DeathLink", false);
 
 			totalLocationCount = slot_data.at("LocationMax").template get<int>();
 
@@ -1568,10 +1616,6 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			obfuscated = slot_data.value<std::string>("TwiddleData", "?6"); // Optional
 			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
 			APAll_ParseTwiddleData(resultJSON);
-
-			obfuscated = slot_data.value<std::string>("BossWeaknesses", ")t"); // Optional
-			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-			APAll_ParseBossWeaknessData(resultJSON);
 
 			obfuscated = slot_data.at("ShopData").template get<std::string>();
 			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
