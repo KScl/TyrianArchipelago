@@ -28,6 +28,7 @@
 #include "archipelago/apconnect.h"
 
 #include "SDL.h"
+#include "SDL_clipboard.h"
 
 #include <stdio.h>
 
@@ -49,13 +50,14 @@ Uint8 keysactive[SDL_NUM_SCANCODES];
 bool new_text;
 char last_text[SDL_TEXTINPUTEVENT_TEXT_SIZE];
 
+bool new_clipboard;
+char *last_clipboard = NULL;
+
 static bool mouseRelativeEnabled;
 
 // Relative mouse position in window coordinates.
 static Sint32 mouseWindowXRelative;
 static Sint32 mouseWindowYRelative;
-
-bool requestReadClipboard = false;
 
 char *fileDropped;
 
@@ -161,7 +163,7 @@ void service_SDL_events(JE_boolean clear_new)
 		newkey = false;
 		newmouse = false;
 		new_text = false;
-		requestReadClipboard = false;
+		new_clipboard = false;
 		mousewheel = 0;
 	}
 
@@ -199,7 +201,10 @@ void service_SDL_events(JE_boolean clear_new)
 			case SDL_KEYDOWN:
 				if (ev.key.keysym.mod & KMOD_CTRL && ev.key.keysym.scancode == SDL_SCANCODE_V)
 				{
-					requestReadClipboard = true;
+					new_clipboard = SDL_HasClipboardText();
+					if (last_clipboard)
+						SDL_free(last_clipboard);
+					last_clipboard = (new_clipboard) ? SDL_GetClipboardText() : NULL;
 					break;
 				}
 

@@ -45,6 +45,8 @@ extern bool windowHasFocus;
 
 extern bool new_text;
 extern char last_text[SDL_TEXTINPUTEVENT_TEXT_SIZE];
+extern bool new_clipboard;
+extern char *last_clipboard;
 
 // Last file dragged and dropped into the window
 // Once checked, free with clearFileDropped

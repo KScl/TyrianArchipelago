@@ -22,8 +22,6 @@
 #include "video.h"
 #include "vga256d.h"
 
-#include "SDL_clipboard.h"
-
 #include "archipelago/apconnect.h"
 #include "archipelago/apitems.h"
 #include "archipelago/customship.h"
@@ -126,20 +124,27 @@ static bool apmenu_textInputCapture(textinput_t *input)
 	{
 		if (input->textLen)
 			input->text[--input->textLen] = 0; // Erase character
+		return false;
 	}
+
+	char *input_p = NULL;
+	if (new_clipboard)
+		input_p = last_clipboard;
 	else if (new_text)
+		input_p = last_text;
+	else
+		return false;
+
+	for (; *input_p; ++input_p)
 	{
-		for (char *input_p = last_text; *input_p; ++input_p)
-		{
-			if (input->textLen >= input->textLenMax)
-				break; // Input box full
-			else if (*input_p == ' ' || *input_p == '_') // Space and underscore excepted from below rule
-				input->text[input->textLen++] = *input_p;
-			else if ((unsigned char)*input_p < 127 && font_ascii[(unsigned char)*input_p] != -1)
-				input->text[input->textLen++] = *input_p;
-		}
-		input->text[input->textLen] = 0;
+		if (input->textLen >= input->textLenMax)
+			break; // Input box full
+		else if (*input_p == ' ' || *input_p == '_') // Space and underscore excepted from below rule
+			input->text[input->textLen++] = *input_p;
+		else if ((unsigned char)*input_p < 127 && font_ascii[(unsigned char)*input_p] != -1)
+			input->text[input->textLen++] = *input_p;
 	}
+	input->text[input->textLen] = 0;
 	return false;
 }
 
