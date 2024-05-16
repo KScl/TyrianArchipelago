@@ -232,7 +232,7 @@ bool player_shot_move_and_draw(
 
 		if (shot->shotTrail != 255)
 		{
-			if (shot->shotTrail == 98)
+			if (shot->shotTrail == 98 || shot->shotTrail == 198)
 				JE_setupExplosion(shot->shotX - shot->shotXM, shot->shotY - shot->shotYM, 0, shot->shotTrail, false, false);
 			else
 				JE_setupExplosion(shot->shotX, shot->shotY, 0, shot->shotTrail, false, false);
@@ -385,6 +385,13 @@ JE_integer player_shot_create(JE_word portNum, uint bay_i, JE_word PX, JE_word P
 		}
 
 		shot->shotTrail = weapon->trail;
+
+		// Tyrian 2000: I'm not sure precisely how it does it in the original game, but trail 198 results in
+		// only the Flying Punch's center tile having a trail. This replicates that behavior
+		if (shot->shotTrail == 198 && shotMultiPos[bay_i] > 1)
+		{
+			shot->shotTrail = 255;
+		}
 
 		if (weapon->attack[shotMultiPos[bay_i]-1] > 99 && weapon->attack[shotMultiPos[bay_i]-1] < 250)
 		{

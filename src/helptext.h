@@ -45,6 +45,7 @@ extern JE_byte helpBoxColor, helpBoxBrightness, helpBoxShadeType;
 #define HELPTEXT_SUPERSHIPS_COUNT 13
 #define HELPTEXT_SPECIALNAME_COUNT 11
 #define HELPTEXT_SHIPINFO_COUNT 20
+#define GAMEPLAY_NAME_COUNT 6
 
 extern char helpTxt[39][231];
 extern char pName[21][16];
@@ -82,6 +83,6 @@ void JE_loadHelpText(void);
 // Formerly menus.h, moved here
 extern char episode_name[6][31];
 extern char difficulty_name[7][21];
-extern char gameplay_name[5][26];
+extern char gameplay_name[GAMEPLAY_NAME_COUNT][26];
 
 #endif /* HELPTEXT_H */

@@ -78,7 +78,7 @@ char menuInt[MENU_MAX+1][11][18];                                        /* [0..
 // Formerly menus.c, moved out here
 char episode_name[6][31];
 char difficulty_name[7][21];
-char gameplay_name[5][26];
+char gameplay_name[GAMEPLAY_NAME_COUNT][26];
 
 static void decrypt_string(char *s, size_t len)
 {
@@ -302,7 +302,8 @@ void JE_loadHelpText(void)
 
 	// gameplay mode names
 	skip_pascal_string(f);
-	for (unsigned int i = 0; i < COUNTOF(gameplay_name); ++i)
+	real_count = (tyrian2000detected ? 6 : 5);
+	for (unsigned int i = 0; i < real_count; ++i)
 		read_encrypted_pascal_string(gameplay_name[i], sizeof(gameplay_name[i]), f);
 	skip_pascal_string(f);
 
@@ -339,7 +340,8 @@ void JE_loadHelpText(void)
 
 	/*Menu 12 - Network Options*/
 	skip_pascal_string(f);
-	for (unsigned int i = 0; i < menuInt_entries[12]; ++i)
+	real_count = (tyrian2000detected ? 7 : 6);
+	for (unsigned int i = 0; i < real_count; ++i)
 		read_encrypted_pascal_string(menuInt[12][i], sizeof(menuInt[12][i]), f);
 	skip_pascal_string(f);
 
@@ -358,14 +360,14 @@ void JE_loadHelpText(void)
 	/*SuperShips - For Super Arcade Mode*/
 	skip_pascal_string(f);
 	real_count = (tyrian2000detected ? 13 : 11);
-	for (unsigned int i = 0; i < COUNTOF(superShips); ++i)
+	for (unsigned int i = 0; i < real_count; ++i)
 		read_encrypted_pascal_string(superShips[i], sizeof(superShips[i]), f);
 	skip_pascal_string(f);
 
 	/*SuperShips - For Super Arcade Mode*/
 	skip_pascal_string(f);
 	real_count = (tyrian2000detected ? 11 : 9);
-	for (unsigned int i = 0; i < COUNTOF(specialName); ++i)
+	for (unsigned int i = 0; i < real_count; ++i)
 		read_encrypted_pascal_string(specialName[i], sizeof(specialName[i]), f);
 	skip_pascal_string(f);
 

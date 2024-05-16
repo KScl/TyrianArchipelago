@@ -42,7 +42,9 @@ void JE_loadPals(void)
 	FILE *f = dir_fopen_die(data_dir(), "palette.dat", "rb");
 	
 	palette_count = ftell_eof(f) / (256 * 3);
-	assert(palette_count == PALETTE_COUNT);
+
+	// This assert no longer holds due to the ability to use either Tyrian 2.1 or Tyrian 2000 data
+	//assert(palette_count == PALETTE_COUNT);
 	
 	for (int p = 0; p < palette_count; ++p)
 	{

@@ -842,7 +842,7 @@ void JE_setupExplosion(signed int x, signed int y, signed int delta_y, unsigned 
 					explosions[i].y += 12;
 					explosions[i].x += 2;
 				}
-				else if (type == 98)
+				else if (type == 98 || type == 198)
 				{
 					type = 6;
 				}
