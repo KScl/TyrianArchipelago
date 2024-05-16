@@ -971,7 +971,7 @@ void scrollingTinyTextItem(SDL_Surface *screen, int x, int y, int width, const c
 
 bool apmenu_quitRequest(void)
 {
-	bool quit_selected = true;
+	bool quit_selected = false; // Default to cancel instead of OK
 	bool done = false;
 
 	int mouseTarget = -1, lastMouseTarget = -1;
