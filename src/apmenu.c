@@ -1903,11 +1903,24 @@ static void submenuUpAll_Run(void)
 		else
 			JE_textShade(VGAScreen, 171, ypos, "???", shade / 16, shade % 16 - 8 - 4, DARKEN);
 
-		// Show acquired item count for sidekicks
+		// Show extra data for sidekicks
 		if (visible && itemList[i].Item >= 800 && itemList[i].Item < 800 + 36)
 		{
+			// Acquired item count (to left of name)
 			snprintf(string_buffer, sizeof(string_buffer), "%u", APItems.Sidekicks[itemList[i].Item - 800]);
 			JE_textShade(VGAScreen, 164, ypos, string_buffer, shade / 16, shade % 16 - 8 - 5, DARKEN);
+
+			// Ammo count (to right of name)
+			const Uint8 sidekickID = apitems_Sidekicks[itemList[i].Item - 800];
+			const unsigned int ammoMax = options[sidekickID].ammo;
+			if (ammoMax > 0)
+			{
+				snprintf(string_buffer, sizeof(string_buffer), "Ammo %u", ammoMax);
+				if (enabled)
+					JE_textShade(VGAScreen, 254, ypos, string_buffer, shade / 16, shade % 16 - 8, DARKEN);
+				else
+					JE_textShade(VGAScreen, 254, ypos, string_buffer, shade / 16, shade % 16 - 8 - 4, DARKEN);
+			}
 		}
 		ypos += 9;
 	}
