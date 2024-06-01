@@ -867,7 +867,7 @@ int main(int argc, char *argv[])
 		gameLoaded = false;
 
 #ifdef DEBUG_OPTIONS
-		if (debugDamageViewer)
+		if (debugGameInit)
 		{
 			if (Archipelago_StartDebugGame()) // non-NULL: error
 				JE_tyrianHalt(1);
@@ -896,7 +896,7 @@ int main(int argc, char *argv[])
 		// Broke out of main, disconnect AP
 		Archipelago_Disconnect();
 
-		if (debugDamageViewer)
+		if (debugGameInit)
 			break;
 	}
 

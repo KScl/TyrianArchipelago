@@ -45,10 +45,13 @@ void JE_paramCheck(int argc, char *argv[])
 		{ 't', 't', "data",         true },
 		{ 'c', 'c', "connect",      true },
 
+#ifdef DEBUG_OPTIONS
 		// Debugging options
 		{ 256, 0, "no-custom-ship", false },
 		{ 257, 0, "damage-viewer",  false },
-		
+		{ 258, 0, "debug-mode",     false },
+#endif
+
 		{ 0, 0, NULL, false}
 	};
 
@@ -93,7 +96,15 @@ void JE_paramCheck(int argc, char *argv[])
 		case 257:
 #ifdef DEBUG_OPTIONS
 			skipToGameplay = true;
+			debugGameInit = true;
 			debugDamageViewer = true;
+#endif
+			break;
+
+		case 258:
+#ifdef DEBUG_OPTIONS
+			skipToGameplay = true;
+			debugGameInit = true;
 #endif
 			break;
 

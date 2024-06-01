@@ -2781,6 +2781,12 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 					nortsong_playVoice(V_DATA_CUBE);
 					Archipelago_SendCheck(evalue - 28000);
 					JE_setupExplosion(enemy_screen_x, enemy[z].ey, 0, 54, true, false);
+
+					if (debugGameInit)
+					{
+						snprintf(tempStr, sizeof(tempStr)-1, "Location %d checked", evalue - 28000);
+						apmsg_drawInGameText(tempStr);
+					}
 				}
 				else if (evalue > 20000)
 				{
