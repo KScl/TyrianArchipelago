@@ -178,18 +178,20 @@ static Uint8 tyrian_scaleEnemyHealth(int baseHealth)
 	switch (difficultyLevel)
 	{
 		default:
-		case DIFFICULTY_WIMP:       baseHealth *= 0.5f + 1;  break;
-		case DIFFICULTY_EASY:       baseHealth *= 0.75f + 1; break;
+		case DIFFICULTY_WIMP:       baseHealth *= 0.5f;  break;
+		case DIFFICULTY_EASY:       baseHealth *= 0.75f; break;
 		case DIFFICULTY_NORMAL:     break;
-		case DIFFICULTY_HARD:       baseHealth *= 1.2f;      break;
-		case DIFFICULTY_IMPOSSIBLE: baseHealth *= 1.5f;      break;
-		case DIFFICULTY_INSANITY:   baseHealth *= 1.8f;      break;
-		case DIFFICULTY_SUICIDE:    baseHealth *= 2;         break;
-		case DIFFICULTY_MANIACAL:   baseHealth *= 3;         break;
-		case DIFFICULTY_ZINGLON:    baseHealth *= 4;         break;
-		case DIFFICULTY_NORTANEOUS: baseHealth *= 8;         break;
-		case DIFFICULTY_10:         baseHealth *= 8;         break;
+		case DIFFICULTY_HARD:       baseHealth *= 1.2f;  break;
+		case DIFFICULTY_IMPOSSIBLE: baseHealth *= 1.5f;  break;
+		case DIFFICULTY_INSANITY:   baseHealth *= 1.8f;  break;
+		case DIFFICULTY_SUICIDE:    baseHealth *= 2;     break;
+		case DIFFICULTY_MANIACAL:   baseHealth *= 3;     break;
+		case DIFFICULTY_ZINGLON:    baseHealth *= 4;     break;
+		case DIFFICULTY_NORTANEOUS: baseHealth *= 8;     break;
+		case DIFFICULTY_10:         baseHealth *= 8;     break;
 	}
+	if (difficultyLevel <= DIFFICULTY_EASY)
+		++baseHealth;
 
 	if (baseHealth > 254)
 		return 254;
