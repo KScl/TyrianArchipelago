@@ -1121,8 +1121,8 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 			if (playerID != ap->get_player_number())
 			{
 				std::string playerName = APRemote_GetPlayerName(playerID);
-				strncpy(shopItemBuffer[i].PlayerName, playerName.c_str(), 17 - 1);
-				shopItemBuffer[i].PlayerName[17 - 1] = 0;
+				strncpy(shopItemBuffer[i].PlayerName, playerName.c_str(), 40 - 1);
+				shopItemBuffer[i].PlayerName[40 - 1] = 0;
 			}
 
 			if (itemID >= ARCHIPELAGO_BASE_ID && itemID <= ARCHIPELAGO_BASE_ID+999)
