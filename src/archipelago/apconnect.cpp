@@ -20,7 +20,8 @@
 // Uncomment to see server<->client comms from APClient
 //#define APCLIENT_DEBUG
 
-#define APCLIENT_USE_BUNDLED_VALIJSON
+// Never use valijson. It adds a lot of bloat without a tangible benefit.
+#define AP_NO_SCHEMA
 
 // Silence warnings from apclient/wswrap
 #if defined(__GNUC__)

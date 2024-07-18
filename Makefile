@@ -93,7 +93,6 @@ ALL_LDLIBS = -pthread      \
 AP_CPPFLAGS = -Isrc/submodule/apclientpp/           \
               -Isrc/submodule/wswrap/include        \
               -Isrc/submodule/json/include          \
-              -Isrc/submodule/valijson/include      \
               -Isrc/submodule/websocketpp           \
               -Isrc/submodule/asio/include          \
               -DASIO_STANDALONE                     \

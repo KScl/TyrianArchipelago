@@ -1,7 +1,7 @@
 [submodule "src/submodule/apclientpp"]
 	path = src/submodule/apclientpp
-	url = https://github.com/KScl/apclientpp.git
-	branch = bundled-valijson
+	url = https://github.com/black-sliver/apclientpp.git
+	branch = next
 	shallow = true
 [submodule "src/submodule/json"]
 	path = src/submodule/json

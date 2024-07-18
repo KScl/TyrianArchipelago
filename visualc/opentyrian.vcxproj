@@ -126,17 +126,17 @@
     <ClCompile Include="..\src\apmsg.c" />
     <ClCompile Include="..\src\archipelago\apconnect.cpp">
       <CompileAs>CompileAsCpp</CompileAs>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\valijson\include;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ASIO_STANDALONE;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\src\archipelago\patcher.cpp">
       <CompileAs>CompileAsCpp</CompileAs>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\valijson\include;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ASIO_STANDALONE;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\src\archipelago\customship.cpp">
       <CompileAs>CompileAsCpp</CompileAs>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\valijson\include;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\submodule\apclientpp;$(SolutionDir)..\src\submodule\json\include;$(SolutionDir)..\src\submodule\wswrap\include;$(SolutionDir)..\src\submodule\websocketpp;$(SolutionDir)..\src\submodule\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>ASIO_STANDALONE;_WIN32_WINNT=0x0600;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\src\arg_parse.c" />
