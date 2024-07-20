@@ -118,7 +118,7 @@ static bool gameInProgress = false;
 // Should match TyrianWorld.aptyrian_net_version
 #define APTYRIAN_NET_VERSION 4
 
-static APClient::Version targetAPVersion = {0, 4, 5};
+static APClient::Version targetAPVersion = {0, 5, 0};
 
 static std::unique_ptr<APClient> ap;
 
@@ -1589,7 +1589,7 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			if (!tyrian2000detected && APSeedSettings.Tyrian2000Mode)
 				throw std::runtime_error("Slot '" + ourSlotName + "' requires data from Tyrian 2000.");
 
-			multiworldSeedName = slot_data.at("Seed").template get<std::string>();
+			multiworldSeedName = ap->get_seed();
 
 			// Settings required to be present
 			APSeedSettings.PlayEpisodes = slot_data["Settings"].at("Episodes").template get<unsigned int>();
