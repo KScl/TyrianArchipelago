@@ -18,7 +18,7 @@
 	// ========================================================================
 	// Episode 1 - Escape
 	// ========================================================================
-	// Episode 1 is essentially complete and can be 100%ed
+
 	"Episode1 TYRIAN Easy": {
 		// Addition of Archipelago Items
 		"17:REPLACE":  { "time": 160, "event":201, /* AP_CheckFromEnemy */ "ap_id":0, "linknum":  1, "movement":"falling" },
@@ -327,7 +327,7 @@
 		"26:APPEND":   { "time": 356, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":70, "movement":"falling" },
 		"67:REPLACE":  { "time": 872, "event":201, /* AP_CheckFromEnemy */ "ap_id":71, "linknum": 9, "movement":"falling" },
 		"110:REPLACE": { "time":1280, "event":201, /* AP_CheckFromEnemy */ "ap_id":72, "linknum":22, "movement":"falling" },
-		"221:REPLACE": { "time":2420, "event":200, /* AP_CheckFreestanding */ "ap_id":73, "movement":"gnd2_falling", "ex":126 },
+		"221:REPLACE": { "time":2420, "event":200, /* AP_CheckFreestanding */ "ap_id":73, "movement":"gnd2_falling", "ex":126, "ey":-14 },
 		"257:REPLACE": { "time":2760, "event":201, /* AP_CheckFromEnemy */ "ap_id":75, "linknum": 4, "movement":"falling" },
 		"265:REPLACE": { "time":2820, "event":201, /* AP_CheckFromEnemy */ "ap_id":74, "linknum": 9, "movement":"falling" },
 
@@ -339,7 +339,7 @@
 		"26:APPEND":   { "time": 356, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":70, "movement":"falling" },
 		"67:REPLACE":  { "time": 872, "event":201, /* AP_CheckFromEnemy */ "ap_id":71, "linknum": 9, "movement":"falling" },
 		"110:REPLACE": { "time":1280, "event":201, /* AP_CheckFromEnemy */ "ap_id":72, "linknum":22, "movement":"falling" },
-		"222:REPLACE": { "time":2420, "event":200, /* AP_CheckFreestanding */ "ap_id":73, "movement":"gnd2_falling", "ex":126 },
+		"222:REPLACE": { "time":2420, "event":200, /* AP_CheckFreestanding */ "ap_id":73, "movement":"gnd2_falling", "ex":126, "ey":-14 },
 		"258:REPLACE": { "time":2760, "event":201, /* AP_CheckFromEnemy */ "ap_id":75, "linknum": 4, "movement":"falling" },
 		"266:REPLACE": { "time":2820, "event":201, /* AP_CheckFromEnemy */ "ap_id":74, "linknum": 9, "movement":"falling" }
 	},
@@ -468,7 +468,7 @@
 	// ========================================================================
 	// Episode 2 - Treachery
 	// ========================================================================
-	// Level status: 10/10 (thankfully...)
+
 	"Episode2 TORM": {
 		// Addition of Archipelago Items
 		"244:REPLACE": { "time": 751, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum": 12, "movement":"static" },
@@ -731,43 +731,67 @@
 	// ========================================================================
 	// Episode 3 - Mission: Suicide
 	// ========================================================================
-	// Level status: 6/12
-	// - GAUNTLET: Needs work
-	// - IXMUCANE: Needs work
-	// - BONUS: Complete
-	// - STARGATE: Complete
-	// - AST. CITY: Not really started
-	// - SAWBLADES: Not really started
-	// - CAMANIS: Complete
-	// - MACES: Complete
-	// - TYRIAN X: Complete
-	// - SAVARA Y: Nothing present at all
-	// - NEW DELI: Maybe?
-	// - FLEET: Complete
+
 	"Episode3 GAUNTLET ver2.1": {
-		"170:REPLACE": { "time": 860, "event":201, /* AP_CheckFromEnemy */ "ap_id":280, "linknum":42, "movement":"static" },
-		"558:REPLACE": { "time":2680, "event":201, /* AP_CheckFromEnemy */ "ap_id":281, "linknum":42, "movement":"static" },
-		"889:REPLACE": { "time":5788, "event":201, /* AP_CheckFromEnemy */ "ap_id":282, "linknum":62, "movement":"static" }
+		// Addition of Archipelago Items
+		"24:REPLACE":  { "time": 210, "event":201, /* AP_CheckFromEnemy */ "ap_id":280, "linknum":16, "movement":"sky_falling" },
+		"30:APPEND":   { "time": 270, "event":201, /* AP_CheckFromEnemy */ "ap_id":281, "linknum":17, "movement":"sky_falling" },
+		"170:REPLACE": { "time": 860, "event":201, /* AP_CheckFromEnemy */ "ap_id":282, "linknum":42, "movement":"static" },
+		"330:REPLACE": { "time":1341, "event":201, /* AP_CheckFromEnemy */ "ap_id":283, "linknum":10, "movement":"sky_falling" },
+		"558:REPLACE": { "time":2680, "event":201, /* AP_CheckFromEnemy */ "ap_id":284, "linknum":42, "movement":"static" },
+		"799:REPLACE": { "time":4842, "event":201, /* AP_CheckFromEnemy */ "ap_id":285, "linknum":13, "movement":"static" },
+		"889:REPLACE": { "time":5788, "event":201, /* AP_CheckFromEnemy */ "ap_id":286, "linknum":62, "movement":"static" },
+		"898:REPLACE": { "time":5984, "event":200, /* AP_CheckFreestanding */ "ap_id":287, "movement":"static", "ex":90, "ey":-12 },
+
+		// Port over the gate destruction fixes from Tyrian 2000.
+		"171:PREPEND": { "time": 860, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":41, "new_linknum":42 },
+		"890:PREPEND": { "time":5788, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":61, "new_linknum":62 }
 	},
 	"Episode3 GAUNTLET ver2000": {
-		"170:REPLACE": { "time": 860, "event":201, /* AP_CheckFromEnemy */ "ap_id":280, "linknum":42, "movement":"static" },
-		"559:REPLACE": { "time":2680, "event":201, /* AP_CheckFromEnemy */ "ap_id":281, "linknum":42, "movement":"static" },
-		"892:REPLACE": { "time":5788, "event":201, /* AP_CheckFromEnemy */ "ap_id":282, "linknum":62, "movement":"static" }
+		// Addition of Archipelago Items
+		"24:REPLACE":  { "time": 210, "event":201, /* AP_CheckFromEnemy */ "ap_id":280, "linknum":16, "movement":"sky_falling" },
+		"30:APPEND":   { "time": 270, "event":201, /* AP_CheckFromEnemy */ "ap_id":281, "linknum":17, "movement":"sky_falling" },
+		"170:REPLACE": { "time": 860, "event":201, /* AP_CheckFromEnemy */ "ap_id":282, "linknum":42, "movement":"static" },
+		"331:REPLACE": { "time":1341, "event":201, /* AP_CheckFromEnemy */ "ap_id":283, "linknum":10, "movement":"sky_falling" },
+		"559:REPLACE": { "time":2680, "event":201, /* AP_CheckFromEnemy */ "ap_id":284, "linknum":42, "movement":"static" },
+		"801:REPLACE": { "time":4842, "event":201, /* AP_CheckFromEnemy */ "ap_id":285, "linknum":13, "movement":"static" },
+		"892:REPLACE": { "time":5788, "event":201, /* AP_CheckFromEnemy */ "ap_id":286, "linknum":62, "movement":"static" },
+		"902:REPLACE": { "time":5984, "event":200, /* AP_CheckFreestanding */ "ap_id":287, "movement":"static", "ex":90, "ey":-12 }
 	},
 	// --------------------------------------------------------------
 	"Episode3 IXMUCANE ver2.1":{
-		"48:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":290, "linknum":7, "movement":"falling" },
+		// Addition of Archipelago Items
+		"48:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":290, "linknum":9, "movement":"falling" },
 		"94:REPLACE":  { "time": 690, "event":201, /* AP_CheckFromEnemy */ "ap_id":291, "linknum":8, "movement":"falling" },
-		"458:REPLACE": { "time":2840, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":19, "movement":"static" },
-		"561:REPLACE": { "time":3440, "event":201, /* AP_CheckFromEnemy */ "ap_id":293, "linknum":18, "movement":"falling" },
-		"650:REPLACE": { "time":4140, "event":201, /* AP_CheckFromEnemy */ "ap_id":294, "linknum":19, "movement":"static" }
+		"288:APPEND":  { "time":2120, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":12, "movement":"static" },
+		"458:REPLACE": { "time":2840, "event":201, /* AP_CheckFromEnemy */ "ap_id":293, "linknum":19, "movement":"static" },
+		"561:REPLACE": { "time":3440, "event":201, /* AP_CheckFromEnemy */ "ap_id":294, "linknum":18, "movement":"falling" },
+		"650:REPLACE": { "time":4140, "event":201, /* AP_CheckFromEnemy */ "ap_id":295, "linknum":19, "movement":"static" },
+		"688:APPEND":  { "time":4300, "event":201, /* AP_CheckFromEnemy */ "ap_id":296, "linknum":142, "movement":"swaying", "is_boss":true },
+
+		// Additional callouts for contact_bypasses_shields
+		"223:REPLACE": { "time":1980, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"224:PREPEND": { "time":1980, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false },
+
+		// Don't allow lower floor to be transparent (bugfix?)
+		"1:APPEND":    { "time":   0, "event":48 /* Background2Transparent(False) */ }
 	},
 	"Episode3 IXMUCANE ver2000": {
-		"48:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":290, "linknum":7, "movement":"falling" },
+		// Addition of Archipelago Items
+		"48:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":290, "linknum":9, "movement":"falling" },
 		"94:REPLACE":  { "time": 690, "event":201, /* AP_CheckFromEnemy */ "ap_id":291, "linknum":8, "movement":"falling" },
+		"288:APPEND":  { "time":2120, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":12, "movement":"static" },
 		"458:REPLACE": { "time":2840, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":19, "movement":"static" },
 		"561:REPLACE": { "time":3440, "event":201, /* AP_CheckFromEnemy */ "ap_id":293, "linknum":18, "movement":"falling" },
-		"647:REPLACE": { "time":4120, "event":201, /* AP_CheckFromEnemy */ "ap_id":294, "linknum":19, "movement":"static" }
+		"647:REPLACE": { "time":4120, "event":201, /* AP_CheckFromEnemy */ "ap_id":294, "linknum":19, "movement":"static" },
+		"687:APPEND":  { "time":4300, "event":201, /* AP_CheckFromEnemy */ "ap_id":296, "linknum":142, "movement":"swaying", "is_boss":true },
+
+		// Additional callouts for contact_bypasses_shields
+		"223:REPLACE": { "time":1980, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"224:PREPEND": { "time":1980, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false },
+
+		// Don't allow lower floor to be transparent (bugfix?)
+		"1:APPEND":    { "time":   0, "event":48 /* Background2Transparent(False) */ }
 	},
 	// --------------------------------------------------------------
 	"Episode3 BONUS": {
@@ -793,13 +817,30 @@
 	},
 	// --------------------------------------------------------------
 	"Episode3 AST.CITY": {
-		"127:REPLACE": { "time":3200, "event":201, /* AP_CheckFromEnemy */ "ap_id":320, "linknum":1, "movement":"falling" },
-		"164:REPLACE": { "time":3600, "event":201, /* AP_CheckFromEnemy */ "ap_id":320, "linknum":1, "movement":"falling" }
+		// Addition of Archipelago Items
+		"14:REPLACE":  { "time": 400, "event":201, /* AP_CheckFromEnemy */ "ap_id":320, "linknum": 1, "movement":"sky_falling" },
+		"60:REPLACE":  { "time":1336, "event":201, /* AP_CheckFromEnemy */ "ap_id":321, "linknum":95, "movement":"falling" },
+		"64:REPLACE":  { "time":1600, "event":201, /* AP_CheckFromEnemy */ "ap_id":322, "linknum": 1, "movement":"sky_falling" },
+		"127:REPLACE": { "time":3200, "event":201, /* AP_CheckFromEnemy */ "ap_id":323, "linknum": 1, "movement":"sky_falling" },
+		"160:REPLACE": { "time":3548, "event":201, /* AP_CheckFromEnemy */ "ap_id":324, "linknum":95, "movement":"falling" },
+		"164:REPLACE": { "time":3600, "event":201, /* AP_CheckFromEnemy */ "ap_id":325, "linknum": 1, "movement":"sky_falling" },
+		"270:REPLACE": { "time":5172, "event":201, /* AP_CheckFromEnemy */ "ap_id":326, "linknum":95, "movement":"falling" },
+		"273:REPLACE": { "time":5200, "event":201, /* AP_CheckFromEnemy */ "ap_id":327, "linknum": 1, "movement":"sky_falling" },
+		"372:REPLACE": { "time":6712, "event":201, /* AP_CheckFromEnemy */ "ap_id":328, "linknum":95, "movement":"falling" }
 	},
 	// --------------------------------------------------------------
 	"Episode3 SAWBLADES": {
-		"84:REPLACE": {"time": 420, "event":201, /* AP_CheckFromEnemy */ "ap_id":330, "linknum":7, "movement":"falling" },
-		"99:REPLACE": {"time": 490, "event":201, /* AP_CheckFromEnemy */ "ap_id":331, "linknum":8, "movement":"falling" }
+		// Addition of Archipelago Items
+		"88:APPEND":   {"time": 440, "event":201, /* AP_CheckFromEnemy */ "ap_id":330, "linknum":  7, "movement":"falling" },
+		"99:REPLACE":  {"time": 490, "event":201, /* AP_CheckFromEnemy */ "ap_id":331, "linknum":  8, "movement":"falling" },
+		"191:REPLACE": {"time": 990, "event":201, /* AP_CheckFromEnemy */ "ap_id":332, "linknum":  3, "movement":"falling" },
+		"478:REPLACE": {"time":2417, "event":201, /* AP_CheckFromEnemy */ "ap_id":333, "linknum": 15, "movement":"falling" },
+		"658:REPLACE": {"time":3390, "event":201, /* AP_CheckFromEnemy */ "ap_id":334, "linknum":  3, "movement":"falling" },
+		"664:REPLACE": {"time":3440, "event":201, /* AP_CheckFromEnemy */ "ap_id":335, "linknum": 18, "movement":"falling" },
+		"762:REPLACE": {"time":4181, "event":201, /* AP_CheckFromEnemy */ "ap_id":336, "linknum":201, "movement":"sky_falling" },
+
+		// Don't allow lower floor to be transparent (bugfix?)
+		"1:APPEND":    { "time":   0, "event":48 /* Background2Transparent(False) */ }
 	},
 	// --------------------------------------------------------------
 	"Episode3 CAMANIS ver2.1": {
@@ -896,15 +937,40 @@
 	},
 	// --------------------------------------------------------------
 	"Episode3 SAVARA Y": {
+		// Addition of Archipelago Items
+		"55:REPLACE":  { "time": 400, "event":201, /* AP_CheckFromEnemy */ "ap_id":370, "linknum": 18, "movement":"sky_falling" },
+		"198:REPLACE": { "time":1270, "event":201, /* AP_CheckFromEnemy */ "ap_id":371, "linknum": 11, "movement":"sky_falling" },
+		"264:REPLACE": { "time":2000, "event":201, /* AP_CheckFromEnemy */ "ap_id":372, "linknum":  6, "movement":"sky_falling" },
+		"498:APPEND":  { "time":3001, "event":201, /* AP_CheckFromEnemy */ "ap_id":373, "linknum":143, "movement":"swaying", "is_boss":true },
+		"610:REPLACE": { "time":3920, "event":201, /* AP_CheckFromEnemy */ "ap_id":374, "linknum":  5, "movement":"sky_falling" },
+		"612:REPLACE": { "time":3930, "event":201, /* AP_CheckFromEnemy */ "ap_id":375, "linknum":  8, "movement":"sky_falling" },
+
+		// Vanilla forgot to add a boss bar for this boss, we add it here along with the check.
+		"678:APPEND": [
+			{ "time":4201, "event":201, /* AP_CheckFromEnemy */ "ap_id":376, "linknum": 143, "movement":"swaying", "is_boss":true },
+			{ "time":4201, "event":79, /* SetBossBar */ "linknum":[143, 0] }
+		],
+
+		// Add a "Danger!" callout before the first boss flyby.
+		"468:APPEND":  { "time":2900, "event": 16, /* VoicedCallout */ "output":"** Danger! **" },
+
+		// Fix a linknum conflict that affects an Archipelago Item.
+		// There's signs that this was supposed to be done in vanilla, as event 613 references this linknum, but...
+		"611:REPLACE": { "time":3930, "event": 15, /* NewEnemy_Sky */ "linknum":8, "type":169, "ex":110, "ey":0, "eyc":4 }
 	},
 	// --------------------------------------------------------------
 	"Episode3 NEW DELI": {
-		"139:REPLACE": {"time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":380, "linknum": 1, "movement":"falling" },
-		"149:REPLACE": {"time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":381, "linknum": 4, "movement":"falling" },
-		"307:REPLACE": {"time":1800, "event":201, /* AP_CheckFromEnemy */ "ap_id":382, "linknum": 1, "movement":"falling" },
-		"332:REPLACE": {"time":1900, "event":201, /* AP_CheckFromEnemy */ "ap_id":383, "linknum": 4, "movement":"falling" },
-		"355:REPLACE": {"time":2000, "event":201, /* AP_CheckFromEnemy */ "ap_id":384, "linknum":11, "movement":"falling" },
-		"375:REPLACE": {"time":2100, "event":201, /* AP_CheckFromEnemy */ "ap_id":385, "linknum":14, "movement":"falling" }
+		// Addition of Archipelago Items
+		"139:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":380, "linknum": 1, "movement":"falling" },
+		"149:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":381, "linknum": 4, "movement":"falling" },
+		"307:REPLACE": { "time":1800, "event":201, /* AP_CheckFromEnemy */ "ap_id":382, "linknum": 1, "movement":"falling" },
+		"332:REPLACE": { "time":1900, "event":201, /* AP_CheckFromEnemy */ "ap_id":383, "linknum": 4, "movement":"falling" },
+		"355:REPLACE": { "time":2000, "event":201, /* AP_CheckFromEnemy */ "ap_id":384, "linknum":11, "movement":"falling" },
+		"375:REPLACE": { "time":2100, "event":201, /* AP_CheckFromEnemy */ "ap_id":385, "linknum":14, "movement":"falling" },
+		"641:APPEND":  { "time":4780, "event":201, /* AP_CheckFromEnemy */ "ap_id":386, "linknum":10, "movement":"swaying", "is_boss":true },
+
+		// Don't allow lower floor to be transparent, like in Deliani.
+		"11:APPEND":   { "time":   0, "event":48 /* Background2Transparent(False) */ }
 	},
 	// --------------------------------------------------------------
 	"Episode3 FLEET": {
@@ -919,19 +985,6 @@
 	// ========================================================================
 	// Episode 4 - An End To Fate
 	// ========================================================================
-
-	// Patch compatible levels:
-	// SURFACE (maybe? only some event reorganization)
-	// WINDY
-	// LAVA RUN (unchanged)
-	// SIDE EXIT
-	// DESERTRUN (unchanged)
-	// HARVEST (unchanged)
-	// APPROACH
-	// DREAD-NOT (unchanged)
-	// EYESPY
-	// BRAINIAC (only change is random explosions event ID)
-
 
 	"Episode4 SURFACE": {
 	},
@@ -1076,6 +1129,7 @@
 	// ========================================================================
 	// Episode 5 - Hazudra Fodder
 	// ========================================================================
+
 	"Episode5 ASTEROIDS": {
 		"73:REPLACE":  { "time": 350, "event":201, /* AP_CheckFromEnemy */ "ap_id":580, "linknum":  8, "movement":"sky_falling" },
 		"154:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":581, "linknum":  1, "movement":"sky_falling" },
@@ -1148,6 +1202,7 @@
 	// ========================================================================
 	// Special Patches
 	// ========================================================================
+
 	"SOH JIN E2 Damage Visualization": {
 		"5:REPLACE": [
 			// Test for "Standard" DPS (Damage to direct target)
@@ -1197,6 +1252,7 @@
 			"5": "SOH JIN E2 Damage Visualization"
 		}
 	},
+	// --------------------------------------------------------------
 	"Tyrian 2.1": {
 		"Episode 1": {
 			"1":  "Episode1 ASTEROID1",
