@@ -2891,6 +2891,19 @@ void intro_logos(void)
 	fade_black(10);
 }
 
+Sint16 JE_newEnemyFromEnd(int enemyOffset, Uint16 eDatI, Sint16 uniqueShapeTableI)
+{
+	for (int i = enemyOffset + 24; i >= enemyOffset; --i)
+	{
+		if (enemyAvail[i] == 1)
+		{
+			enemyAvail[i] = JE_makeEnemy(&enemy[i], eDatI, uniqueShapeTableI);
+			return i + 1;
+		}
+	}
+	return 0;
+}
+
 Sint16 JE_newEnemy(int enemyOffset, Uint16 eDatI, Sint16 uniqueShapeTableI)
 {
 	for (int i = enemyOffset; i < enemyOffset + 25; ++i)
@@ -4258,7 +4271,7 @@ void JE_eventSystem(void)
 		}
 		else
 		{
-			temp = JE_newEnemy(
+			temp = JE_newEnemyFromEnd(
 				apEnemySection[eventRec[eventLoc-1].eventdat3],
 				apBehaviorList[eventRec[eventLoc-1].eventdat3],
 				0);			
@@ -4380,7 +4393,7 @@ void JE_eventSystem(void)
 		}
 		break;
 
-	case 216: // HardContactCallout
+	case 216: // ConditionalVoicedCallout
 		if ((eventRec[eventLoc-1].eventdat6 == 1 && APSeedSettings.HardContact)
 			|| (eventRec[eventLoc-1].eventdat6 == 2 && !APSeedSettings.HardContact))
 		{
@@ -4487,7 +4500,7 @@ void tyrian_enemyDieItem(JE_byte enemyId)
 	if (newItemId >= ARCHIPELAGO_ITEM && newItemId <= ARCHIPELAGO_ITEM_MAX)
 	{
 		int item_num = newItemId - ARCHIPELAGO_ITEM;
-		item = JE_newEnemy(enemy_offset, apCheckData[item_num].behavesAs, 0);
+		item = JE_newEnemyFromEnd(enemy_offset, apCheckData[item_num].behavesAs, 0);
 		if (item != 0)
 		{
 			tyrian_setupAPItemSpawn(item, newItemId - ARCHIPELAGO_ITEM);
