@@ -60,10 +60,10 @@ static const char *const apitems_AllNames[1000] = {
 	"SAWBLADES (Episode 3)", // 205
 	"CAMANIS (Episode 3)",   // 206
 	"MACES (Episode 3)",     // 207
-	"FLEET (Episode 3)",     // 208
-	"TYRIAN X (Episode 3)",  // 209
-	"SAVARA Y (Episode 3)",  // 210
-	"NEW DELI (Episode 3)",  // 211
+	"TYRIAN X (Episode 3)",  // 208
+	"SAVARA Y (Episode 3)",  // 209
+	"NEW DELI (Episode 3)",  // 210
+	"FLEET (Episode 3)",     // 211
 	// ------------------------------------------------------------------------
 	"",	"",	"",	"", "", "", "", "",         // 219
 	"", "", "", "", "", "", "", "", "", "", // 229
