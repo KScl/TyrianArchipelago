@@ -30,12 +30,10 @@ start the game once, and then modify "aptyrian.cfg" in the "save" subdirectory
 that is automatically created. Sorry.
 
 The following things are planned, but not yet implemented:
-* Logic:
-  * Most logic for Episode 3
-  * All logic for Episodes 4 and 5
+* Missing Episodes:
+  * Episode 4: An End to Fate (missing level patches and location info/logic)
+  * Episode 5: Hazudra Fodder (missing level patches and location info/logic)
 * Options:
-  * Boss Weaknesses: On
-    * Fully accounted for in logic, but client doesn't respect it
   * Twiddles: Chaos
     * Not yet implemented (errors on generation)
   * Show Twiddle Inputs: On

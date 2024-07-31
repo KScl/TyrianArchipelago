@@ -116,7 +116,7 @@ static bool gameInProgress = false;
 #define ARCHIPELAGO_BASE_ID 20031000
 
 // Should match TyrianWorld.aptyrian_net_version
-#define APTYRIAN_NET_VERSION 4
+#define APTYRIAN_NET_VERSION 5
 
 static APClient::Version targetAPVersion = {0, 5, 0};
 
