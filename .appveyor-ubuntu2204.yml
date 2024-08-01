@@ -1,5 +1,5 @@
 version: CI-{build}
-image: Ubuntu2204
+image: Previous Ubuntu2204
 branches:
   only:
   - main
