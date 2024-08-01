@@ -24,6 +24,8 @@ test_script:
 
     cp COPYING aptyrian/
 
+    cp docs/UserReadme.txt aptyrian/README
+
     cp apdata/* aptyrian/apdata/
 
     cp ships/*.ship aptyrian/ships/
