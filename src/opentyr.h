@@ -51,7 +51,8 @@ typedef bool   JE_boolean;
 typedef char   JE_char;
 typedef float  JE_real;
 
-#define TYRIAN_VERSION "2.1"
+// Not used: We support either version.
+//#define TYRIAN_VERSION "2.1"
 
 extern const char *opentyrian_str;
 extern const char *opentyrian_version;
@@ -59,6 +60,8 @@ extern const char *opentyrian_version;
 extern bool tyrian2000detected;
 
 void setupMenu(void);
+
+void tyrianError(const char *msg, ...);
 
 // ------------------------------------------------------------------
 // Debugging Cheats

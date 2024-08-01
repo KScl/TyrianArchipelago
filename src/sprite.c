@@ -865,7 +865,8 @@ void sprites_loadInterfaceSprites(void)
 
 	// Detect T2000 by number of shapes / sprite banks, vanilla has 12, T2000 has 13
 	fread_u16_die(&shpNumb, 1, f);
-	tyrian2000detected = (shpNumb != 12);
+	if (tyrian2000detected != (shpNumb != 12))
+		tyrianError("Data file version mismatch detected.");
 
 	// Get pointers to the beginning of each sprite / shape table
 	fread_s32_die(shpPos, shpNumb, f);
@@ -899,10 +900,7 @@ void sprites_loadMainShapeTables(bool xmas)
 	// Detect T2000 by number of shapes / sprite banks, vanilla has 12, T2000 has 13
 	fread_u16_die(&shpNumb, 1, f);
 	if (tyrian2000detected != (shpNumb != 12))
-	{
-		fprintf(stderr, "Data file version mismatch detected.");
-		JE_tyrianHalt(1);
-	}
+		tyrianError("Data file version mismatch detected.");
 
 	// Get pointers to the beginning of each sprite / shape table
 	fread_s32_die(shpPos, shpNumb, f);

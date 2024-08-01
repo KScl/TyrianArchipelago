@@ -63,6 +63,10 @@ bool tyrian2000detected = false;
 const char *opentyrian_str = "APTyrian";
 const char *opentyrian_version = OPENTYRIAN_VERSION;
 
+// If true, call JE_tyrianHalt; if false, just exit without saving anything or being graceful.
+// Set to true after config and some game data is loaded. Serves to stop config corruption.
+static bool canGracefullyHalt = false;
+
 static size_t getDisplayPickerItemsCount(void)
 {
 	return 1 + (size_t)SDL_GetNumVideoDisplays();
@@ -769,19 +773,40 @@ int main(int argc, char *argv[])
 
 	JE_paramCheck(argc, argv);
 
-	FILE *patch_f = dir_fopen_die("apdata", "patch.jsonc", "r");
-	if (!Patcher_SystemInit(patch_f))
-	{
-		printf("Couldn't initialize the patching system, aborting.\n");
-		return -1;
+	// Check for data files from either Tyrian 2.1 or Tyrian 2000, and make note of the version we find
+	{		
+		FILE *vertest_f = dir_fopen_die(data_dir(), "tyrian.shp", "rb");
+		Uint16 version_test;
+		fread_u16_die(&version_test, 1, vertest_f);
+		tyrian2000detected = (version_test != 12);
+		fclose(vertest_f);
 	}
-	fclose(patch_f);
-	printf("Event patches initialized\n");
+	if (tyrian2000detected)
+		printf("Tyrian 2000 data files detected.\n");
+	else
+		printf("Tyrian 2.1 data files detected.\n");
+
+	// Parse level patches
+	{
+		FILE *patch_f = dir_fopen_die("apdata", "patch.jsonc", "r");
+		const char *patch_status = Patcher_SystemInit(patch_f);
+		if (patch_status)
+		{
+			tyrianError("Patcher error: %s\n"
+				"\n"
+				"There was an issue with starting APTyrian.\n"
+				"Please re-extract everything from the APTyrian release zip file, and then try again.",
+				patch_status);
+		}
+		fclose(patch_f);		
+	}
+	printf("Event patches initialized.\n");
 
 	const char *ship_dirs[] = {
 		"./ships/"
 	};
 
+	// Parse custom ships
 	if (useCustomShips)
 	{
 		int numCustomShips = CustomShip_SystemInit(ship_dirs, 1);
@@ -799,15 +824,11 @@ int main(int argc, char *argv[])
 	init_video();
 	init_keyboard();
 	init_joysticks();
-	printf("assuming mouse detected\n"); // SDL can't tell us if there isn't one
+
+	canGracefullyHalt = true;
 
 	JE_loadPals();
 	sprites_loadInterfaceSprites();
-
-	if (tyrian2000detected)
-		printf("Tyrian 2000 data files detected.\n");
-	else
-		printf("Tyrian 2.1 data files detected.\n");
 
 	/* Default Options */
 	smoothScroll = true;
@@ -818,7 +839,7 @@ int main(int argc, char *argv[])
 
 	if (!audio_disabled)
 	{
-		printf("initializing SDL audio...\n");
+		printf("Initializing SDL audio.\n");
 
 		init_audio();
 
@@ -828,7 +849,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		printf("audio disabled\n");
+		printf("Audio disabled.\n");
 	}
 
 	if (record_demo)
@@ -851,6 +872,8 @@ int main(int argc, char *argv[])
 		JE_tyrianHalt(5);
 #endif
 	}
+
+	printf("Entering main loop.\n");
 
 #ifdef NDEBUG
 	if (!skipToGameplay)
@@ -902,4 +925,22 @@ int main(int argc, char *argv[])
 
 	JE_tyrianHalt(0);
 	return 0;
+}
+
+void tyrianError(const char *msg, ...)
+{
+	char buffer[1024];
+	va_list argptr;
+
+	va_start(argptr, msg);
+	vsnprintf(buffer, sizeof(buffer), msg, argptr);
+	buffer[1023] = 0;
+	va_end(argptr);
+
+	fprintf(stderr, "error: %s\n", buffer);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", buffer, NULL);
+
+	if (canGracefullyHalt)
+		JE_tyrianHalt(1);
+	exit(1);
 }

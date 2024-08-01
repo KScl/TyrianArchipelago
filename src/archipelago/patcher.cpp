@@ -31,28 +31,87 @@ std::string episodeToString(Uint8 episode)
 	return s.str();
 }
 
+std::string patchVersionToString(const patcher_version_t *version)
+{
+	std::stringstream s;
+	if (!version)
+		s << "(missing)";
+	else
+		s << version->major << "." << version->minor << "." << version->revision;
+	return s.str();
+}
+
+// Returns -1 if patches are out of date, 1 if patches are newer, 0 if equal
+int patchVersionCompare(const patcher_version_t *ours, const patcher_version_t *theirs)
+{
+	if (!ours || !theirs)
+		return -1;
+
+	if (theirs->major > ours->major)       return 1;
+	if (theirs->major < ours->major)       return -1;
+	if (theirs->minor > ours->minor)       return 1;
+	if (theirs->minor < ours->minor)       return -1;
+	if (theirs->revision > ours->revision) return 1;
+	if (theirs->revision < ours->revision) return -1;
+	return 0;
+}
 // ----------------------------------------------------------------------------
 
+static const patcher_version_t requiredVersion = {0, 80, 1};
 static json patchData;
 
-bool Patcher_SystemInit(FILE *file)
+static std::string errorString;
+
+const char *Patcher_SystemInit(FILE *file)
 {
-	bool ready = false;
 	try
 	{
 		patchData = json::parse(file, nullptr, true, true);
-		ready = (patchData.contains("patchList") && patchData.contains("patches"));
 
-		if (!ready)
+		if (patchData.contains("_version"))
 		{
-			std::cout << "Patch file is missing required data." << std::endl;
+			patcher_version_t givenVersion = {
+				{patchData["_version"].at(0).template get<int>()},
+				{patchData["_version"].at(1).template get<int>()},
+				{patchData["_version"].at(2).template get<int>()}
+			};
+
+			int comparison = patchVersionCompare(&requiredVersion, &givenVersion);
+			if (comparison > 0)
+			{
+				std::cout << "Patch file is for a newer version ("
+					<< patchVersionToString(&givenVersion)
+					<< "); continuing anyway." << std::endl;
+			}
+			else if (comparison < 0)
+			{
+				errorString = "Patch file is too old (need "
+					+ patchVersionToString(&requiredVersion)
+					+ ", got "
+					+ patchVersionToString(&givenVersion)
+					+ ")";
+				return errorString.c_str();
+			}
+		}
+		else
+		{
+			errorString = "Patch file is too old (missing version)";
+			return errorString.c_str();
+		}
+
+		if (!patchData.contains("patchList") || !patchData.contains("patches"))
+		{
+			errorString = "Patch file is missing required data.";
+			return errorString.c_str();
 		}
 	}
 	catch (const json::parse_error& e)
 	{
-		std::cout << e.what() << std::endl;
+		errorString = e.what();
+		return errorString.c_str();
 	}
-	return ready;
+
+	return NULL;
 }
 
 // ----------------------------------------------------------------------------

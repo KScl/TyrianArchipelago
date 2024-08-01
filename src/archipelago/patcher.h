@@ -5,7 +5,13 @@
 
 #include <stdio.h>
 
-bool Patcher_SystemInit(FILE *file);
+typedef struct {
+	const int major;
+	const int minor;
+	const int revision;
+} patcher_version_t;
+
+const char *Patcher_SystemInit(FILE *file);
 
 void Patcher_ReadyPatch(const char *gameID, Uint8 episode, Uint8 levelNum);
 

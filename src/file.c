@@ -98,10 +98,22 @@ FILE *dir_fopen_die(const char *dir, const char *file, const char *mode)
 
 	if (f == NULL)
 	{
-		fprintf(stderr, "error: failed to open '%s': %s\n", file, strerror(errno));
-		fprintf(stderr, "error: One or more of the required Tyrian " TYRIAN_VERSION " data files could not be found.\n"
-		                "       Please read the README file.\n");
-		JE_tyrianHalt(1);
+		if (!strncmp(dir, "apdata", 6))
+		{
+			tyrianError("Failed to open '%s': %s\n"
+				"\n"
+				"There was an issue with starting APTyrian.\n"
+				"Please re-extract everything from the APTyrian release zip file, and then try again.",
+				file, strerror(errno));
+		}
+		else
+		{
+			tyrianError("Failed to open '%s': %s\n"
+				"\n"
+				"APTyrian requires the data files from Tyrian 2.1 or Tyrian 2000 to function.\n"
+				"Please see the README for further information.",
+				file, strerror(errno));
+		}
 	}
 
 	return f;
@@ -134,9 +146,8 @@ void fread_die(void *buffer, size_t size, size_t count, FILE *stream)
 	size_t result = fread(buffer, size, count, stream);
 	if (result != count)
 	{
-		fprintf(stderr, "error: An unexpected problem occurred while reading from a file.\n");
-		SDL_Quit();
-		exit(EXIT_FAILURE);
+		tyrianError("An unexpected problem occurred while reading from a file.\n"
+			"(wanted %d bytes, got %d)", count, result);
 	}
 }
 
@@ -145,8 +156,7 @@ void fwrite_die(const void *buffer, size_t size, size_t count, FILE *stream)
 	size_t result = fwrite(buffer, size, count, stream);
 	if (result != count)
 	{
-		fprintf(stderr, "error: An unexpected problem occurred while writing to a file.\n");
-		SDL_Quit();
-		exit(EXIT_FAILURE);
+		tyrianError("An unexpected problem occurred while writing to a file.\n"
+			"(given %d bytes, wrote %d)", count, result);
 	}
 }
