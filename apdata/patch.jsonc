@@ -1,5 +1,5 @@
 {
-"_version": [0, 80, 1],
+"_version": [0, 80, 2],
 // ===================================================================================================================
 "patches": {
 	/* "patch_name": {
@@ -764,11 +764,17 @@
 		// Addition of Archipelago Items
 		"48:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":290, "linknum":9, "movement":"falling" },
 		"94:REPLACE":  { "time": 690, "event":201, /* AP_CheckFromEnemy */ "ap_id":291, "linknum":8, "movement":"falling" },
-		"288:APPEND":  { "time":2120, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":12, "movement":"static" },
+		"289:PREPEND": { "time":2120, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":22, "movement":"sky_falling" },
 		"458:REPLACE": { "time":2840, "event":201, /* AP_CheckFromEnemy */ "ap_id":293, "linknum":19, "movement":"static" },
 		"561:REPLACE": { "time":3440, "event":201, /* AP_CheckFromEnemy */ "ap_id":294, "linknum":18, "movement":"falling" },
 		"650:REPLACE": { "time":4140, "event":201, /* AP_CheckFromEnemy */ "ap_id":295, "linknum":19, "movement":"static" },
 		"688:APPEND":  { "time":4300, "event":201, /* AP_CheckFromEnemy */ "ap_id":296, "linknum":142, "movement":"swaying", "is_boss":true },
+
+		// Fix a linknum conflict that affects an Archipelago Item
+		"287:REPLACE": [
+			{ "time":2120, "event":18, /* NewEnemy_SkyBottom */ "linknum":22, "type":108, "ex":220, "ey":0, "eyc":2 },
+			{ "time":2120, "event":20, /* EnemyGlobal_Accel */ "linknum":22, "excc":-4, "eycc":10 }
+		],
 
 		// Additional callouts for contact_bypasses_shields
 		"223:REPLACE": { "time":1980, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
@@ -781,11 +787,17 @@
 		// Addition of Archipelago Items
 		"48:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":290, "linknum":9, "movement":"falling" },
 		"94:REPLACE":  { "time": 690, "event":201, /* AP_CheckFromEnemy */ "ap_id":291, "linknum":8, "movement":"falling" },
-		"288:APPEND":  { "time":2120, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":12, "movement":"static" },
+		"289:PREPEND": { "time":2120, "event":201, /* AP_CheckFromEnemy */ "ap_id":292, "linknum":22, "movement":"sky_falling" },
 		"458:REPLACE": { "time":2840, "event":201, /* AP_CheckFromEnemy */ "ap_id":293, "linknum":19, "movement":"static" },
 		"561:REPLACE": { "time":3440, "event":201, /* AP_CheckFromEnemy */ "ap_id":294, "linknum":18, "movement":"falling" },
 		"647:REPLACE": { "time":4120, "event":201, /* AP_CheckFromEnemy */ "ap_id":295, "linknum":19, "movement":"static" },
 		"687:APPEND":  { "time":4300, "event":201, /* AP_CheckFromEnemy */ "ap_id":296, "linknum":142, "movement":"swaying", "is_boss":true },
+
+		// Fix a linknum conflict that affects an Archipelago Item
+		"287:REPLACE": [
+			{ "time":2120, "event":18, /* NewEnemy_SkyBottom */ "linknum":22, "type":108, "ex":220, "ey":0, "eyc":2 },
+			{ "time":2120, "event":20, /* EnemyGlobal_Accel */ "linknum":22, "excc":-4, "eycc":10 }
+		],
 
 		// Additional callouts for contact_bypasses_shields
 		"223:REPLACE": { "time":1980, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
