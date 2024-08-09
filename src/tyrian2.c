@@ -4507,6 +4507,15 @@ void tyrian_enemyDieItem(JE_byte enemyId)
 			enemy[item-1].ex = enemy[enemyId].ex + apCheckData[item_num].alignX;
 			enemy[item-1].ey = enemy[enemyId].ey + apCheckData[item_num].alignY;
 		}
+		else
+		{
+			// If an AP item is supposed to spawn and fails to, just give it to the player anyway.
+			fprintf(stderr, "warning: Unable to spawn AP Item for location %d, awarding it for free.\n",
+				apCheckData[item_num].location);
+
+			nortsong_playVoice(V_DATA_CUBE);
+			Archipelago_SendCheck(apCheckData[item_num].location);
+		}
 		return;
 	}
 
