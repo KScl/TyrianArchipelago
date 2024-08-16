@@ -1558,22 +1558,12 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		// Except it's _NOT_ fine, if the seed doesn't match.
 		// We need to check for this, because the Archipelago server can potentially close our currently running game
 		// and then open up an entirely different game on the same port, in extreme circumstances.
-		try
+		std::string newSeedName = ap->get_seed();
+		if (newSeedName != multiworldSeedName)
 		{
-			std::string newSeedName = slot_data.at("Seed").template get<std::string>();
-			if (newSeedName != multiworldSeedName)
-			{
-				APRemote_FatalError("Game seed mismatch after reconnecting.");
-				return;
-			}
-		}
-		catch (...)
-		{
-			// Slot data JSON wasn't formed like expected to be
-			APRemote_FatalError("Invalid or corrupt data received.");
+			APRemote_FatalError("Game seed mismatch after reconnecting.");
 			return;
 		}
-
 		apmsg_enqueue("<45Reconnected to Archipelago server.");
 	}
 	else // Initial connection to the server.
