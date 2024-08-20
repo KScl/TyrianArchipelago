@@ -156,18 +156,18 @@ clean :
 	rm -f $(TARGET)
 
 $(TARGET) : $(OBJS)
-	@echo "Linking: $@"
+	@echo "Linking ($(CXX)): $@"
 	@$(CXX) $(ALL_CFLAGS) $(ALL_LDFLAGS) -o $@ $^ $(ALL_LDLIBS)
 
 -include $(DEPS)
 
 obj/cpp_%.o : src/archipelago/%.cpp
-	@echo "Compiling ($(CPP_STANDARD)): $< -> $@"
+	@echo "Compiling ($(CXX), $(CPP_STANDARD)): $< -> $@"
 	@mkdir -p "$(dir $@)"
 	@$(CXX) $(SDL_CPPFLAGS) $(AP_CPPFLAGS) -c -o $@ $<
 
 obj/%.o : src/%.c
-	@echo "Compiling ($(C_STANDARD)): $< -> $@"
+	@echo "Compiling ($(CC), $(C_STANDARD)): $< -> $@"
 	@mkdir -p "$(dir $@)"
 	@$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c -o $@ $<
 

@@ -11,7 +11,7 @@ install:
 
     git submodule update --init --recursive
 build_script:
-- sh: make
+- sh: CC=gcc-9 CXX=g++-9 make
 test_script:
 - sh: >-
     mkdir aptyrian
