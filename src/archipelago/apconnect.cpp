@@ -425,6 +425,100 @@ static bool Archipelago_Load(void)
 // Basic Communication
 // ============================================================================
 
+typedef struct {
+	uint8_t tyrcode;
+	const char *utf8;
+	size_t utf8len;
+} utf8conv_t;
+
+std::vector<utf8conv_t> UTF8Conversions = {
+	{0x80, "\xc3\x87", 2}, // U+00C7 Latin Capital letter C with cedilla
+	{0x81, "\xc3\xbc", 2}, // U+00FC Latin Small Letter U with diaeresis
+	{0x82, "\xc3\xa9", 2}, // U+00E9 Latin Small Letter E with acute
+	{0x83, "\xc3\xa2", 2}, // U+00E2 Latin Small Letter A with circumflex
+	{0x84, "\xc3\xa4", 2}, // U+00E4 Latin Small Letter A with diaeresis
+	{0x85, "\xc3\xa0", 2}, // U+00E0 Latin Small Letter A with grave
+	{0x86, "\xc3\xa5", 2}, // U+00E5 Latin Small Letter A with ring above
+	{0x87, "\xc3\xa7", 2}, // U+00E7 Latin Small Letter C with cedilla
+	{0x88, "\xc3\xaa", 2}, // U+00EA Latin Small Letter E with circumflex
+	{0x89, "\xc3\xab", 2}, // U+00EB Latin Small Letter E with diaeresis
+	{0x8A, "\xc3\xa8", 2}, // U+00E8 Latin Small Letter E with grave
+	{0x8B, "\xc3\xaf", 2}, // U+00EF Latin Small Letter I with diaeresis
+	{0x8C, "\xc3\xae", 2}, // U+00EE Latin Small Letter I with circumflex
+	{0x8D, "\xc3\xac", 2}, // U+00EC Latin Small Letter I with grave
+	{0x8E, "\xc3\x84", 2}, // U+00C4 Latin Capital letter A with diaeresis
+	{0x8F, "\xc3\x85", 2}, // U+00C5 Latin Capital letter A with ring above
+	{0x90, "\xc3\x89", 2}, // U+00C9 Latin Capital letter E with acute
+	{0x91, "\xc3\xa6", 2}, // U+00E6 Latin Small Letter AE
+	{0x92, "\xc3\x86", 2}, // U+00C6 Latin Capital letter AE
+	{0x93, "\xc3\xb4", 2}, // U+00F4 Latin Small Letter O with circumflex
+	{0x94, "\xc3\xb6", 2}, // U+00F6 Latin Small Letter O with diaeresis
+	{0x95, "\xc3\xb2", 2}, // U+00F2 Latin Small Letter O with grave
+	{0x96, "\xc3\xbb", 2}, // U+00FB Latin Small Letter U with circumflex
+	{0x97, "\xc3\xb9", 2}, // U+00F9 Latin Small Letter U with grave
+	{0x98, "\xc3\xbf", 2}, // U+00FF Latin Small Letter Y with diaeresis
+	{0x99, "\xc3\x96", 2}, // U+00D6 Latin Capital letter O with diaeresis
+	{0x9A, "\xc3\x9c", 2}, // U+00DC Latin Capital Letter U with diaeresis
+	{0x9B, "\xc2\xa2", 2}, // U+00A2 Cent sign
+	{0x9C, "\xc2\xa3", 2}, // U+00A3 Pound sign
+	{0x9D, "\xc2\xa5", 2}, // U+00A5 Yen sign
+	{0x9E, "\xe2\x82\xa7", 3}, // U+20A7 Peseta sign
+	{0x9F, "\xc6\x92", 2}, // U+0192 Latin Small Letter F with hook
+	{0xA0, "\xc3\xa1", 2}, // U+00E1 Latin Small Letter A with acute
+	{0xA1, "\xc3\xad", 2}, // U+00ED Latin Small Letter I with acute
+	{0xA2, "\xc3\xb3", 2}, // U+00F3 Latin Small Letter O with acute
+	{0xA3, "\xc3\xba", 2}, // U+00FA Latin Small Letter U with acute
+	{0xA4, "\xc3\xb1", 2}, // U+00F1 Latin Small Letter N with tilde
+	{0xA5, "\xc3\x91", 2}, // U+00D1 Latin Capital letter N with tilde
+	{0xA6, "\xc2\xaa", 2}, // U+00AA Feminine ordinal indicator
+	{0xA7, "\xc2\xba", 2}, // U+00BA Masculine ordinal indicator
+	{0xA8, "\xc2\xbf", 2}  // U+00BF Inverted question mark
+};
+
+// Cleans and converts the UTF-8 strings from Archipelago.
+static std::string APRemote_CleanString(std::string input)
+{
+	std::string result = "";
+	size_t len = input.length();
+
+	for (size_t i = 0; i < len; ++i)
+	{
+		// Handle unicode characters that have sprites
+		if ((input[i] & 0xF0) >= 0xC0)
+		{
+			bool found = false;
+			for (const utf8conv_t &cvt : UTF8Conversions)
+			{
+				if (!strncmp(&input[i], cvt.utf8, cvt.utf8len))
+				{
+					found = true;
+					result.push_back((char)cvt.tyrcode);
+					break;
+				}
+			}
+
+			if (!found)
+				result.push_back('?');
+
+			switch (input[i] & 0xF0)
+			{
+				case 0xF0: ++i; // fall through
+				case 0xE0: ++i; // fall through
+				default:   ++i; break;
+			}
+		}
+		else if (input[i] == '\r' || input[i] == '\n' || input[i] == ' ')
+			result.push_back(input[i]);
+		else if (font_ascii[(uint8_t)input[i]] != -1)
+			result.push_back(input[i]);
+		else
+			result.push_back('?');
+	}
+	return result;
+}
+
+// ------------------------------------------------------------------
+
 static json APAll_DeobfuscateJSONObject(std::string str)
 {
 	// See TyrianWorld.obfuscate_object
@@ -448,21 +542,6 @@ static json APAll_DeobfuscateJSONObject(std::string str)
 	if (deobfJSON.is_discarded() || deobfJSON.is_string())
 		throw std::runtime_error("Invalid or corrupt data received.");
 	return deobfJSON;
-}
-
-// Cleans up chat by replacing any unknown characters with question marks.
-static std::string APRemote_CleanString(std::string input)
-{
-	for (char &c : input)
-	{
-		// Ignore normally non-printable carriage return, line feed, and space
-		// The underscore has a hack that makes it print even without graphics for it
-		if (c == '\r' || c == '\n' || c == ' ' || c == '_')
-			continue;
-		else if (font_ascii[(unsigned char)c] == -1)
-			c = '?';
-	}
-	return input;
 }
 
 // Unlike ap->get_player_alias, allows getting from any team
