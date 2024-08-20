@@ -38,7 +38,8 @@ int check_assigned(SDL_Joystick *joystick_handle, const Joystick_assignment assi
 const char *assignment_to_code(const Joystick_assignment *assignment);
 void code_to_assignment(Joystick_assignment *assignment, const char *buffer);
 
-int joystick_repeat_delay = 300; // milliseconds, repeat delay for buttons
+const int joystick_initial_delay = 500; // milliseconds, repeat delay for buttons (initial)
+const int joystick_repeat_delay = 50; // milliseconds, repeat delay when continuing to hold
 bool joydown = false;            // any joystick buttons down, updated by poll_joysticks()
 bool ignore_joystick = false;
 
@@ -162,46 +163,60 @@ void poll_joystick(int j)
 	
 	SDL_JoystickUpdate();
 	
-	// indicates that a direction/action was pressed since last poll
-	joystick[j].input_pressed = false;
+	// indicators for a confirmation/cancel button being pressed (not held)
+	joystick[j].confirm = false;
+	joystick[j].cancel = false;
 	
 	// indicates that an direction/action has been held long enough to fake a repeat press
-	bool repeat = joystick[j].joystick_delay < SDL_GetTicks();
-	
+	bool new_input = false;
+	bool repeat = (joystick[j].hold_time + joystick[j].next_repeat_time) < SDL_GetTicks();
+
 	// update direction state
 	for (uint d = 0; d < COUNTOF(joystick[j].direction); d++)
 	{
 		bool old = joystick[j].direction[d];
-		
+
 		joystick[j].analog_direction[d] = check_assigned(joystick[j].handle, joystick[j].assignment[d]);
 		joystick[j].direction[d] = joystick[j].analog_direction[d] > (joystick_analog_max / 2);
 		joydown |= joystick[j].direction[d];
-		
+
 		joystick[j].direction_pressed[d] = joystick[j].direction[d] && (!old || repeat);
-		joystick[j].input_pressed |= joystick[j].direction_pressed[d];
+		if (!old && joystick[j].direction[d])
+			new_input = true;
 	}
-	
+
 	joystick[j].x = -joystick[j].analog_direction[3] + joystick[j].analog_direction[1];
 	joystick[j].y = -joystick[j].analog_direction[0] + joystick[j].analog_direction[2];
-	
+
 	// update action state
 	for (uint d = 0; d < COUNTOF(joystick[j].action); d++)
 	{
 		bool old = joystick[j].action[d];
-		
+
 		joystick[j].action[d] = check_assigned(joystick[j].handle, joystick[j].assignment[d + COUNTOF(joystick[j].direction)]) > (joystick_analog_max / 2);
 		joydown |= joystick[j].action[d];
-		
-		joystick[j].action_pressed[d] = joystick[j].action[d] && (!old || repeat);
-		joystick[j].input_pressed |= joystick[j].action_pressed[d];
+
+		joystick[j].action_pressed[d] = joystick[j].action[d] && !old;
+
+		if (!old && joystick[j].action[d])
+		{
+			joystick[j].hold_time = SDL_GetTicks();
+			joystick[j].next_repeat_time = joystick_initial_delay;
+			repeat = false;
+
+			joystick[j].confirm |= (d == 0 || d == 4); // Fire, Menu
+			joystick[j].cancel |= (d == 1 || d == 5); // Mode Swap, Pause
+		}
 	}
-	
-	joystick[j].confirm = joystick[j].action[0] || joystick[j].action[4];
-	joystick[j].cancel = joystick[j].action[1] || joystick[j].action[5];
-	
+
 	// if new input, reset press-repeat delay
-	if (joystick[j].input_pressed)
-		joystick[j].joystick_delay = SDL_GetTicks() + joystick_repeat_delay;
+	if (new_input)
+	{
+		joystick[j].hold_time = SDL_GetTicks();
+		joystick[j].next_repeat_time = joystick_initial_delay;
+	}
+	else if (repeat)
+		joystick[j].next_repeat_time += joystick_repeat_delay;
 }
 
 // updates all joystick states
@@ -240,14 +255,11 @@ void push_joysticks_as_keyboard(void)
 	
 	for (int j = 0; j < joysticks; j++)
 	{
-		if (!joystick[j].input_pressed)
-			continue;
-		
 		if (joystick[j].confirm)
 			push_key(confirm);
 		if (joystick[j].cancel)
 			push_key(cancel);
-		
+
 		for (uint d = 0; d < COUNTOF(joystick[j].direction_pressed); d++)
 		{
 			if (joystick[j].direction_pressed[d])

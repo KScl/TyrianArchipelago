@@ -62,12 +62,11 @@ typedef struct
 	bool confirm, cancel;
 	bool action[6], action_pressed[6]; // fire, mode swap, left fire, right fire, menu, pause
 	
-	Uint32 joystick_delay;
-	bool input_pressed;
+	Uint32 hold_time;
+	Uint32 next_repeat_time;
 }
 Joystick;
 
-extern int joystick_repeat_delay;
 extern bool joydown;
 extern bool ignore_joystick;
 extern int joysticks;
