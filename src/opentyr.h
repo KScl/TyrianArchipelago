@@ -73,6 +73,9 @@ void tyrianError(const char *msg, ...);
 // Show enemy health on screen numerically, useful when making logic.
 //#define DEBUG_SHOW_ENEMY_HEALTH
 
+// Spawns item drops normally reserved for Arcade modes, useful when making logic.
+//#define DEBUG_ARCADE_ITEM_DROPS
+
 // Enables "Unbounded" speed option for quickly advancing.
 #define UNBOUNDED_SPEED
 

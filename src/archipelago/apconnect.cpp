@@ -109,6 +109,10 @@ static std::string clientUUID = "";
 // Used to save data if something happens
 static bool gameInProgress = false;
 
+// Silent Item mode is used when initially connecting to a game,
+// keeps from spamming sounds on load.
+static bool silentItemMode = true;
+
 // ----------------------------------------------------------------------------
 
 // Base ID for all location/item checks, Archipelago side.
@@ -173,6 +177,10 @@ int lastItemIndex = -1;
 // Locations in our seed that we've checked (or had checked for us).
 static std::set<int64_t> allLocationsChecked;
 
+// Set of global location IDs.
+// Locations in our seed that we, specifically, have checked.
+static std::set<int64_t> localLocationsChecked;
+
 // Local location ID: Previously scouted Network Item.
 // Scouted information about our shop items when playing remotely.
 // We only call for LocationScouts when completing a level for the first time.
@@ -233,6 +241,7 @@ static void APAll_FreshInit(void)
 	memset(&APItemChoices, 0, sizeof(APItemChoices));
 
 	allLocationsChecked.clear();
+	localLocationsChecked.clear();
 	scoutedShopLocations.clear();
 	lastItemIndex = -1;
 
@@ -249,12 +258,16 @@ static void APAll_InitMessageQueue(void)
 	std::string versionInfo = s.str();
 	apmsg_cleanQueue();
 	apmsg_enqueue(versionInfo.c_str());
+
+	silentItemMode = true;
 }
 
 // ------------------------------------------------------------------
 
 void Archipelago_Save(void)
 {
+	silentItemMode = false;
+
 	if (multiworldSeedName.empty())
 		return; // Debug game, don't save data (it'll get ignored anyway)
 
@@ -283,6 +296,7 @@ void Archipelago_Save(void)
 	saveData["APPlayData"] += APPlayData.TimeInLevel;
 	saveData["APPlayData"] += APPlayData.TimeInMenu;
 	saveData["APPlayData"] += APPlayData.Deaths;
+	saveData["APPlayData"] += APPlayData.ExitedLevels;
 
 	saveData["APItemChoices"] += APItemChoices.FrontPort.Item
 		| (APItemChoices.FrontPort.PowerLevel << 10);
@@ -295,6 +309,8 @@ void Archipelago_Save(void)
 
 	if (!allLocationsChecked.empty())
 		saveData["Checked"] = allLocationsChecked;
+	if (!localLocationsChecked.empty())
+		saveData["LocalChecked"] = localLocationsChecked;
 	if (lastItemIndex >= 0)
 		saveData["Index"] = lastItemIndex;
 
@@ -368,12 +384,15 @@ static bool Archipelago_Load(void)
 			APStats.DataCubes &= 0x7FFF;
 		}
 
-		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 3)
-		{			
+		// APPlayData isn't important to care enough if it's the wrong size.
+		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 1)
 			APPlayData.TimeInLevel = saveData["APPlayData"].at(0).template get<Uint64>();
+		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 2)
 			APPlayData.TimeInMenu = saveData["APPlayData"].at(1).template get<Uint64>();
+		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 3)
 			APPlayData.Deaths = saveData["APPlayData"].at(2).template get<Uint16>();
-		}
+		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 4)
+			APPlayData.ExitedLevels = saveData["APPlayData"].at(3).template get<Uint16>();
 
 		APItemChoices.FrontPort.Item = saveData["APItemChoices"].at(0).template get<Uint16>();
 		APItemChoices.RearPort.Item = saveData["APItemChoices"].at(1).template get<Uint16>();
@@ -389,6 +408,8 @@ static bool Archipelago_Load(void)
 
 		if (saveData.contains("Checked"))
 			allLocationsChecked.insert(saveData["Checked"].begin(), saveData["Checked"].end());
+		if (saveData.contains("LocalChecked"))
+			localLocationsChecked.insert(saveData["LocalChecked"].begin(), saveData["LocalChecked"].end());
 		if (saveData.contains("Index"))
 			lastItemIndex = saveData["Index"].template get<int>();
 
@@ -615,11 +636,11 @@ static std::string APLocal_BuildANSIString(Uint16 localItemID, Uint8 flags)
 		return "";
 
 	std::stringstream s;
-	if (flags == 3)     s << "\u001b[35;1m"; // Progression + Useful
-	else if (flags & 1) s << "\u001b[35;1m"; // Progression
-	else if (flags & 2) s << "\u001b[34;1m"; // Useful
-	else if (flags & 4) s << "\u001b[31;1m"; // Trap (none currently in local pool, may change)
-	else                s << "\u001b[36;1m"; // Filler
+	if ((flags & 3) == 3) s << "\u001b[35;1m"; // Progression + Useful
+	else if (flags & 1)   s << "\u001b[35;1m"; // Progression
+	else if (flags & 2)   s << "\u001b[34;1m"; // Useful
+	else if (flags & 4)   s << "\u001b[31;1m"; // Trap (none currently in local pool, may change)
+	else                  s << "\u001b[36;1m"; // Filler
 	s << apitems_AllNames[localItemID] << "\u001b[0m";
 	return s.str();
 }
@@ -631,11 +652,11 @@ static std::string APLocal_BuildItemString(Uint16 localItemID, Uint8 flags)
 		return "";
 
 	std::stringstream s;
-	if (flags == 3)     s << "<25"; // Progression + Useful
-	else if (flags & 1) s << "<55"; // Progression
-	else if (flags & 2) s << "<35"; // Useful
-	else if (flags & 4) s << "<45"; // Trap (none currently in local pool, may change)
-	else                s << "<06"; // Filler
+	if ((flags & 3) == 3) s << "<25"; // Progression + Useful
+	else if (flags & 1)   s << "<55"; // Progression
+	else if (flags & 2)   s << "<35"; // Useful
+	else if (flags & 4)   s << "<45"; // Trap (none currently in local pool, may change)
+	else                  s << "<06"; // Filler
 	s << apitems_AllNames[localItemID] << ">";
 	return s.str();
 }
@@ -651,11 +672,11 @@ static std::string APRemote_BuildItemString(const APClient::NetworkItem &item, i
 	std::string itemName = ap->get_item_name(item.item, ap->get_player_game(playerID));
 
 	std::stringstream s;
-	if (item.flags == 3)     s << "<25"; // Progression + Useful
-	else if (item.flags & 1) s << "<55"; // Progression
-	else if (item.flags & 2) s << "<35"; // Useful
-	else if (item.flags & 4) s << "<45"; // Trap
-	else                     s << "<06"; // Filler
+	if ((item.flags & 3) == 3) s << "<25"; // Progression + Useful
+	else if (item.flags & 1)   s << "<55"; // Progression
+	else if (item.flags & 2)   s << "<35"; // Useful
+	else if (item.flags & 4)   s << "<45"; // Trap
+	else                       s << "<06"; // Filler
 	s << APRemote_CleanString(itemName) << ">";
 	return s.str();
 }
@@ -693,9 +714,6 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 
 			if (*args.receiving != args.item->player)
 				s << " from " << APRemote_GetPlayerName(args.item->player);
-
-			apmsg_playSFX(args.item->item >= ARCHIPELAGO_BASE_ID+980
-				? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
 		}
 		// We are sending an item to another person
 		else if (args.item->player == ap->get_player_number())
@@ -713,9 +731,6 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 
 		s << "Received " << APRemote_BuildItemString(*args.item, *args.receiving);
 		s << " from [Server]";
-
-		apmsg_playSFX(args.item->item >= ARCHIPELAGO_BASE_ID+980
-			? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
 	}
 	// A hint that pertains to us was received (ignore original message contents)
 	else if (args.type == "Hint")
@@ -838,6 +853,9 @@ static void APAll_ResolveItem(int64_t item, bool is_local)
 	else if (item >= 980) APStats.Cash += remoteCashItemValues[item - 980];
 
 	std::cout << "Item resolved: " << item << std::endl;
+
+	if (!silentItemMode)
+		apmsg_playSFX(item >= 980 ? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
 }
 
 // Sends goal levels to the local player in data cube hunt mode, if enough data cubes collected
@@ -973,7 +991,6 @@ static void APLocal_ReceiveItem(int64_t locationID)
 	Uint8 flags = APLocal_GetItemFlags(localItemID);
 	std::string output = "You got your " + APLocal_BuildItemString(localItemID, flags);
 	apmsg_enqueue(output.c_str());
-	apmsg_playSFX(localItemID >= 980 ? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
 
 	std::cout << "You got your "
 	          << APLocal_BuildANSIString(localItemID, flags)
@@ -1067,6 +1084,7 @@ void Archipelago_SendCheck(int checkID)
 {
 	checkID += ARCHIPELAGO_BASE_ID;
 	allLocationsChecked.insert({checkID});
+	localLocationsChecked.insert({checkID});
 
 	if (ap) // Send item to AP server
 		ap->LocationChecks({checkID});
@@ -1117,9 +1135,14 @@ int Archipelago_GetTotalCheckCount(void)
 	return totalLocationCount;
 }
 
-int Archipelago_GetTotalWasCheckedCount(void)
+int Archipelago_GetTotalAnyoneCheckedCount(void)
 {
 	return allLocationsChecked.size();
+}
+
+int Archipelago_GetTotalWeCheckedCount(void)
+{
+	return localLocationsChecked.size();
 }
 
 // ============================================================================
@@ -1214,7 +1237,7 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 		else
 		{
 			// We don't have the scouted info, for some reason
-			itemName = "Unknown Item " + i;
+			itemName = "Unknown Item " + std::to_string(i);
 			shopItemBuffer[i].Icon = 9003;
 		}
 

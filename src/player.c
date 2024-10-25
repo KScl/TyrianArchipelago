@@ -448,7 +448,6 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 		{
 			// Through armor, player is dead
 			Archipelago_SendDeathLink(damageType);
-			++APPlayData.Deaths;
 
 			this_player->armor = 0;
 			levelTimer = false;

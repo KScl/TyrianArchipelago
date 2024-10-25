@@ -286,7 +286,7 @@ void JE_drawEnemy(int enemyOffset) // actually does a whole lot more than just d
 		if (enemyAvail[i])
 			continue;
 
-#if 0 // Keeping old code around for now because it spots some items useful for testing.
+#ifdef DEBUG_ARCADE_ITEM_DROPS // Keeping old code around for now because it spots some items useful for testing.
 		if (enemy[i].ex + tempMapXOfs > -29 && enemy[i].ex + tempMapXOfs < 300)
 		{
 			if (enemy[i].enemydie == 533
@@ -881,6 +881,12 @@ start_level:
 				mainLevel = nextLevel;
 			}
 		}
+
+		// Track some stats on the way out, if we left without completing the level.
+		if (all_players_dead())
+			++APPlayData.Deaths;
+		else if (playerEndLevel)
+			++APPlayData.ExitedLevels;
 	}
 	doNotSaveBackup = false;
 
@@ -3858,7 +3864,7 @@ void JE_eventSystem(void)
 
 	case 45: /* arcade-only enemy from other enemies */
 	case 85: // T2K_TimeBattle_EnemyFromOtherEnemy
-#if 0
+#ifdef DEBUG_ARCADE_ITEM_DROPS
 		for (temp = 0; temp < 100; temp++)
 		{
 			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)

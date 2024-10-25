@@ -684,16 +684,30 @@ static const char* ticksToString(Uint64 ticks)
 static const char* getCheckCount(void)
 {
 	static char local_buf[64];
-
-	const int checked = Archipelago_GetTotalWasCheckedCount();
+	const int checked = Archipelago_GetTotalWeCheckedCount();
 	const int total = Archipelago_GetTotalCheckCount();
+
 	snprintf(local_buf, sizeof(local_buf), "%3d/%3d", checked, total);
 	return local_buf;
+}
+
+static const char* getRemoteCheckCount(void)
+{
+	const int remote = Archipelago_GetTotalAnyoneCheckedCount() - Archipelago_GetTotalWeCheckedCount();
+	if (remote > 0)
+	{
+		static char local_buf[64];
+
+		snprintf(local_buf, sizeof(local_buf), "%d location%s checked by others.", remote, remote > 1 ? "s" : "");
+		return local_buf;
+	}
+	return NULL;
 }
 
 static const char* getIntString(int value)
 {
 	static char local_buf[64];
+
 	snprintf(local_buf, sizeof(local_buf), "%d", value);
 	return local_buf;
 }
@@ -713,11 +727,17 @@ void apmenu_RandomizerStats(void)
 	draw_font_hv_shadow(VGAScreen2, 160, 8, "Results", FONT_SHAPES, centered, 15, -3, false, 2);
 
 	Uint64 totalTime = APPlayData.TimeInMenu + APPlayData.TimeInLevel;
-	drawRandomizerStat(48, "Locations Checked", getCheckCount());
-	drawRandomizerStat(80, "Total Time", ticksToString(totalTime));
-	drawRandomizerStat(96, "Time in Menus", ticksToString(APPlayData.TimeInMenu));
-	drawRandomizerStat(112, "Time in Levels", ticksToString(APPlayData.TimeInLevel));
-	drawRandomizerStat(144, "Deaths", getIntString(APPlayData.Deaths));
+	drawRandomizerStat(48+(16*0), "Locations Checked", getCheckCount());
+	drawRandomizerStat(48+(16*2), "Total Time", ticksToString(totalTime));
+	drawRandomizerStat(48+(16*3), "Time in Menus", ticksToString(APPlayData.TimeInMenu));
+	drawRandomizerStat(48+(16*4), "Time in Levels", ticksToString(APPlayData.TimeInLevel));
+	drawRandomizerStat(48+(16*6), "Deaths", getIntString(APPlayData.Deaths));
+	drawRandomizerStat(48+(16*7), "Exited Levels", getIntString(APPlayData.ExitedLevels));
+
+	const char *remoteChecksText = getRemoteCheckCount();
+	if (remoteChecksText)
+		draw_font_hv_full_shadow(VGAScreen2, 160, 48+12, remoteChecksText, TINY_FONT, centered, 15, 4, true, 1);
+
 	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 
 	fade_palette(colors, 10, 0, 255);
@@ -2857,22 +2877,28 @@ int apmenu_itemScreen(void)
 				itemSubMenus[currentSubMenu].exitFunc();
 				fade_black(15);
 
+				if (APPlayData.TimeInLevel > 0) // Randomizer doesn't "start" until you enter the first level.
+				{
 #if SDL_VERSION_ATLEAST(2, 0, 18)
-				APPlayData.TimeInMenu += SDL_GetTicks64() - menuStartTime;
+					APPlayData.TimeInMenu += SDL_GetTicks64() - menuStartTime;
 #else
-				APPlayData.TimeInMenu += SDL_GetTicks() - menuStartTime;
+					APPlayData.TimeInMenu += SDL_GetTicks() - menuStartTime;
 #endif
+				}
 				return -1;
 
 			case SUBMENU_LEVEL:
 				itemSubMenus[currentSubMenu].exitFunc();
 				fade_black(15);
 
+				if (APPlayData.TimeInLevel > 0) // Randomizer doesn't "start" until you enter the first level.
+				{
 #if SDL_VERSION_ATLEAST(2, 0, 18)
-				APPlayData.TimeInMenu += SDL_GetTicks64() - menuStartTime;
+					APPlayData.TimeInMenu += SDL_GetTicks64() - menuStartTime;
 #else
-				APPlayData.TimeInMenu += SDL_GetTicks() - menuStartTime;
+					APPlayData.TimeInMenu += SDL_GetTicks() - menuStartTime;
 #endif
+				}
 				return subMenuSelections[SUBMENU_NEXT_LEVEL];
 
 			default:

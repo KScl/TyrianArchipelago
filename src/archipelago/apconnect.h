@@ -137,6 +137,7 @@ typedef struct {
 	Uint64 TimeInMenu; // Tracked with SDL_GetTicks/SDL_GetTicks64
 
 	Uint16 Deaths;
+	Uint16 ExitedLevels;
 } applaydata_t;
 
 // Request C side to update / redraw
@@ -159,7 +160,8 @@ bool Archipelago_CheckHasProgression(int checkID);
 int Archipelago_GetRegionCheckCount(int firstCheckID);
 Uint32 Archipelago_GetRegionWasCheckedList(int firstCheckID);
 int Archipelago_GetTotalCheckCount(void);
-int Archipelago_GetTotalWasCheckedCount(void);
+int Archipelago_GetTotalAnyoneCheckedCount(void);
+int Archipelago_GetTotalWeCheckedCount(void);
 
 // ----------------------------------------------------------------------------
 // Twiddles / SF Codes
