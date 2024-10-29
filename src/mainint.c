@@ -1155,8 +1155,10 @@ void JE_inGameDisplays(void)
 		}
 	}
 
+#ifdef LEVEL_CHEATS
 	if (youAreCheating)
 		JE_outText(VGAScreen, 90, 170, "Cheaters always prosper.", 3, 4);
+#endif
 }
 
 void JE_mainKeyboardInput(void)
@@ -1212,8 +1214,6 @@ void JE_mainKeyboardInput(void)
 		/* YKS: clock ticks since midnight replaced by SDL_GetTicks */
 		lastDebugTime = SDL_GetTicks();
 	}
-#else
-	youAreCheating = false;
 #endif
 
 	/* pause game */
