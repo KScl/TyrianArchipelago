@@ -4255,6 +4255,15 @@ void JE_eventSystem(void)
 		}
 		break;
 
+	case 111: // LastEnemy_IncrementFlag
+		if (b > 0)
+		{
+			enemy[b-1].special = ENEMYFLAG_INCREMENT;
+			enemy[b-1].flagnum = eventRec[eventLoc-1].eventdat;
+			enemy[b-1].setto   = eventRec[eventLoc-1].eventdat2;
+		}
+		break;
+
 	case 200:; // AP_CheckFreestanding
 		bool using_backup = false;
 

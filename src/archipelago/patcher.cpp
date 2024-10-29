@@ -332,6 +332,7 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			// fall through
 		case  60: // EnemyGlobal_SetFlag
 		case 110: // EnemyGlobal_IncrementFlag
+		case 111: // LastEnemy_IncrementFlag
 			eventRec[x].eventdat  = j.value<Sint16>("flag", 0);
 			eventRec[x].eventdat2 = j.value<Sint16>("value", 1);
 			break;

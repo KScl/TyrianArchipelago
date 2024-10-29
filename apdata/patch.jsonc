@@ -1003,6 +1003,35 @@
 	},
 	// --------------------------------------------------------------
 	"Episode4 WINDY": {
+		// Addition of Archipelago Items
+		"99:APPEND":  { "time": 668, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":410, "movement":"static", "backup":398 },
+		"100:APPEND": { "time": 668, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":411, "movement":"static", "backup":398 },
+		"379:APPEND": { "time":2852, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":412, "movement":"static", "backup":398 },
+		"446:APPEND": { "time":3496, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":413, "movement":"static", "backup":398 },
+		"774:APPEND": { "time":6128, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":414, "movement":"static", "backup":398 },
+
+		// This level actually continues all the way out to time 8100 (!), even though it normally ends at 3400.
+		// Combined with the unusual playing of the "secret level" jingle just before the level ends, it feels a bit
+		// like there was supposed to be a way to get past the normal level end. Or maybe that was just how they
+		// decided to shorten the level... who knows? Only Jason Emery, probably.
+		//
+		// Since there's so much unused space, we allow going a bit further into the level if you shoot down all
+		// the hidden red blocks with chevrons. This also opens up a couple of extra AP items, because there's some
+		// question mark blocks in that area.
+		"172:APPEND":  { "time":1228, "event":111, /* LastEnemy_IncrementFlag */ "flag":1, "value":1 },
+		"173:APPEND":  { "time":1228, "event":111, /* LastEnemy_IncrementFlag */ "flag":1, "value":1 },
+		"221:APPEND":  { "time":1564, "event":111, /* LastEnemy_IncrementFlag */ "flag":1, "value":1 },
+		"222:APPEND":  { "time":1564, "event":111, /* LastEnemy_IncrementFlag */ "flag":1, "value":1 },
+		"286:APPEND":  { "time":2180, "event":111, /* LastEnemy_IncrementFlag */ "flag":1, "value":1 },
+		"293:APPEND":  { "time":2264, "event":111, /* LastEnemy_IncrementFlag */ "flag":1, "value":1 },
+		"332:APPEND":  { "time":2600, "event":111, /* LastEnemy_IncrementFlag */ "flag":1, "value":1 },
+		"335:APPEND":  { "time":2628, "event":111, /* LastEnemy_IncrementFlag */ "flag":1, "value":1 },
+		"336:APPEND":  { "time":2628, "event":111, /* LastEnemy_IncrementFlag */ "flag":1, "value":1 },
+
+		// These are the actual events that check for and bypass the end of the level.
+		"409:PREPEND": { "time":3200, "event":101, /* Skip_IfFlagLessThan */ "flag":1, "value":9, "skip_events":1 },
+		"433:PREPEND": { "time":3400, "event":102, /* Skip_IfFlagGreaterThan */ "flag":1, "value":8, "skip_events":1 },
+		"778:APPEND":  { "time":6250, "event": 11 /* EndLevel */ }
 	},
 	// --------------------------------------------------------------
 	"Episode4 LAVA RUN": {
@@ -1028,45 +1057,11 @@
 	// --------------------------------------------------------------
 	"Episode4 DESERTRUN": {
 		// Addition of Archipelago Items
-		"530:REPLACE": { "time":6400, "event":200, /* AP_CheckFreestanding */ "ap_id":451, "movement":"gnd2_falling", "ex": 42, "backup":398 },
-		"534:REPLACE": { "time":6700, "event":200, /* AP_CheckFreestanding */ "ap_id":452, "movement":"gnd2_falling", "ex":262, "backup":398 },
-		"538:REPLACE": { "time":7000, "event":200, /* AP_CheckFreestanding */ "ap_id":453, "movement":"gnd2_falling", "ex": 42, "backup":398 },
-		"540:REPLACE": { "time":7300, "event":200, /* AP_CheckFreestanding */ "ap_id":454, "movement":"gnd2_falling", "ex":262, "backup":398 },
-		"544:REPLACE": { "time":7600, "event":200, /* AP_CheckFreestanding */ "ap_id":455, "movement":"gnd2_falling", "ex": 42, "backup":398 },
-
-		// Setup for Afterburner Smooth Flying
-		"294:REPLACE": [
-			{ "time":2792, "event":10, /* NewEnemy_Ground2 */ "linknum":1, "type":395, "ex":108, "ey":-78, "eyc":-1 },
-			{ "time":2792, "event":10, /* NewEnemy_Ground2 */ "linknum":1, "type":395, "ex": 96, "ey":-78, "eyc":-1 }
-		],
-		"324:REPLACE": [
-			{ "time":3128, "event":10, /* NewEnemy_Ground2 */ "linknum":2, "type":395, "ex":180, "ey":-78, "eyc":-1 },
-			{ "time":3128, "event":10, /* NewEnemy_Ground2 */ "linknum":2, "type":395, "ex":168, "ey":-78, "eyc":-1 }
-		],
-		"337:REPLACE": [
-			{ "time":3296, "event":10, /* NewEnemy_Ground2 */ "linknum":3, "type":395, "ex":108, "ey":-78, "eyc":-1 },
-			{ "time":3296, "event":10, /* NewEnemy_Ground2 */ "linknum":3, "type":395, "ex": 96, "ey":-78, "eyc":-1 }
-		],
-		"368:REPLACE": [
-			{ "time":3688, "event":10, /* NewEnemy_Ground2 */ "linknum":4, "type":395, "ex":180, "ey":-78, "eyc":-1 },
-			{ "time":3688, "event":10, /* NewEnemy_Ground2 */ "linknum":4, "type":395, "ex":168, "ey":-78, "eyc":-1 }
-		],
-		"381:REPLACE": [
-			{ "time":3772, "event":10, /* NewEnemy_Ground2 */ "linknum":5, "type":395, "ex":180, "ey":-78, "eyc":-1 },
-			{ "time":3772, "event":10, /* NewEnemy_Ground2 */ "linknum":5, "type":395, "ex":168, "ey":-78, "eyc":-1 }
-		],
-
-		"296:PREPEND": { "time":2792, "event":60, /* EnemyGlobal_IncreaseFlag */ "linknum":1, "flag":3, "value":1 },
-		"326:PREPEND": { "time":3128, "event":60, /* EnemyGlobal_IncreaseFlag */ "linknum":2, "flag":3, "value":1 },
-		"339:PREPEND": { "time":3296, "event":60, /* EnemyGlobal_IncreaseFlag */ "linknum":3, "flag":3, "value":1 },
-		"370:PREPEND": { "time":3688, "event":60, /* EnemyGlobal_IncreaseFlag */ "linknum":4, "flag":3, "value":1 },
-		"383:PREPEND": { "time":3772, "event":60, /* EnemyGlobal_IncreaseFlag */ "linknum":5, "flag":3, "value":1 },
-
-		"438:PREPEND": [
-			{ "time":4355, "event":101, /* Skip_IfFlagLessThan */ "flag":3, "value":10, "skip_events":1 },
-			{ "time":4355, "event":200, /* AP_CheckFreestanding */ "ap_id":450, "linknum":12, "movement":"top_falling", "ex":162, "ey":55, "backup":399 },
-			{ "time":4355, "event": 61, /* Skip_IfFlagEquals */ "flag":10, "value":0, "skip_events":1 }
-		]
+		"530:REPLACE": { "time":6400, "event":200, /* AP_CheckFreestanding */ "ap_id":450, "movement":"gnd2_falling", "ex": 42, "backup":398 },
+		"534:REPLACE": { "time":6700, "event":200, /* AP_CheckFreestanding */ "ap_id":451, "movement":"gnd2_falling", "ex":262, "backup":398 },
+		"538:REPLACE": { "time":7000, "event":200, /* AP_CheckFreestanding */ "ap_id":452, "movement":"gnd2_falling", "ex": 42, "backup":398 },
+		"540:REPLACE": { "time":7300, "event":200, /* AP_CheckFreestanding */ "ap_id":453, "movement":"gnd2_falling", "ex":262, "backup":398 },
+		"544:REPLACE": { "time":7600, "event":200, /* AP_CheckFreestanding */ "ap_id":454, "movement":"gnd2_falling", "ex": 42, "backup":398 }
 	},
 	// --------------------------------------------------------------
 	"Episode4 SIDE EXIT": {
@@ -1134,7 +1129,13 @@
 	"Episode4 BRAINIAC": {
 	},
 	// --------------------------------------------------------------
-	"Episode4 NOSE DRIP ver2.1": {
+	"Episode4 NOSE DRIP": {
+		// Consistently apply a fix to the boss's section skips.
+		// Remember this: The map starts fully scrolled and returns to the starting point over time.
+		// Thus position goes *down* over time. Tyrian 2000 tried to change this, did it poorly, and broke things.
+		"164:REPLACE": { "time": 729, "event":71, /* Jump_IfMapPositionUnder */ "position": 7000, "jump_time": 1000 },
+		"414:REPLACE": { "time":2059, "event":71, /* Jump_IfMapPositionUnder */ "position": 5000, "jump_time": 3000 },
+		"525:REPLACE": { "time":3729, "event":71, /* Jump_IfMapPositionUnder */ "position": 3000, "jump_time": 4000 }
 	},
 	"Episode4 NOSE DRIP ver2000": {
 	},
@@ -1327,7 +1328,7 @@
 			"13": "Episode4 EYESPY",
 			"14": "Episode4 DREAD-NOT",
 			"15": "Episode4 BRAINIAC",
-			"16": "Episode4 NOSE DRIP ver2.1",
+			"16": "Episode4 NOSE DRIP",
 			"19": "Episode4 APPROACH",
 			"20": "Episode4 ICESECRET ver2.1"
 		}
@@ -1394,7 +1395,7 @@
 			"13": "Episode4 EYESPY",
 			"14": "Episode4 DREAD-NOT",
 			"15": "Episode4 BRAINIAC",
-			"16": "Episode4 NOSE DRIP ver2000",
+			"16": "Episode4 NOSE DRIP",
 			"19": "Episode4 APPROACH",
 			"20": "Episode4 ICESECRET ver2000"
 		},
