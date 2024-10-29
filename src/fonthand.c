@@ -230,11 +230,16 @@ void JE_outTextAndDarken(SDL_Surface * screen, int x, int y, const char *s, unsi
 	for (int i = 0; s[i] != '\0'; ++i)
 	{
 		int sprite_id = font_ascii[(unsigned char)s[i]];
+		int y_offset = 0;
 
 		switch (s[i])
 		{
 		case ' ':
 			x += 6;
+			break;
+
+		case '_':
+			y_offset = 2;
 			break;
 
 		case '~':
@@ -254,8 +259,8 @@ void JE_outTextAndDarken(SDL_Surface * screen, int x, int y, const char *s, unsi
 		default:
 			if (sprite_id != -1 && sprite_exists(TINY_FONT, sprite_id))
 			{
-				blit_sprite_dark(screen, x + 1, y + 1, font, sprite_id, false);
-				blit_sprite_hv_unsafe(screen, x, y, font, sprite_id, colorbank, brightness + bright);
+				blit_sprite_dark(screen, x + 1, y + 1 + y_offset, font, sprite_id, false);
+				blit_sprite_hv_unsafe(screen, x, y + y_offset, font, sprite_id, colorbank, brightness + bright);
 
 				x += sprite(font, sprite_id)->width + 1;
 			}
