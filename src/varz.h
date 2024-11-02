@@ -181,14 +181,14 @@ typedef struct {
 } EnemyShotType;
 
 typedef struct {
-	unsigned int ttl;
-	signed int x, y;
-	signed int delta_x, delta_y;
-	bool fixed_position;
-	bool follow_player;
-	unsigned int sprite;
+	JE_byte ttl;
+	JE_integer x, y;
+	JE_word sprite;
+	bool followPlayer;
+	bool fixedPosition;
+	JE_integer deltaY;
 	Sprite2_array *sheet;
-} explosion_type;
+} Explosion;
 
 typedef struct {
 	unsigned int delay;
@@ -279,7 +279,7 @@ extern JE_EnemyAvailType enemyAvail;
 extern JE_word enemyOffset;
 extern JE_word enemyOnScreen;
 extern JE_word superEnemy254Jump;
-extern explosion_type explosions[MAX_EXPLOSIONS];
+extern Explosion explosions[MAX_EXPLOSIONS];
 extern JE_integer explosionFollowAmountX, explosionFollowAmountY;
 extern JE_boolean fireButtonHeld;
 extern JE_boolean enemyShotAvail[ENEMY_SHOT_MAX];
@@ -305,7 +305,6 @@ extern rep_explosion_type rep_explosions[MAX_REPEATING_EXPLOSIONS];
 extern superpixel_type superpixels[MAX_SUPERPIXELS];
 extern unsigned int last_superpixel;
 extern JE_byte temp, temp2, temp3;
-extern JE_word tempX, tempY;
 extern JE_word tempW;
 extern JE_boolean doNotSaveBackup;
 extern JE_word x, y;
@@ -329,7 +328,7 @@ void JE_tyrianHalt(JE_byte code); /* This ends the game */
 void JE_specialComplete(JE_byte playernum, JE_byte specialType, JE_byte sfCodeCost);
 void JE_doSpecialShot(JE_byte playernum, uint *armor, uint *shield);
 
-void JE_setupExplosion(signed int x, signed int y, signed int delta_y, unsigned int type, bool fixed_position, bool follow_player);
+void JE_setupExplosion(JE_integer x, JE_integer y, JE_integer deltaY, JE_integer type, bool fixedPosition, bool followPlayer);
 void JE_setupExplosionLarge(JE_boolean enemyground, JE_byte explonum, JE_integer x, JE_integer y);
 
 /*SuperPixels*/
