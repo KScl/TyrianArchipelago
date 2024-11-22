@@ -403,6 +403,8 @@ JE_boolean JE_inGameSetup(void)
 
 	for (bool done = false; !done; )
 	{
+		setDelay(2);
+
 		if (restart)
 		{
 			// Main box
@@ -413,7 +415,7 @@ JE_boolean JE_inGameSetup(void)
 			JE_barShade(VGAScreen, 3, 143, 257, 157);
 			JE_barShade(VGAScreen, 5, 145, 255, 155);
 
-			memcpy(VGAScreen2->pixels, VGAScreen->pixels, VGAScreen2->pitch * VGAScreen2->h);
+			memcpy(VGAScreen2->pixels, VGAScreen->pixels, VGAScreen2->pitch * (VGAScreen2->h - 30));
 
 			mouseCursor = MOUSE_POINTER_NORMAL;
 
@@ -421,7 +423,7 @@ JE_boolean JE_inGameSetup(void)
 		}
 
 		// Restore background.
-		memcpy(VGAScreen->pixels, VGAScreen2->pixels, (size_t)VGAScreen->pitch * VGAScreen->h);
+		memcpy(VGAScreen->pixels, VGAScreen2->pixels, (size_t)VGAScreen->pitch * (VGAScreen->h - 30));
 
 		// Draw menu items.
 		for (size_t i = 0; i < menuItemsCount; ++i)
@@ -470,35 +472,15 @@ JE_boolean JE_inGameSetup(void)
 		// Draw help text.
 		JE_outTextAdjust(VGAScreen, 10, 147, mainMenuHelp[helpIndexes[selectedIndex]], 14, 6, TINY_FONT, true);
 
-		service_SDL_events(true);
-
-		JE_mouseStart();
-		JE_showVGA();
-		JE_mouseReplace();
-
-		bool mouseMoved = false;
-		do
-		{
-			SDL_Delay(16);
-
-			Uint16 oldMouseX = mouse_x;
-			Uint16 oldMouseY = mouse_y;
-
-			push_joysticks_as_keyboard();
-			service_SDL_events(false);
-
-			NETWORK_KEEP_ALIVE();
-
-			mouseMoved = mouse_x != oldMouseX || mouse_y != oldMouseY;
-		} while (!(newkey || newmouse || mouseMoved));
+		push_joysticks_as_keyboard();
+		service_SDL_events(false);
 
 		// Handle interaction.
-
 		bool action = false;
 		bool leftAction = false;
 		bool rightAction = false;
 
-		if (mouseMoved || newmouse)
+		if (mouseActivity == MOUSE_ACTIVE)
 		{
 			// Find menu item that was hovered or clicked.
 			if (mouse_x >= xMenuItem && mouse_x < xMenuItem + wMenuItem)
@@ -789,6 +771,13 @@ JE_boolean JE_inGameSetup(void)
 				break;
 			}
 		}
+
+		apmsg_manageQueueInGame();
+		service_SDL_events(true);
+		JE_mouseStart();
+		JE_showVGA();
+		JE_mouseReplace();
+		wait_delay();
 	}
 
 	VGAScreen = temp_surface; /* side-effect of game_screen */
