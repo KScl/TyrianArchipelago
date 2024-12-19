@@ -999,16 +999,27 @@
 	// Episode 4 - An End To Fate
 	// ========================================================================
 
+	// The following stages are not finished:
+	// SURFACE
+	// CORE
+	// ICESECRET
+	// UNDERDELI
+	// APPROACH
+	// SAVARA IV
+	// EYESPY
+	// BRAINIAC
+	// NOSE DRIP
+
 	"Episode4 SURFACE": {
 	},
 	// --------------------------------------------------------------
 	"Episode4 WINDY": {
 		// Addition of Archipelago Items
-		"99:APPEND":  { "time": 668, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":410, "movement":"static", "backup":398 },
-		"100:APPEND": { "time": 668, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":411, "movement":"static", "backup":398 },
-		"379:APPEND": { "time":2852, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":412, "movement":"static", "backup":398 },
-		"446:APPEND": { "time":3496, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":413, "movement":"static", "backup":398 },
-		"774:APPEND": { "time":6128, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":414, "movement":"static", "backup":398 },
+		"99:APPEND":  { "time": 668, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":410, "movement":"falling", "backup":397 },
+		"100:APPEND": { "time": 668, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":411, "movement":"falling", "backup":397 },
+		"379:APPEND": { "time":2852, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":412, "movement":"falling", "backup":397 },
+		"446:APPEND": { "time":3496, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":413, "movement":"falling", "backup":397 },
+		"774:APPEND": { "time":6128, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":414, "movement":"falling", "backup":397 },
 
 		// This level actually continues all the way out to time 8100 (!), even though it normally ends at 3400.
 		// Combined with the unusual playing of the "secret level" jingle just before the level ends, it feels a bit
@@ -1035,6 +1046,23 @@
 	},
 	// --------------------------------------------------------------
 	"Episode4 LAVA RUN": {
+		// Addition of Archipelago Items
+		"139:REPLACE": { "time": 450, "event":201, /* AP_CheckFromEnemy */ "ap_id":420, "linknum": 33, "movement":"sky_falling" },
+		"272:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":421, "linknum":  2, "movement":"sky_falling" },
+		"526:REPLACE": { "time":1630, "event":201, /* AP_CheckFromEnemy */ "ap_id":422, "linknum":  4, "movement":"sky_falling" },
+		"756:REPLACE": { "time":2230, "event":201, /* AP_CheckFromEnemy */ "ap_id":423, "linknum":  4, "movement":"sky_falling" },
+		"982:APPEND":  { "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":424, "linknum":254, "movement":"swaying", "is_boss":true },
+
+		// Additional callouts for contact_bypasses_shields
+		"158:APPEND":  { "time": 550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"860:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+
+		// Don't immediately end the level on boss death.
+		"1241:PREPEND": { "time":9999, "event":0 /* NoOp */ },
+		"1242:APPEND": [
+			{ "time":10020, "event":36 /* ReadyToEndLevel */ },
+			{ "time":10400, "event":11 /* EndLevel */ }
+		]
 	},
 	// --------------------------------------------------------------
 	"Episode4 CORE ver2.1": {
@@ -1051,8 +1079,35 @@
 	},
 	// --------------------------------------------------------------
 	"Episode4 LAVA EXIT ver2.1": {
+		// Addition of Archipelago Items
+		"771:REPLACE": [
+			// Also fix the health change event that goes along with this enemy.
+			{ "time":1420, "event": 25, /* EnemyGlobal_SetHealth */ "linknum":7, "health":40 },
+			{ "time":1420, "event":201, /* AP_CheckFromEnemy */ "ap_id":440, "linknum":7, "movement":"sky_falling", "backup":398 }
+		],
+		"886:REPLACE": { "time":2220, "event":201, /* AP_CheckFromEnemy */ "ap_id":441, "linknum":17, "movement":"sky_falling", "backup":398 },
+		"1001:REPLACE": [
+			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":443, "linknum": 1, "movement":"sky_falling" },
+			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":442, "linknum":11, "movement":"sky_falling" }
+		],
+		"1153:APPEND": { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":444, "linknum": 9, "movement":"swaying", "is_boss":true },
+
+		// Add a missing AccelRev (added in Tyrian 2000) to make the first circling orbs leave the screen.
+		"839:APPEND": { "time":1900, "event":27, /* EnemyGlobal_AccelRev */ "linknum":5 }
 	},
 	"Episode4 LAVA EXIT ver2000": {
+		// Addition of Archipelago Items
+		"772:REPLACE": [
+			// Also fix the health change event that goes along with this enemy.
+			{ "time":1420, "event": 25, /* EnemyGlobal_SetHealth */ "linknum":7, "health":40 },
+			{ "time":1420, "event":201, /* AP_CheckFromEnemy */ "ap_id":440, "linknum":7, "movement":"sky_falling", "backup":398 }
+		],
+		"889:REPLACE": { "time":2220, "event":201, /* AP_CheckFromEnemy */ "ap_id":441, "linknum":17, "movement":"sky_falling", "backup":398 },
+		"1004:REPLACE": [
+			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":443, "linknum": 1, "movement":"sky_falling" },
+			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":442, "linknum":11, "movement":"sky_falling" }
+		],
+		"1156:APPEND": { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":444, "linknum": 9, "movement":"swaying", "is_boss":true }
 	},
 	// --------------------------------------------------------------
 	"Episode4 DESERTRUN": {
@@ -1065,9 +1120,18 @@
 	},
 	// --------------------------------------------------------------
 	"Episode4 SIDE EXIT": {
+		// Addition of Archipelago Items
+		"142:REPLACE": {"time": 400, "event":201, /* AP_CheckFromEnemy */ "ap_id":460, "linknum":38, "movement":"falling" },
+		"277:REPLACE": {"time": 840, "event":201, /* AP_CheckFromEnemy */ "ap_id":461, "linknum": 9, "movement":"falling" },
+		"549:REPLACE": {"time":2170, "event":201, /* AP_CheckFromEnemy */ "ap_id":462, "linknum":36, "movement":"falling" }
 	},
 	// --------------------------------------------------------------
 	"Episode4 ?TUNNEL? ver2.1": {
+		// Addition of Archipelago Items
+		// The duplicate is to ensure that after the "test of courage" trigger happens, the AP item still drops
+		"72:APPEND":  { "time": 200, "event":201, /* AP_CheckFromEnemy */ "ap_id":470, "linknum":164, "movement":"swaying", "is_boss":true },
+		"906:APPEND": { "time":7000, "event":201, /* AP_CheckFromEnemy */ "ap_id":470, "linknum":254, "movement":"swaying", "is_boss":true },
+
 		// Replace random explosions events with their T2K versions.
 		"664:REPLACE": { "time":4010, "event":99, /* RandomExplosions */ "enable":true  },
 		"907:REPLACE": { "time":7000, "event":99, /* RandomExplosions */ "enable":false },
@@ -1075,28 +1139,74 @@
 		// Replace a raw "Danger!" sample with the proper "Danger!" callout event.
 		"716:REPLACE": { "time":4300, "event":16, /* VoicedCallout */ "output":"** Danger! **" },
 
-		// These patches fix the "test of courage" so that it is actually attainable.
-		// It is supposed to give 15 1K point gems... But, because the level timer isn't long enough,
-		// the event that would normally do so is unreachable.
-		// These patches adjust the timer to give enough time for the relevant events to be reached,
-		// and also changes some event logic to stop the game from advancing immediately, so the player
-		// has time to pick up the generated gems.
-		"797:REPLACE": { "time": 5100, "event":67, /* SetLevelTimer */ "enable":true, "value":20, "jump_time":10000 },
-		"905:APPEND": { "time": 7000, "event":60, /* EnemyAssignFlag */ "linknum":254, "flag":1, "value":1 },
-		"908:REPLACE": { "time": 8000, "event":0 /* NoOp */ },
+		// Patch the level timer to give one additional unit of time before failure.
+		// This allows the rewards from the "test of courage" to actually be seen.
+		"797:REPLACE": { "time":5100, "event":67, /* SetLevelTimer */ "enable":true, "value":20, "jump_time":10000 },
+	
+		// Fix the end of level to give time for the item(s) to drop.
 		"908:APPEND": [
-			{ "time": 9000, "event":61, /* Skip_IfFlagSet */ "flag":1, "value":1, "skip_events":1 },
-			{ "time": 9000, "event":11 /* EndLevel */ },
-			{ "time": 9000, "event":67, /* SetLevelTimer */ "enable":false },
-			{ "time": 9000, "event":36 /* ReadyToEndLevel */ }
+			{ "time":8999, "event": 0 /* NoOp */ },
+			{ "time":9000, "event":67, /* SetLevelTimer */ "enable":false },
+			{ "time":9000, "event":99, /* RandomExplosions */ "enable":false },
+			{ "time":9000, "event":36 /* ReadyToEndLevel */ }
 		]
 	},
 	"Episode4 ?TUNNEL? ver2000": {
+		// Addition of Archipelago Items
+		// The duplicate is to ensure that after the "test of courage" trigger happens, the AP item still drops
+		"72:APPEND":  { "time": 200, "event":201, /* AP_CheckFromEnemy */ "ap_id":470, "linknum":164, "movement":"swaying", "is_boss":true },
+		"905:APPEND": { "time":7000, "event":201, /* AP_CheckFromEnemy */ "ap_id":470, "linknum":254, "movement":"swaying", "is_boss":true },
+
+		// Restore the level timer for the first half of the boss.
+		"548:PREPEND": { "time": 2939, "event":67, /* SetLevelTimer */ "enable":true, "value":5, "jump_time":10000 },
+
+		// Restore the random explosions events.
+		"663:APPEND":  { "time":4010, "event":99, /* RandomExplosions */ "enable":true  },
+		"906:REPLACE": { "time":7000, "event":99, /* RandomExplosions */ "enable":false },
+
+		// Replace a raw "Danger!" sample with the proper "Danger!" callout event.
+		"715:REPLACE": { "time":4300, "event":16, /* VoicedCallout */ "output":"** Danger! **" },
+
+		// Patch the level timer to give one additional unit of time before failure.
+		// This allows the rewards from the "test of courage" to actually be seen.
+		"796:REPLACE": { "time":5100, "event":67, /* SetLevelTimer */ "enable":true, "value":20, "jump_time":10000 },
+	
+		// Fix the end of level to give time for the item(s) to drop.
+		"907:APPEND": [
+			{ "time":8999, "event": 0 /* NoOp */ },
+			{ "time":9000, "event":67, /* SetLevelTimer */ "enable":false },
+			{ "time":9000, "event":99, /* RandomExplosions */ "enable":false },
+			{ "time":9000, "event":36 /* ReadyToEndLevel */ }
+		]
 	},
 	// --------------------------------------------------------------
 	"Episode4 ICE EXIT ver2.1": {
+		// Addition of Archipelago Items
+		"397:APPEND":  { "time":1430, "event":201, /* AP_CheckFromEnemy */ "ap_id":480, "linknum": 36, "movement":"falling" },
+		"594:REPLACE": { "time":3330, "event":200, /* AP_CheckFreestanding */ "ap_id":481, "linknum":69, "movement":"sky_falling", "ex":130 },
+		"644:APPEND":  { "time":3700, "event":201, /* AP_CheckFromEnemy */ "ap_id":482, "linknum":189, "movement":"swaying", "is_boss":true },
+
+		// We can't use "eyc" with Freestanding AP items because the movement/section setup uses that byte.
+		// So we have to add a little hack here to make the freestanding item fall at the proper speed.
+		"594:APPEND": { "time":3330, "event":19, /* EnemyGlobal_Move */ "linknum":69, "eyc":2 },
+
+		// Additional callouts for contact_bypasses_shields
+		"525:REPLACE": { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"525:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false }
 	},
 	"Episode4 ICE EXIT ver2000": {
+		// Addition of Archipelago Items
+		"396:APPEND":  { "time":1430, "event":201, /* AP_CheckFromEnemy */ "ap_id":480, "linknum": 36, "movement":"falling" },
+		"593:REPLACE": { "time":3330, "event":200, /* AP_CheckFreestanding */ "ap_id":481, "linknum":69, "movement":"sky_falling", "ex":130 },
+		"643:APPEND":  { "time":3700, "event":201, /* AP_CheckFromEnemy */ "ap_id":482, "linknum":189, "movement":"swaying", "is_boss":true },
+
+		// We can't use "eyc" with Freestanding AP items because the movement/section setup uses that byte.
+		// So we have to add a little hack here to make the freestanding item fall at the proper speed.
+		"593:APPEND": { "time":3330, "event":19, /* EnemyGlobal_Move */ "linknum":69, "eyc":2 },
+
+		// Additional callouts for contact_bypasses_shields
+		"524:REPLACE": { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"524:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false }
 	},
 	// --------------------------------------------------------------
 	"Episode4 ICESECRET ver2.1": {
@@ -1105,6 +1215,14 @@
 	},
 	// --------------------------------------------------------------
 	"Episode4 HARVEST": {
+		// Addition of Archipelago Items
+		"250:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":500, "linknum":11, "movement":"falling" },
+		"410:REPLACE": { "time":2150, "event":201, /* AP_CheckFromEnemy */ "ap_id":501, "linknum":17, "movement":"falling" },
+		"690:REPLACE": { "time":3700, "event":201, /* AP_CheckFromEnemy */ "ap_id":502, "linknum":16, "movement":"falling" },
+		"859:REPLACE": { "time":4480, "event":201, /* AP_CheckFromEnemy */ "ap_id":503, "linknum":19, "movement":"static" },
+		"872:REPLACE": { "time":4530, "event":201, /* AP_CheckFromEnemy */ "ap_id":504, "linknum":18, "movement":"static" },
+		"885:REPLACE": { "time":4650, "event":201, /* AP_CheckFromEnemy */ "ap_id":505, "linknum":37, "movement":"falling" },
+		"1053:APPEND": { "time":5048, "event":201, /* AP_CheckFromEnemy */ "ap_id":506, "linknum":10, "movement":"swaying", "is_boss":true }
 	},
 	// --------------------------------------------------------------
 	"Episode4 UNDERDELI ver2.1": {
@@ -1121,6 +1239,14 @@
 	},
 	// --------------------------------------------------------------
 	"Episode4 DREAD-NOT": {
+		// Addition of Archipelago Item (singular)
+		"46:REPLACE": { "time":100, "event":201, /* AP_CheckFromEnemy */ "ap_id":540, "linknum":19, "movement":"swaying", "is_boss":true },
+
+		// Don't force end the level when the boss dies, give time to collect the item.
+		"1021:PREPEND": [
+			{ "time":6299, "event": 0 /* NoOp */ },
+			{ "time":7000, "event":11 /* EndLevel */ }
+		]
 	},
 	// --------------------------------------------------------------
 	"Episode4 EYESPY": {
@@ -1136,8 +1262,6 @@
 		"164:REPLACE": { "time": 729, "event":71, /* Jump_IfMapPositionUnder */ "position": 7000, "jump_time": 1000 },
 		"414:REPLACE": { "time":2059, "event":71, /* Jump_IfMapPositionUnder */ "position": 5000, "jump_time": 3000 },
 		"525:REPLACE": { "time":3729, "event":71, /* Jump_IfMapPositionUnder */ "position": 3000, "jump_time": 4000 }
-	},
-	"Episode4 NOSE DRIP ver2000": {
 	},
 
 	// ========================================================================
