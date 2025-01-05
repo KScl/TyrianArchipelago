@@ -1376,7 +1376,7 @@ static void APRemote_CB_Bounce(const json& bounceJSON)
 		if (output.find_first_not_of(' ', 3) == std::string::npos)
 		{
 			// Handle a whitespace-only cause like a nonexistant one
-			output += "Killed by ";
+			output = "<45Killed by ";
 			if (bounceJSON["data"].contains("source"))
 			{
 				std::string playerName = bounceJSON["data"]["source"].template get<std::string>();
