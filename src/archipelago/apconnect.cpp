@@ -499,27 +499,24 @@ std::vector<utf8conv_t> UTF8Conversions = {
 // Cleans and converts the UTF-8 strings from Archipelago.
 static std::string APRemote_CleanString(std::string input)
 {
-	std::string result = "";
+	std::string result;
 	size_t len = input.length();
+	result.reserve(len);
 
 	for (size_t i = 0; i < len; ++i)
 	{
 		// Handle unicode characters that have sprites
 		if ((input[i] & 0xF0) >= 0xC0)
 		{
-			bool found = false;
+			result += '?';
 			for (const utf8conv_t &cvt : UTF8Conversions)
 			{
 				if (!strncmp(&input[i], cvt.utf8, cvt.utf8len))
 				{
-					found = true;
-					result.push_back((char)cvt.tyrcode);
+					result.back() = (char)cvt.tyrcode;
 					break;
 				}
 			}
-
-			if (!found)
-				result.push_back('?');
 
 			switch (input[i] & 0xF0)
 			{
@@ -529,11 +526,11 @@ static std::string APRemote_CleanString(std::string input)
 			}
 		}
 		else if (input[i] == '\r' || input[i] == '\n' || input[i] == ' ')
-			result.push_back(input[i]);
+			result += input[i];
 		else if (font_ascii[(uint8_t)input[i]] != -1)
-			result.push_back(input[i]);
+			result += input[i];
 		else
-			result.push_back('?');
+			result += '?';
 	}
 	return result;
 }
@@ -1341,13 +1338,15 @@ std::vector<std::string> death_messages[] = {
 	{}, // DAMAGE_DEATHLINK (unused)
 	{ // DAMAGE_BULLET
 		" went out in a blaze of glory.",
-		" experienced sudden decompression.",
 		" took one bullet too many."
+		" can confirm:  Sudden decompression sucks.",
+		" should've kept their shields up."
 	},
 	{ // DAMAGE_CONTACT
 		" experienced a hull breach.",
 		" tried to use ramming speed.",
-		" disagreed with something stronger than them."
+		" disagreed with something stronger than them.",
+		" should've tried dodging."
 	}
 };
 
@@ -1368,15 +1367,24 @@ static void APRemote_CB_Bounce(const json& bounceJSON)
 
 		APDeathLinkReceived = true;
 
-		std::stringstream s;
+		std::string output = "<45";
 		if (bounceJSON["data"].contains("cause"))
-			s << "<45" << bounceJSON["data"]["cause"].template get<std::string>();
-		else if (bounceJSON["data"].contains("source"))
-			s << "<45Killed by " << bounceJSON["data"]["source"].template get<std::string>();
-		else
-			s << "<45Killed by DeathLink";
-
-		std::string output = s.str();
+		{
+			std::string message = bounceJSON["data"]["cause"].template get<std::string>();
+			output += APRemote_CleanString(message);
+		}
+		if (output.find_first_not_of(' ', 3) == std::string::npos)
+		{
+			// Handle a whitespace-only cause like a nonexistant one
+			output += "Killed by ";
+			if (bounceJSON["data"].contains("source"))
+			{
+				std::string playerName = bounceJSON["data"]["source"].template get<std::string>();
+				output += APRemote_CleanString(playerName);
+			}
+			else
+				output += "DeathLink";
+		}
 		apmsg_enqueue(output.c_str());
 	}
 }
@@ -1443,6 +1451,7 @@ const char *Archipelago_StartDebugGame(void)
 	APSeedSettings.GoalEpisodes = tyrian2000detected ? 0x1F : 0xF;
 	APSeedSettings.Difficulty = 2;
 	APSeedSettings.SpecialMenu = true;
+	APSeedSettings.ArchipelagoRadar = true;
 
 	APAll_FreshInit();
 
