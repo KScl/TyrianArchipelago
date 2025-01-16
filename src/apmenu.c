@@ -797,6 +797,10 @@ static void submenuOptions_Exit(void);
 static void submenuOptCustomShip_Init(void);
 static void submenuOptCustomShip_Run(void);
 
+static void submenuOptKeyboard_Run(void);
+
+static void submenuOptJoystick_Run(void);
+
 static void submenuUpgrade_Init(void);
 static void submenuUpgrade_Run(void);
 
@@ -818,6 +822,8 @@ typedef enum {
 
 typedef enum
 {
+	SUBMENU_CHAT = -5, // Opens the chat box.
+	SUBMENU_ASSIGN = -4, // Options menus want game control to assign inputs
 	SUBMENU_EXIT = -3, // Exit the game and return to title screen
 	SUBMENU_LEVEL = -2, // Exit the item screen and go to level
 	SUBMENU_RETURN = -1, // Return to previous submenu, as if ESC was pressed
@@ -829,6 +835,8 @@ typedef enum
 	SUBMENU_IN_SHOP,
 	SUBMENU_OPTIONS,
 	SUBMENU_OPTIONS_CUSTOMSHIP,
+	SUBMENU_OPTIONS_KEYBOARD,
+	SUBMENU_OPTIONS_JOYSTICK,
 	SUBMENU_UPGRADE,
 	SUBMENU_UP_FRONTPORT,
 	SUBMENU_UP_REARPORT,
@@ -852,8 +860,11 @@ static const struct {
 	{"Next Level", 17, SUBMENU_MAIN, sidebarPlanetNav, submenuLevelSelect_Init, nullexit, submenuLevelSelect_Run},
 	{"Visit Shop", 17, SUBMENU_MAIN, sidebarPlanetNav, submenuLevelSelect_Init, nullexit, submenuLevelSelect_Run},
 	{"Shop", 0, SUBMENU_SELECT_SHOP, sidebarArchipelagoInfo, submenuInShop_Init, nullexit, submenuInShop_Run},
+
 	{"Options", 0, SUBMENU_MAIN, sidebarArchipelagoInfo, nullinit, submenuOptions_Exit, submenuOptions_Run},
 	{"Ship Sprite", 0, SUBMENU_OPTIONS, sidebarShipSprite, submenuOptCustomShip_Init, nullexit, submenuOptCustomShip_Run},
+	{"Keyboard", 0, SUBMENU_OPTIONS, sidebarArchipelagoInfo, nullinit, nullexit, submenuOptKeyboard_Run},
+	{"Joystick", 0, SUBMENU_OPTIONS, sidebarArchipelagoInfo, nullinit, nullexit, submenuOptJoystick_Run},
 
 	{"Upgrade Ship", 0, SUBMENU_MAIN, sidebarSimulateShots, submenuUpgrade_Init, nullexit, submenuUpgrade_Run},
 	{"Front Weapon", 0, SUBMENU_UPGRADE, sidebarSimulateShots, submenuUpFrontPort_Init, submenuUpAll_Exit, submenuUpAll_Run},
@@ -1163,6 +1174,8 @@ static void submenuMain_Run(void)
 		}
 #endif
 	}
+	else if (newkey && lastkey_scan == SDL_SCANCODE_TAB)
+		nextSubMenu = SUBMENU_CHAT;
 
 	defaultMenuOptionDraw("Play Next Level", 38 + 0,  false, SELECTED(0));
 	defaultMenuOptionDraw("Ship Specs",      38 + 16,  true, SELECTED(1));
@@ -2419,6 +2432,363 @@ static void submenuOptCustomShip_Init(void)
 }
 
 // ----------------------------------------------------------------------------
+// Keyboard Configuration SubMenu
+// ----------------------------------------------------------------------------
+
+typedef struct {
+	const char *name;
+	int id;
+} inputconfig_t;
+
+static const inputconfig_t keyboardInputs[9] = {
+	{"Move Up", 0}, {"Move Down", 1}, {"Move Left", 2}, {"Move Right", 3},
+	{"Fire", 4}, {"Left Sidekick", 6}, {"Right Sidekick", 7}, {"Change Mode", 5},
+	{"Reset to Default Settings", -999}
+};
+
+static const mousetargets_t configureKeyboardTargets = {10, {
+	{171,  38, 136,  8},
+	{171,  47, 136,  8},
+	{171,  56, 136,  8},
+	{171,  65, 136,  8},
+	{171,  74, 136,  8},
+	{171,  83, 136,  8},
+	{171,  92, 136,  8},
+	{171, 101, 136,  8},
+	{171, 154, 136,  8},
+	{269, 166,  35, 12}, // Done
+}};
+
+static void submenuOptKeyboard_Run(void)
+{
+	const char *scancodeName;
+
+	// ----- Input Handling ---------------------------------------------------
+	int menuResult;
+	if ((menuResult = defaultMenuNavigation(&configureKeyboardTargets)) == MENUNAV_SELECT)
+	{
+		switch (subMenuSelections[SUBMENU_OPTIONS_KEYBOARD])
+		{
+			case 8: // Reset to default
+				memcpy(keySettings, defaultKeySettings, sizeof(keySettings));
+				JE_playSampleNum(S_SELECT);
+				break;
+			case 9: // Done
+				nextSubMenu = SUBMENU_RETURN;
+				JE_playSampleNum(S_CLICK);
+				break;
+			default:
+				nextSubMenu = SUBMENU_ASSIGN;
+				JE_playSampleNum(S_CLICK);
+				break;
+		}
+	}
+
+	// ----- Drawing ----------------------------------------------------------
+	int y = 38;
+	for (int i = 0; i < 9; ++i)
+	{
+		const int shade = subMenuSelections[currentSubMenu] == i ? 15 : 28;
+
+		if (keyboardInputs[i].id >= 0)
+			scancodeName = SDL_GetScancodeName(keySettings[keyboardInputs[i].id]);
+		else
+		{
+			scancodeName = "";
+			y += 45;
+		}
+
+		if (subMenuSelections[currentSubMenu] == i && nextSubMenu == SUBMENU_ASSIGN)
+		{
+			fill_rectangle_xy(VGAScreen, 164, y+2, 300, y+6, 227);
+			blit_sprite2(VGAScreen, 298, y-3, shopSpriteSheet, 247);
+		}
+
+		JE_textShade(VGAScreen, 171, y, keyboardInputs[i].name, shade / 16, shade % 16 - 8, DARKEN);
+		JE_textShade(VGAScreen, 296 - JE_textWidth(scancodeName, TINY_FONT), y, scancodeName, shade / 16, shade % 16 - 8, DARKEN);			
+		y += 9;
+	}
+
+	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Done", SMALL_FONT_SHAPES,
+		right_aligned, 15, -3 + (SELECTED(9) ? 2 : 0), false, 2);
+
+	// ----- Help Text --------------------------------------------------------
+	const char *helpText;
+	if (nextSubMenu == SUBMENU_ASSIGN)
+		helpText = "Press a key to assign to this action, ESC cancels.";
+	else switch (GETSELECTED())
+	{
+		case 8:  helpText = "Reset all actions to their default keys."; break;
+		case 9:  helpText = "Go back to the previous menu."; break;
+		default: helpText = "Select to change the key for this action."; break;
+	}
+	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
+}
+
+static void submenuOptKeyboard_Assign(void)
+{
+	const int assignment = subMenuSelections[SUBMENU_OPTIONS_KEYBOARD];
+	if (assignment < 0 || assignment >= 9 || keyboardInputs[assignment].id < 0)
+		return;
+
+	const int id = keyboardInputs[assignment].id;
+
+	JE_showVGA();
+	wait_noinput(true, true, true);
+
+	do
+	{
+		poll_joysticks();
+		service_SDL_events(true);
+		JE_showVGA();
+		SDL_Delay(16);
+	} while (!newkey && !newmouse && !joydown);
+
+	if (!newkey || lastkey_scan == SDL_SCANCODE_ESCAPE)
+		JE_playSampleNum(S_SPRING);
+	else if (lastkey_scan == SDL_SCANCODE_P || lastkey_scan == SDL_SCANCODE_F11)
+		JE_playSampleNum(S_CLINK); // Reserved for pause and gamma, respectively
+	else
+	{
+		keySettings[id] = lastkey_scan;
+		JE_playSampleNum(S_SELECT);	
+	}
+}
+
+// ----------------------------------------------------------------------------
+// Joystick Configuration SubMenu
+// ----------------------------------------------------------------------------
+
+// Never reinitialize this -- the menu should stay on whatever joystick was last used
+static int joyChoice = 0;
+
+static const inputconfig_t joystickInputs[15] = {
+	{"Select Device", -1000},
+	{"Move Up", 0}, {"Move Down", 2}, {"Move Left", 3}, {"Move Right", 1},
+	{"Fire", 4}, {"Left Sidekick", 6}, {"Right Sidekick", 7}, {"Change Mode", 5},
+	{"Start (Menu)", 8}, {"Back (Pause)", 9},
+	{"Analog Movement", -1}, {"Sensitivity", -2}, {"Threshold", -3},
+	{"Reset to Default Settings", -999}
+};
+
+static const mousetargets_t configureJoystickTargets = {16, {
+	{171,  38, 136,  8},
+	{171,  48, 136,  8},
+	{171,  56, 136,  8},
+	{171,  64, 136,  8},
+	{171,  72, 136,  8},
+	{171,  80, 136,  8},
+	{171,  88, 136,  8},
+	{171,  96, 136,  8},
+	{171, 104, 136,  8},
+	{171, 112, 136,  8},
+	{171, 120, 136,  8},
+	{171, 130, 136,  8},
+	{171, 138, 136,  8},
+	{171, 146, 136,  8},
+	{171, 156, 136,  8},
+	{269, 166,  35, 12}, // Done
+}};
+
+static void submenuOptJoystick_Run(void)
+{
+	const char *joyName = SDL_JoystickName(joystick[joyChoice].handle);
+	char local_buf[32];
+
+	if (joysticks == 0)
+	{
+		// No joysticks are available, bail immediately to stop from reading out of bounds
+		nextSubMenu = SUBMENU_RETURN;
+		return;
+	}
+
+	// ----- Input Handling ---------------------------------------------------
+	int menuResult;
+	if ((menuResult = defaultMenuNavigation(&configureJoystickTargets)) != MENUNAV_NONE)
+	{
+		switch (subMenuSelections[SUBMENU_OPTIONS_JOYSTICK])
+		{
+			int *analog_opt;
+
+			case 0: // Select Device
+				joyChoice += (menuResult == MENUNAV_LEFT) ? joysticks-1 : 1;
+				joyChoice %= joysticks;
+				JE_playSampleNum((menuResult == MENUNAV_SELECT) ? S_CLICK : S_CURSOR);
+				break;
+
+			case 11: // Analog Movement
+				joystick[joyChoice].analog = !joystick[joyChoice].analog;
+				JE_playSampleNum((menuResult == MENUNAV_SELECT) ? S_CLICK : S_CURSOR);
+				break;
+
+			case 12: // Sensitivity
+				analog_opt = &joystick[joyChoice].sensitivity;
+				goto analog_option_configure;
+			case 13: // Threshold
+				analog_opt = &joystick[joyChoice].threshold;
+			analog_option_configure:
+				if (!joystick[joyChoice].analog
+					|| (menuResult == MENUNAV_LEFT && *analog_opt == 0)
+					|| (menuResult == MENUNAV_RIGHT && *analog_opt == 10))
+				{
+					JE_playSampleNum(S_CLINK);
+					break;
+				}
+				*analog_opt += (menuResult == MENUNAV_LEFT) ? 11-1 : 1;
+				*analog_opt %= 11;
+				JE_playSampleNum((menuResult == MENUNAV_SELECT) ? S_CLICK : S_CURSOR);
+				break;
+
+			case 14: // Reset to Defaults
+				if (menuResult != MENUNAV_SELECT)
+					break;
+				reset_joystick_assignments(joyChoice);
+				JE_playSampleNum(S_SELECT);
+				break;
+
+			case 15: // Done
+				if (menuResult != MENUNAV_SELECT)
+					break;
+				nextSubMenu	= SUBMENU_RETURN;
+				JE_playSampleNum(S_CLICK);
+				break;
+
+			default: // Any joystick configuration option
+				if (menuResult != MENUNAV_SELECT)
+					break;
+				nextSubMenu = SUBMENU_ASSIGN;
+				JE_playSampleNum(S_CLICK);
+				break;
+		}
+	}
+
+	// ----- Drawing ----------------------------------------------------------
+	if (!joyName)
+		joyName = "Unknown Joystick";
+	draw_font_hv_full_shadow(VGAScreen, 234, 23, joyName, TINY_FONT, centered, 15, 4, true, 1);
+
+	int y = 38;
+	for (int i = 0; i < 15; ++i)
+	{
+		int shade = subMenuSelections[currentSubMenu] == i ? 15 : 28;
+
+		switch (joystickInputs[i].id)
+		{
+			int *analog_opt;
+
+			case -1:
+				y += 2;
+				snprintf(local_buf, sizeof(local_buf), "%s", joystick[joyChoice].analog ? "Yes" : "No");
+				break;
+			case -2:
+				analog_opt = &joystick[joyChoice].sensitivity;
+				goto analog_option_draw;
+			case -3:
+				analog_opt = &joystick[joyChoice].threshold;
+			analog_option_draw:
+				if (!joystick[joyChoice].analog)
+					shade -= 4;
+				JE_barDrawShadowSmall(VGAScreen, 225, y + 1, 1, joystick[joyChoice].analog ? 16 : 12,
+					*analog_opt, 3, 6);
+				snprintf(local_buf, sizeof(local_buf), "%d", *analog_opt);
+				break;
+			case -999:
+				y += 2;
+				local_buf[0] = '\0';
+				break;
+			case -1000: // 
+				snprintf(local_buf, sizeof(local_buf), "%d of %d", joyChoice + 1, joysticks);
+				break;
+			case 0:
+				y += 2;
+				// fall through
+			default:
+				joystick_assignments_to_string(local_buf, sizeof(local_buf),
+					joystick[joyChoice].assignment[joystickInputs[i].id]);
+				break;
+		}
+
+		if (subMenuSelections[currentSubMenu] == i && nextSubMenu == SUBMENU_ASSIGN)
+		{
+			fill_rectangle_xy(VGAScreen, 164, y+2, 300, y+6, 227);
+			blit_sprite2(VGAScreen, 298, y-3, shopSpriteSheet, 247);
+		}
+		JE_textShade(VGAScreen, 171, y, joystickInputs[i].name, shade / 16, shade % 16 - 8, DARKEN);
+		JE_textShade(VGAScreen, 296 - JE_textWidth(local_buf, TINY_FONT), y, local_buf, shade / 16, shade % 16 - 8, DARKEN);
+		y += 8;
+	}
+
+	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Done", SMALL_FONT_SHAPES,
+		right_aligned, 15, -3 + (SELECTED(15) ? 2 : 0), false, 2);
+
+	// ----- Help Text --------------------------------------------------------
+	const char *helpText;
+	if (nextSubMenu == SUBMENU_ASSIGN)
+		helpText = "Press button or move axis to assign to this input.";
+	else switch (GETSELECTED())
+	{
+		case 0:  helpText = "Use left/right to change the device to configure."; break;
+		case 11: helpText = "Enable or disable analog ship movement."; break;
+		case 12: helpText = "Adjust the analog sensitivity."; break;
+		case 13: helpText = "Adjust the analog threshold/dead zone."; break;
+		case 14: helpText = "Reset all settings to the defaults for this device."; break;
+		case 15: helpText = "Go back to the previous menu."; break;
+		default: helpText = "Configure your joystick buttons."; break;
+	}
+	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
+}
+
+// Handles button assignment, expected to block until complete
+void submenuOptJoystick_Assign(void)
+{
+	const int assignment = subMenuSelections[SUBMENU_OPTIONS_JOYSTICK];
+	if (assignment < 0 || assignment >= 15 || joystickInputs[assignment].id < 0)
+		return;
+
+	const int id = joystickInputs[assignment].id;
+	Joystick_assignment temp;
+
+	if (!detect_joystick_assignment(joyChoice, &temp))
+	{
+		JE_playSampleNum(S_SPRING);
+		return;
+	}
+
+	// if the detected assignment was already set, unset it
+	for (uint i = 0; i < COUNTOF(*joystick->assignment); i++)
+	{
+		if (joystick_assignment_cmp(&temp, &joystick[joyChoice].assignment[id][i]))
+		{
+			joystick[joyChoice].assignment[id][i].type = NONE;
+			goto joystick_assign_end;
+		}
+	}
+
+	// if there is an empty assignment, set it
+	for (uint i = 0; i < COUNTOF(*joystick->assignment); i++)
+	{
+		if (joystick[joyChoice].assignment[id][i].type == NONE)
+		{
+			joystick[joyChoice].assignment[id][i] = temp;
+			goto joystick_assign_end;
+		}
+	}
+
+	// if no assignments are empty, shift them all forward and set the last one
+	for (uint i = 0; i < COUNTOF(*joystick->assignment); i++)
+	{
+		if (i == COUNTOF(*joystick->assignment) - 1)
+			joystick[joyChoice].assignment[id][i] = temp;
+		else
+			joystick[joyChoice].assignment[id][i] = joystick[joyChoice].assignment[id][i + 1];
+	}
+
+joystick_assign_end:
+	JE_playSampleNum(S_SELECT);
+	poll_joysticks();
+}
+
+// ----------------------------------------------------------------------------
 // Options SubMenus
 // ----------------------------------------------------------------------------
 
@@ -2433,11 +2803,13 @@ static void drawOnOffOption(int y, bool value, bool disable, bool highlight)
 
 static void submenuOptions_Run(void)
 {
-	mousetargets_t optionTargets = {5, {
+	mousetargets_t optionTargets = {7, {
 		{164,  38, JE_textWidth("Music", SMALL_FONT_SHAPES), 12},
 		{164,  54, JE_textWidth("Sound", SMALL_FONT_SHAPES), 12},
 		{164,  70, JE_textWidth("DeathLink", SMALL_FONT_SHAPES), 12},
-		{164,  86, JE_textWidth("Change Sprite...", SMALL_FONT_SHAPES), 12},
+		{164,  86, JE_textWidth("Joystick...", SMALL_FONT_SHAPES), 12},
+		{164, 104, JE_textWidth("Keyboard...", SMALL_FONT_SHAPES), 12},
+		{164, 120, JE_textWidth("Change Sprite...", SMALL_FONT_SHAPES), 12},
 		{164, 150, JE_textWidth("Done", SMALL_FONT_SHAPES), 12}
 	}};
 
@@ -2484,19 +2856,33 @@ static void submenuOptions_Run(void)
 					JE_playSampleNum(S_CLINK);
 					break;
 				}
-				JE_playSampleNum((menuResult == MENUNAV_SELECT) ? S_SELECT : S_CURSOR);
+				JE_playSampleNum((menuResult == MENUNAV_SELECT) ? S_CLICK : S_CURSOR);
 				APOptions.EnableDeathLink = !APOptions.EnableDeathLink;
 				break;
 			case 3:
-				if (!useCustomShips)
-				{
-					JE_playSampleNum(S_CLINK);
+				if (menuResult != MENUNAV_SELECT)
 					break;
-				}
-				nextSubMenu = SUBMENU_OPTIONS_CUSTOMSHIP;
+				nextSubMenu = SUBMENU_OPTIONS_JOYSTICK;
 				JE_playSampleNum(S_CLICK);
 				break;
 			case 4:
+				if (menuResult != MENUNAV_SELECT)
+					break;
+				nextSubMenu = SUBMENU_OPTIONS_KEYBOARD;
+				JE_playSampleNum(S_CLICK);
+				break;
+			case 5:
+				if (menuResult != MENUNAV_SELECT)
+					break;
+				if (!useCustomShips)
+					JE_playSampleNum(S_CLINK);
+				else
+				{
+					nextSubMenu = SUBMENU_OPTIONS_CUSTOMSHIP;
+					JE_playSampleNum(S_CLICK);
+				}
+				break;
+			case 6:
 				if (menuResult != MENUNAV_SELECT)
 					break;
 				nextSubMenu = SUBMENU_RETURN;
@@ -2512,8 +2898,10 @@ static void submenuOptions_Run(void)
 	defaultMenuOptionDraw("Music",            38,       false,                     SELECTED(0));
 	defaultMenuOptionDraw("Sound",            38 +  16, false,                     SELECTED(1));
 	defaultMenuOptionDraw("DeathLink",        38 +  32, !APSeedSettings.DeathLink, SELECTED(2));
-	defaultMenuOptionDraw("Change Sprite...", 38 +  48, !useCustomShips,           SELECTED(3));
-	defaultMenuOptionDraw("Done",             38 + 112, false,                     SELECTED(4));
+	defaultMenuOptionDraw("Joystick...",      38 +  48, false,                     SELECTED(3));
+	defaultMenuOptionDraw("Keyboard...",      38 +  64, false,                     SELECTED(4));
+	defaultMenuOptionDraw("Change Sprite...", 38 +  80, !useCustomShips,           SELECTED(5));
+	defaultMenuOptionDraw("Done",             38 + 112, false,                     SELECTED(6));
 
 
 	// ----- Help Text --------------------------------------------------------
@@ -2523,7 +2911,9 @@ static void submenuOptions_Run(void)
 		case 0:  // fall through
 		case 1:  helpText = "Use left/right to adjust volume, select for on/off."; break;
 		case 2:  helpText = "Enable or disable DeathLink."; break;
-		case 3:  helpText = "Change the sprite that your ship uses."; break;
+		case 3:  helpText = "Configure your joystick controls."; break;
+		case 4:  helpText = "Change the keys used to play the game."; break;
+		case 5:  helpText = "Change the sprite that your ship uses."; break;
 		default: helpText = "Go back to the previous menu."; break;
 	}
 	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
@@ -2837,9 +3227,6 @@ int apmenu_itemScreen(void)
 		snprintf(string_buffer, sizeof(string_buffer), "%llu", (unsigned long long)(APStats.Cash - tempMoneySub));
 		JE_textShade(VGAScreen, 65, 173, string_buffer, 1, 6, DARKEN);
 
-		if (newkey && lastkey_scan == SDL_SCANCODE_TAB && currentSubMenu == SUBMENU_MAIN)
-			apmenu_chatbox(); // Blocks until exited
-
 		// Back to previous menu
 		if ((newmouse && lastmouse_but == SDL_BUTTON_RIGHT)
 			|| (newkey && lastkey_scan == SDL_SCANCODE_ESCAPE))
@@ -2852,6 +3239,21 @@ int apmenu_itemScreen(void)
 		switch (nextSubMenu)
 		{
 			case SUBMENU_NONE:
+				break;
+
+			case SUBMENU_CHAT:
+				// Chatbox blocks until exited
+				nextSubMenu = SUBMENU_NONE;
+				apmenu_chatbox();
+				break;
+
+			case SUBMENU_ASSIGN:
+				// All assignment functions block until exited
+				if (currentSubMenu == SUBMENU_OPTIONS_JOYSTICK)
+					submenuOptJoystick_Assign();
+				else if (currentSubMenu == SUBMENU_OPTIONS_KEYBOARD)
+					submenuOptKeyboard_Assign();
+				nextSubMenu = SUBMENU_NONE;
 				break;
 
 			case SUBMENU_RETURN:
