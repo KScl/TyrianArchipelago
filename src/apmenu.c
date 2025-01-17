@@ -2592,7 +2592,7 @@ static const mousetargets_t configureJoystickTargets = {16, {
 
 static void submenuOptJoystick_Run(void)
 {
-	const char *joyName = SDL_JoystickName(joystick[joyChoice].handle);
+	const char *joyName;
 	char local_buf[32];
 
 	if (joysticks == 0)
@@ -2663,7 +2663,7 @@ static void submenuOptJoystick_Run(void)
 	}
 
 	// ----- Drawing ----------------------------------------------------------
-	if (!joyName)
+	if (!(joyName = SDL_JoystickName(joystick[joyChoice].handle)))
 		joyName = "Unknown Joystick";
 	draw_font_hv_full_shadow(VGAScreen, 234, 23, joyName, TINY_FONT, centered, 15, 4, true, 1);
 
@@ -2862,6 +2862,11 @@ static void submenuOptions_Run(void)
 			case 3:
 				if (menuResult != MENUNAV_SELECT)
 					break;
+				if (joysticks == 0)
+				{
+					JE_playSampleNum(S_CLINK);
+					break;
+				}
 				nextSubMenu = SUBMENU_OPTIONS_JOYSTICK;
 				JE_playSampleNum(S_CLICK);
 				break;
@@ -2898,7 +2903,7 @@ static void submenuOptions_Run(void)
 	defaultMenuOptionDraw("Music",            38,       false,                     SELECTED(0));
 	defaultMenuOptionDraw("Sound",            38 +  16, false,                     SELECTED(1));
 	defaultMenuOptionDraw("DeathLink",        38 +  32, !APSeedSettings.DeathLink, SELECTED(2));
-	defaultMenuOptionDraw("Joystick...",      38 +  48, false,                     SELECTED(3));
+	defaultMenuOptionDraw("Joystick...",      38 +  48, joysticks == 0,            SELECTED(3));
 	defaultMenuOptionDraw("Keyboard...",      38 +  64, false,                     SELECTED(4));
 	defaultMenuOptionDraw("Change Sprite...", 38 +  80, !useCustomShips,           SELECTED(5));
 	defaultMenuOptionDraw("Done",             38 + 112, false,                     SELECTED(6));
