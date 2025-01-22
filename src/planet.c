@@ -6,6 +6,7 @@
 #include "vga256d.h"
 #include "video.h"
 
+static double realNavX, realNavY;
 static JE_integer tempNavX, tempNavY;
 static JE_byte planetAni, planetAniWait;
 
@@ -24,13 +25,28 @@ static const JE_byte PAni[21] /* [1..21] */ = {1,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0
 static const JE_word planetX[21] = { 200, 150, 240, 300, 270, 280, 320, 260, 220, 150, 160, 210, 80, 240, 220, 180, 310, 330, 150, 240, 200 };
 static const JE_word planetY[21] = {  40,  90,  90,  80, 170,  30,  50, 130, 120, 150, 220, 200, 80,  50, 160,  10,  55,  55,  90,  90,  40 };
 
-void tmp_setMapVars(int planet)
+void planet_setMapVars(int planet, JE_boolean instant)
 {
 	const unsigned int x_offset = sprite(PLANET_SHAPES, PGR[planet-1]-1)->width / 2,
 	                   y_offset = sprite(PLANET_SHAPES, PGR[planet-1]-1)->height / 2;
 
-	tempNavX = (planetX[planet-1] - x_offset);
-	tempNavY = (planetY[planet-1] - y_offset);
+	JE_integer newNavX = (planetX[planet-1] - x_offset);
+	JE_integer newNavY = (planetY[planet-1] - y_offset);
+
+	if (instant)
+	{
+		realNavX = newNavX;
+		realNavY = newNavY;
+	}
+	else
+	{
+		// Keep in mind this menu runs faster than the original game does.
+		realNavX = realNavX + (newNavX - realNavX) / 5.0f;
+		realNavY = realNavY + (newNavY - realNavY) / 5.0f;
+	}
+
+	tempNavX = roundf(realNavX);
+	tempNavY = roundf(realNavY);
 
 	if (planetAniWait > 0)
 	{
@@ -102,7 +118,7 @@ void JE_drawPlanet(JE_byte planetNum)
 	           tempX = planetX[planetNum] + 66 - tempNavX - sprite(PLANET_SHAPES, tempZ)->width / 2,
 	           tempY = planetY[planetNum] + 85 - tempNavY - sprite(PLANET_SHAPES, tempZ)->height / 2;
 
-	if (tempX > -7 && tempX + sprite(PLANET_SHAPES, tempZ)->width < 170 && tempY > 0 && tempY < 160)
+	if (tempX > -13 && tempX + sprite(PLANET_SHAPES, tempZ)->width < 170 && tempY > 0 && tempY < 160)
 	{
 		if (PAni[planetNum])
 			tempZ += planetAni;

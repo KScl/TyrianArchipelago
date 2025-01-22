@@ -33,10 +33,19 @@
 #define FACE_SHAPES       4
 #define OPTION_SHAPES     5 /*Also contains help shapes*/
 #define WEAPON_SHAPES     6
-#define EXTRA_SHAPES      7 /*Used for Ending pics*/
+#define EXTRA_SHAPES      7 // Double duty: Extra AP shapes, and credits
 
 #define SPRITE_TABLES_MAX        8
 #define SPRITES_PER_TABLE_MAX  152
+
+enum
+{
+	APSPR_CHATBOX_CLIPPED = 0,
+	APSPR_CHATBOX_BOTTOM,
+	APSPR_CHATBOX_TOP,
+	APSPR_PLANET_COVER,
+	APSPR_POWER_LOCK,
+};
 
 typedef struct
 {

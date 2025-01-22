@@ -12,7 +12,6 @@
 #include "nortsong.h"
 #include "nortvars.h"
 #include "palette.h"
-#include "pcxload.h"
 #include "picload.h"
 #include "planet.h"
 #include "shots.h"
@@ -1490,6 +1489,9 @@ void submenuLevelSelect_Init(void)
 	if (navScroll < 0)
 		navScroll = 0;
 
+	// Instantly move the planet display to the targeted planet.
+	const int levelID = level_getByEpisode(navEpisode, navLevel);
+	planet_setMapVars(allLevelData[levelID].planetNum, true);
 }
 
 // ----------------------------------------------------------------------------
@@ -1878,13 +1880,18 @@ static void submenuUpAll_Run(void)
 		}
 
 		// Show weapon power
-		// TODO Show maximum available power in some way
 		for (int i = 0; i <= selWeapon->PowerLevel; ++i)
 		{
 			fill_rectangle_xy(VGAScreen, 45 + i * 6, 151, 45 + i * 6 + 4, 151, 251);
 			JE_pix(VGAScreen, 45 + i * 6, 151, 252);
 			fill_rectangle_xy(VGAScreen, 45 + i * 6, 152, 45 + i * 6 + 4, 164, 250);
 			fill_rectangle_xy(VGAScreen, 45 + i * 6, 165, 45 + i * 6 + 4, 165, 249);
+		}
+
+		// Show available max power (if not default max)
+		for (int i = APStats.PowerMaxLevel; i < 10; ++i)
+		{
+			blit_sprite(VGAScreenSeg, 51 + (6*i), 150, EXTRA_SHAPES, APSPR_POWER_LOCK);
 		}
 
 		sprintf(string_buffer, "POWER: %d", selWeapon->PowerLevel + 1);
@@ -3025,9 +3032,9 @@ static void sidebarArchipelagoInfo(void)
 
 static void sidebarPlanetNav(void)
 {
-	int levelID = level_getByEpisode(navEpisode, navLevel);
+	const int levelID = level_getByEpisode(navEpisode, navLevel);
+	planet_setMapVars(allLevelData[levelID].planetNum, false);
 
-	tmp_setMapVars(allLevelData[levelID].planetNum);
 	fill_rectangle_xy(VGAScreen, 19, 16, 135, 169, 2);
 	JE_drawNavLines(true);
 	JE_drawNavLines(false);
@@ -3038,6 +3045,7 @@ static void sidebarPlanetNav(void)
 		JE_drawPlanet(allLevelData[levelID].planetNum - 1);
 
 	blit_sprite(VGAScreenSeg, 0, 0, OPTION_SHAPES, 28);  // navigation screen interface
+	blit_sprite(VGAScreenSeg, 306, 0, EXTRA_SHAPES, APSPR_PLANET_COVER);
 }
 
 // ------------------------------------------------------------------
@@ -3077,7 +3085,8 @@ static void apmenu_chatbox(void)
 	memcpy(VGAScreen2->pixels, VGAScreen->pixels, VGAScreen->pitch * VGAScreen->h);
 
 	JE_barShade(VGAScreen, 0, 172, 319, 175);
-	pcxload_renderChatBox(VGAScreen, 174, 0, 26);
+	blit_sprite(VGAScreen, 0, 174, EXTRA_SHAPES, APSPR_CHATBOX_TOP);
+	blit_sprite(VGAScreen, 0, 180, EXTRA_SHAPES, APSPR_CHATBOX_BOTTOM);
 	JE_mouseStart();
 	JE_showVGA();
 	JE_mouseReplace();
@@ -3087,7 +3096,7 @@ static void apmenu_chatbox(void)
 	for (; lines <= 16; lines++)
 	{
 		JE_barShade(VGAScreen, 0, 172 - (lines * 9), 319, 175 - (lines * 9));
-		pcxload_renderChatBox(VGAScreen, 174 - (lines * 9), 0, 6);
+		blit_sprite(VGAScreen, 0, 174 - (lines * 9), EXTRA_SHAPES, APSPR_CHATBOX_TOP);
 		fill_rectangle_xy(VGAScreen, 0, 180 - (lines * 9), 319, 180, 228);
 		fill_rectangle_xy(VGAScreen, 307, 180 - (lines * 9), 310, 180, 227);
 		apmsg_drawScrollBack(scrollbackPos, lines);
@@ -3157,9 +3166,9 @@ static void apmenu_chatbox(void)
 	for (lines = 15; lines >= 0; lines--)
 	{
 		memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
-		pcxload_renderChatBox(VGAScreen, 174, 0, 26);
+		blit_sprite(VGAScreen, 0, 180, EXTRA_SHAPES, APSPR_CHATBOX_BOTTOM);
 		JE_barShade(VGAScreen, 0, 172 - (lines * 9), 319, 175 - (lines * 9));
-		pcxload_renderChatBox(VGAScreen, 174 - (lines * 9), 0, 6);
+		blit_sprite(VGAScreen, 0, 174 - (lines * 9), EXTRA_SHAPES, APSPR_CHATBOX_TOP);
 		fill_rectangle_xy(VGAScreen, 0, 180 - (lines * 9), 319, 180, 228);
 		fill_rectangle_xy(VGAScreen, 307, 180 - (lines * 9), 310, 180, 227);
 		if (lines)
@@ -3173,7 +3182,7 @@ static void apmenu_chatbox(void)
 
 	service_SDL_events(true); // Get fresh events upon exiting
 	JE_loadPic(VGAScreen2, 1, false);
-	pcxload_renderChatBox(VGAScreen2, 185, 11, 15);
+	blit_sprite(VGAScreen2, 0, 185, EXTRA_SHAPES, APSPR_CHATBOX_CLIPPED);
 }
 
 // ----------------------------------------------------------------------------
@@ -3189,12 +3198,11 @@ int apmenu_itemScreen(void)
 	bool updatePalette = true;
 
 	play_song(DEFAULT_SONG_BUY);
-	pcxload_prepChatBox();
 
 	VGAScreen = VGAScreenSeg;
 
 	JE_loadPic(VGAScreen2, 1, false);
-	pcxload_renderChatBox(VGAScreen2, 185, 11, 15);
+	blit_sprite(VGAScreen2, 0, 185, EXTRA_SHAPES, APSPR_CHATBOX_CLIPPED);
 	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 
 	JE_showVGA();

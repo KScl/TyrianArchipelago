@@ -887,6 +887,10 @@ void sprites_loadInterfaceSprites(void)
 	archipelagoSpriteSheet.size = ftell_eof(f);
 	JE_loadCompShapesB(&archipelagoSpriteSheet, f);
 	fclose(f);
+
+	f = dir_fopen_die("apdata", "apsprite.spr", "rb");
+	load_sprites(EXTRA_SHAPES, f);
+	fclose(f);
 }
 
 void sprites_loadMainShapeTables(bool xmas)

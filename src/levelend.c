@@ -566,6 +566,7 @@ void JE_playCredits(void)
 	JE_integer shipx = 0, shipxwait = 0;
 	JE_shortint shipxc = 0, shipxca = 0;
 
+	free_sprites(EXTRA_SHAPES);
 	load_sprites_file(EXTRA_SHAPES, "estsc.shp");
 
 	setDelay2(1000);
@@ -713,4 +714,7 @@ void JE_playCredits(void)
 	fade_black(10);
 
 	free_sprites(EXTRA_SHAPES);
+	f = dir_fopen_die("apdata", "apsprite.spr", "rb");
+	load_sprites(EXTRA_SHAPES, f);
+	fclose(f);
 }
