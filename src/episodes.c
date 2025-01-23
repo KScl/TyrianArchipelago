@@ -22,6 +22,7 @@
 #include "file.h"
 #include "lvlmast.h"
 #include "opentyr.h"
+#include "sndmast.h"
 #include "varz.h"
 
 // Removed (unreferenced) item types
@@ -45,9 +46,6 @@ JE_byte    initial_episode_num, episodeNum = 0;
 
 /* Tells the game whether the level currently loaded is a bonus level. */
 JE_boolean bonusLevel;
-
-/* Tells if the game jumped back to Episode 1 */
-JE_boolean jumpBackToEpisode1;
 
 void JE_loadItemDat(FILE *f)
 {
@@ -125,7 +123,17 @@ void JE_loadItemDat(FILE *f)
 			fread_u8_die( &weapons[i].shipblastfilter, 1, f);
 		}
 	}
-	
+
+	// Before we go, if we have Tyrian 2000 weapons,
+	// change their sounds to always match their E4/E5 counterparts
+	if (isTyrian2000)
+	{
+		for (int i = 781; i <= 792; ++i)
+			weapons[i].sound = S_WEAPON_13;
+		for (int i = 793; i <= 816; ++i)
+			weapons[i].sound = S_MARS3;
+	}
+
 	for (int i = 0; i < itemNum[ITEMNUM_PORT] + 1; ++i)
 	{
 		Uint8 nameLen;
