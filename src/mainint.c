@@ -2772,11 +2772,13 @@ void JE_playerCollide(Player *this_player, JE_byte playerNum_)
 					Archipelago_SendCheck(evalue - 28000);
 					JE_setupExplosion(enemy_screen_x, enemy[z].ey, 0, 54, true, false);
 
+#ifdef DEBUG_OPTIONS
 					if (debugGameInit)
 					{
 						snprintf(tempStr, sizeof(tempStr)-1, "Location %d checked", evalue - 28000);
 						apmsg_drawInGameText(tempStr);
 					}
+#endif
 				}
 				else if (evalue > 20000)
 				{

@@ -919,8 +919,10 @@ int main(int argc, char *argv[])
 		// Broke out of main, disconnect AP
 		Archipelago_Disconnect();
 
+#ifdef DEBUG_OPTIONS
 		if (debugGameInit)
 			break;
+#endif
 	}
 
 	JE_tyrianHalt(0);
