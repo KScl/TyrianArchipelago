@@ -2149,11 +2149,15 @@ static shopitem_t *shopItemList;
 
 static void submenuInShop_Init(void)
 {
-	int shopLocationStart = allLevelData[subMenuSelections[SUBMENU_SELECT_SHOP]].shopStart;
+	const int levelID = subMenuSelections[SUBMENU_SELECT_SHOP];
+	const int shopLocationStart = allLevelData[levelID].shopStart;
 	shopItemCount = Archipelago_GetShopItems(shopLocationStart, &shopItemList);
 
 	// Start on "Done" - this may change later but I like how that flows for now
 	subMenuSelections[SUBMENU_IN_SHOP] = shopItemCount;
+
+	// Move planet display to planet we're shopping at, makes backing out look nicer
+	planet_setMapVars(allLevelData[levelID].planetNum, true);
 }
 
 static void submenuInShop_Run(void)
