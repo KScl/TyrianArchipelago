@@ -60,6 +60,69 @@ static int apmenu_mouseInTarget(const mousetargets_t *targets, int x, int y)
 }
 
 // ============================================================================
+// Text Wrapping
+// ============================================================================
+
+static char wrapped_text_buffer[1024];
+static char *wrapped_text_lines[16];
+
+// Wraps text, storing pointers to the beginning of each line in wrapped_text_lines.
+// Returns line count.
+static size_t apmenu_wrapText(const char *text, int width)
+{
+	size_t lines = 0;
+	int cur_width = 0;
+	char *p_start, *p_end, *p;
+
+	strncpy(wrapped_text_buffer, text, sizeof(wrapped_text_buffer)-1);
+	wrapped_text_buffer[sizeof(wrapped_text_buffer)-1] = 0;
+
+	p_start = p_end = p = wrapped_text_buffer;
+	while (lines < 16)
+	{
+		while (*p && *p != ' ' && *p != '\n')
+		{
+			// Advance until we reach newline, space, or EOT. Add character width here, too.
+			const int sprite_id = font_ascii[(unsigned char)*p++];
+			if (sprite_id != -1)
+				cur_width += sprite(TINY_FONT, sprite_id)->width + 1;
+		}
+
+		if (cur_width >= width)
+		{
+			wrapped_text_lines[lines++] = p_start;
+			cur_width = 0;
+
+			// If we haven't moved (word too long to fit), just go on anyway
+			if (p_end == p_start)
+				p_end = p;
+
+			*p_end = 0; // Make the last safe space a null, and then resume
+			p_start = p = ++p_end;
+		}
+		else if (!*p)
+		{
+			wrapped_text_lines[lines++] = p_start;
+			break;
+		}
+		else if (*p == '\n')
+		{
+			wrapped_text_lines[lines++] = p_start;
+			cur_width = 0;
+
+			*p = 0; // Make the newline a null, and then resume
+			p_start = p_end = ++p;
+		}
+		else
+		{
+			cur_width += 6;
+			p_end = p++; // Save last safe space
+		}
+	}
+	return lines;
+}
+
+// ============================================================================
 // Text Input
 // ============================================================================
 
@@ -383,9 +446,12 @@ bool ap_connectScreen(void)
 					}
 					else
 					{
-						drawInputBox(VGAScreen, 40, 100-11, 240, 22, 232, 224);
-						draw_font_hv_shadow(VGAScreen, 160,  91, "Can't start local game:", small_font, centered, 14, 2, false, 1);
-						draw_font_hv_shadow(VGAScreen, 160, 101, localErrorStr, small_font, centered, 14, 2, false, 1);
+						const size_t lines = apmenu_wrapText(localErrorStr, 240);
+
+						drawInputBox(VGAScreen, 40, 100-6-(lines*5), 240, 12+(lines*10), 232, 224);
+						draw_font_hv_shadow(VGAScreen, 160, 96-(lines*5), "Can't start local game:", small_font, centered, 14, 2, false, 1);
+						for (size_t i = 0; i < lines; ++i)
+							draw_font_hv_shadow(VGAScreen, 160, 106-(lines*5)+(i*10), wrapped_text_lines[i], small_font, centered, 14, 2, false, 1);
 
 						if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_ESCAPE))
 						{
@@ -397,16 +463,21 @@ bool ap_connectScreen(void)
 				else switch (Archipelago_ConnectionStatus())
 				{
 					default:
-						drawInputBox(VGAScreen, 40, 100-11, 240, 22, 232, 224);
-						draw_font_hv_shadow(VGAScreen, 160,  91, "Failed to connect to the Archipelago server:", small_font, centered, 14, 2, false, 1);
-						draw_font_hv_shadow(VGAScreen, 160, 101, Archipelago_GetConnectionError(), small_font, centered, 14, 2, false, 1);
+					{
+						const size_t lines = apmenu_wrapText(Archipelago_GetConnectionError(), 240);
+
+						drawInputBox(VGAScreen, 40, 100-6-(lines*5), 240, 12+(lines*10), 232, 224);
+						draw_font_hv_shadow(VGAScreen, 160, 96-(lines*5), "Failed to connect to the Archipelago server:", small_font, centered, 14, 2, false, 1);
+						for (size_t i = 0; i < lines; ++i)
+							draw_font_hv_shadow(VGAScreen, 160, 106-(lines*5)+(i*10), wrapped_text_lines[i], small_font, centered, 14, 2, false, 1);
 
 						if (newkey && (lastkey_scan == SDL_SCANCODE_RETURN || lastkey_scan == SDL_SCANCODE_ESCAPE))
 						{
 							JE_playSampleNum((lastkey_scan == SDL_SCANCODE_RETURN) ? S_SELECT : S_SPRING);
 							showGameInfo = false;
 						}
-						break;
+						break;						
+					}
 					case APCONN_CONNECTING:
 						drawInputBox(VGAScreen, 120, 100-6, 80, 12, 200, 224);
 						draw_font_hv_shadow(VGAScreen, 160, 96, "Connecting...", small_font, centered, 12, visual_pulse, false, 1);
