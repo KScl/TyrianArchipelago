@@ -126,40 +126,32 @@ void JE_paramCheck(int argc, char *argv[])
 
 		case 'c':
 		{
-			intptr_t temp = (intptr_t)strchr(option.arg, ':');
-			if (!temp)
-			{
-				fprintf(stderr, "%s: error: %s: no port specified\n", argv[0], argv[option.argn]);
-				goto connect_slot_error;
-			}
+			char connect_string[512];
+			strncpy(connect_string, option.arg, sizeof(connect_string)-1);
+			connect_string[sizeof(connect_string)-1] = 0;
+
+			char *p = strchr(connect_string, '@');
+			if (!p || p == connect_string)
+				fprintf(stderr, "%s: error: %s: no slot name specified\n", argv[0], argv[option.argn]);
+			else if (!*(p + 1))
+				fprintf(stderr, "%s: error: %s: no server address specified\n", argv[0], argv[option.argn]);
 			else
 			{
-				temp -= (intptr_t)option.arg;
-				int temp_port = atoi(&option.arg[temp + 1]);
-				if (!(temp_port > 0 && temp_port < 65536))
+				*p = 0;
+				snprintf(lastGoodServerAddr, sizeof(lastGoodServerAddr), "%s", p+1);
+
+				// Find and extract password.
+				p = strchr(connect_string, ':');
+				if (p && p != connect_string)
 				{
-					fprintf(stderr, "%s: error: %s: invalid port specified\n", argv[0], argv[option.argn]);
-					goto connect_slot_error;
+					*p = 0;
+					snprintf(autoConnectPassword, sizeof(autoConnectPassword), "%s", p+1);
 				}
+
+				snprintf(lastGoodSlotName, 17, "%s", connect_string); // Size 20, but 16 char max
+				skipToGameplay = true;
+				break;
 			}
-			temp = (intptr_t)strchr(option.arg, '@');
-			if (!temp || temp == (intptr_t)option.arg)
-			{
-				fprintf(stderr, "%s: error: %s: no slot name specified\n", argv[0], argv[option.argn]);
-				goto connect_slot_error;
-			}
-
-			temp -= (intptr_t)option.arg;
-			strncpy(lastGoodServerAddr, &option.arg[temp + 1], sizeof(lastGoodServerAddr)-1);
-			lastGoodServerAddr[sizeof(lastGoodServerAddr) - 1] = 0;
-			strncpy(lastGoodSlotName, option.arg, 17); // Size 20, but 16 char max
-			lastGoodSlotName[temp < 16 ? temp : 16] = 0;
-
-			skipToGameplay = true;
-			Archipelago_Connect(option.arg);
-			break;
-
-		connect_slot_error:
 			fprintf(stderr, "Argument should be in the format \"slot name@address:port\"\n");
 			exit(EXIT_FAILURE);
 		}

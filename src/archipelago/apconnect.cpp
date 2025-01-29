@@ -1630,8 +1630,15 @@ static void APRemote_CB_Error(const std::string& error)
 // *** Callback for "RoomInfo" ***
 static void APRemote_CB_RoomInfo()
 {
-	connection_stat = APCONN_TENTATIVE;
-	ap->ConnectSlot(ourSlotName, cx_serverPassword, 0b011, {}, targetAPVersion);
+	if (ap->has_password() && cx_serverPassword.empty())
+	{
+		connection_stat = APCONN_NEED_PASSWORD;
+	}
+	else
+	{
+		connection_stat = APCONN_TENTATIVE;
+		ap->ConnectSlot(ourSlotName, cx_serverPassword, 0b011, {}, targetAPVersion);
+	}
 }
 
 // *** Callback for "ConnectionRefused" ***
@@ -1778,37 +1785,24 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 
 // ----------------------------------------------------------------------------
 
-void Archipelago_SetDefaultConnectionPassword(const char *connectionPassword)
-{
-	cx_serverPassword = connectionPassword;
-}
-
-void Archipelago_Connect(const char *address)
+void Archipelago_SetPassword(const char *password)
 {
 	if (gameInProgress)
 		return;
 
-	if (!address)
-	{
-		ourSlotName = "";
-		cx_serverAddress = "";
-	}
-	else
-	{
-		std::string cppAddress = address;
-		std::string::size_type at_sign = cppAddress.find("@");
+	cx_serverPassword = password;
+	if (ap && connection_stat == APCONN_NEED_PASSWORD)
+		APRemote_CB_RoomInfo();
+}
 
-		if (at_sign == std::string::npos)
-		{
-			ourSlotName = "";
-			cx_serverAddress = cppAddress;
-		}
-		else
-		{
-			ourSlotName = cppAddress.substr(0, at_sign);
-			cx_serverAddress = cppAddress.substr(at_sign + 1);
-		}
-	}
+void Archipelago_Connect(const char *slot_name, const char *address, const char *password)
+{
+	if (gameInProgress)
+		return;
+
+	ourSlotName = (slot_name) ? slot_name : "";
+	cx_serverAddress = (address) ? address : "";
+	cx_serverPassword = (password) ? password : "";
 
 	if (cx_serverAddress.empty())
 		return APRemote_FatalError("Please provide a server address to connect to.");

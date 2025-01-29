@@ -4,6 +4,7 @@
 // Last good server/slot names
 extern char lastGoodServerAddr[128];
 extern char lastGoodSlotName[20];
+extern char autoConnectPassword[128];
 
 // Basic init steps after an Archipelago game is loaded CPP side
 void apmenu_initArchipelagoGame(void);

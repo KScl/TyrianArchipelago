@@ -162,6 +162,7 @@ static void apmenu_textInputUpdate(textinput_t *input, const char *newText)
 // Last successful online server input
 char lastGoodServerAddr[128] = "archipelago.gg:";
 char lastGoodSlotName[20] = "";
+char autoConnectPassword[128] = "";
 
 // If true, aborts menu processing (fading everything out) to show connection progress instead.
 static bool showGameInfo = false;
@@ -177,6 +178,7 @@ static size_t connectSel_Online = 0;
 // Text input for Online menu
 static textinput_t inputServerAddr = { /* Text Color */ 250, /* Error Color */ 228, /* Max Length */ 127};
 static textinput_t inputSlotName   = { /* Text Color */ 250, /* Error Color */ 228, /* Max Length */ 16};
+static textinput_t inputPassword   = { /* Text Color */ 250, /* Error Color */ 228, /* Max Length */ 127};
 
 // Does basic init steps as we initiate an Archipelago game.
 void apmenu_initArchipelagoGame(void)
@@ -270,10 +272,8 @@ static void ap_connectSubmenuOnline(void)
 			++connectSel_Online;
 		else
 		{
-			char connectAddress[160];
-			snprintf(connectAddress, 160, "%s@%s", inputSlotName.text, inputServerAddr.text);
-
-			Archipelago_Connect(connectAddress);			
+			apmenu_textInputUpdate(&inputPassword, "");
+			Archipelago_Connect(inputSlotName.text, inputServerAddr.text, NULL);			
 			showGameInfo = true;
 		}
 	}
@@ -318,6 +318,10 @@ bool ap_connectScreen(void)
 
 	if (skipToGameplay)
 	{
+		// We start connecting here, because we know everything is loaded by this point
+		// (doing it in params.c results in sending an empty UUID)
+		Archipelago_Connect(lastGoodSlotName, lastGoodServerAddr, autoConnectPassword);
+
 		showGameInfo = true;
 		skipToGameplay = false; // Clear flag so we don't get stuck in loops later
 		ap_connectSubmenuOnline(); // To draw it once
@@ -410,6 +414,24 @@ bool ap_connectScreen(void)
 					case APCONN_TENTATIVE:
 						drawInputBox(VGAScreen, 120, 100-6, 80, 12, 200, 224);
 						draw_font_hv_shadow(VGAScreen, 160, 96, "Authenticating...", small_font, centered, 12, visual_pulse, false, 1);
+						break;
+					case APCONN_NEED_PASSWORD:
+						if (apmenu_textInputCapture(&inputPassword) && inputPassword.text[0] != '\0')
+						{
+							// Send password to server, tentative connection.
+							JE_playSampleNum(S_SELECT);
+							Archipelago_SetPassword(inputPassword.text);
+						}
+						else if (newkey && lastkey_scan == SDL_SCANCODE_ESCAPE)
+						{
+							// Back out from sending password.
+							JE_playSampleNum(S_SPRING);
+							Archipelago_Disconnect();
+							showGameInfo = false;
+						}
+						drawInputBox(VGAScreen, 40, 100-11, 240, 22, 248, 224);
+						draw_font_hv_shadow(VGAScreen, 160,  91, "Please enter the server password:", small_font, centered, 15, 3, false, 1);
+						apmenu_textInputRender(VGAScreen, &inputPassword, 40 + 2, 100 + 2, 240 - 4);
 						break;
 					case APCONN_READY:
 						memcpy(lastGoodServerAddr, inputServerAddr.text, 128);

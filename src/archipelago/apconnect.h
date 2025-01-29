@@ -8,6 +8,7 @@
 typedef enum {
 	APCONN_NOT_CONNECTED = 0,
 	APCONN_CONNECTING,
+	APCONN_NEED_PASSWORD,
 	APCONN_TENTATIVE,
 	APCONN_READY,
 	APCONN_FATAL_ERROR
@@ -72,8 +73,8 @@ const char *Archipelago_StartLocalGame(FILE *file);
 // Remote Game
 // ----------------------------------------------------------------------------
 
-void Archipelago_SetDefaultPassword(const char *connectionPassword);
-void Archipelago_Connect(const char *address);
+void Archipelago_SetPassword(const char *password);
+void Archipelago_Connect(const char *slot_name, const char *address, const char *password);
 void Archipelago_Poll(void);
 void Archipelago_Disconnect(void);
 
