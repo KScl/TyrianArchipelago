@@ -410,14 +410,13 @@ void Patcher_ReadyPatch(const char *gameID, Uint8 episode, Uint8 levelNum)
 	loadedPatch = nullptr;
 	patchEvents.clear();
 
-	std::string gameIDStr = gameID;
 	std::string episodeStr = episodeToString(episode);
 	std::string levelStr = std::to_string(levelNum);
 
-	if (!patchData["patchList"].contains(gameIDStr) || !patchData["patchList"][gameIDStr].contains(episodeStr))
+	if (!patchData["patchList"].contains(gameID) || !patchData["patchList"][gameID].contains(episodeStr))
 		return; // Game (???) or episode not recognized
 
-	auto episodePatchList = patchData["patchList"][gameIDStr][episodeStr];
+	auto episodePatchList = patchData["patchList"][gameID][episodeStr];
 	if (!episodePatchList.contains(levelStr))
 		return; // No patch for this level
 
