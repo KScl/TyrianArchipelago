@@ -4293,21 +4293,28 @@ void JE_eventSystem(void)
 
 		if (temp != 0)
 		{
+			enemy[temp-1].ey = -28;
 			switch (apEnemySection[eventRec[eventLoc-1].eventdat3])
 			{
 				default:
 				case 0:
 					enemy[temp-1].ex = eventRec[eventLoc-1].eventdat2 - (mapX - 1) * 24;
-					enemy[temp-1].ey -= backMove2;
 					break;
 				case 25:
 				case 75:
 					enemy[temp-1].ex = eventRec[eventLoc-1].eventdat2 - (mapX - 1) * 24 - 12;
-					enemy[temp-1].ey -= backMove;
 					break;
 				case 50:
-					enemy[temp-1].ex = eventRec[eventLoc-1].eventdat2 - mapX3 * 24 - 24 * 2 + 6;
-					enemy[temp-1].ey -= backMove3;
+					if (background3x1)
+						enemy[temp-1].ex = eventRec[eventLoc-1].eventdat2 - (mapX - 1) * 24 - 12;
+					else
+						enemy[temp-1].ex = eventRec[eventLoc-1].eventdat2 - mapX3 * 24 - 24 * 2 + 6;
+
+					if (background3x1b)
+					{
+						enemy[temp-1].ex -= 6;
+						enemy[temp-1].ey += 4;
+					}
 					break;
 			}
 			enemy[temp-1].ey += eventRec[eventLoc-1].eventdat5;
