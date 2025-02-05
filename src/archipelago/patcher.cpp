@@ -161,14 +161,17 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 {
 	eventRec[x].eventtime = j.at("time").template get<Uint16>();
 	eventRec[x].eventtype = j.at("event").template get<Uint8>();
+	eventRec[x].eventdat  = 0; // Sint16
+	eventRec[x].eventdat2 = 0; // Sint16
+	eventRec[x].eventdat3 = 0; // Sint8
+	eventRec[x].eventdat4 = 0; // Uint8
+	eventRec[x].eventdat5 = 0; // Sint8
+	eventRec[x].eventdat6 = 0; // Sint8
 
 	// By default, since so many events use it
 	if (eventRec[x].eventtype != 39 && eventRec[x].eventtype != 79)
 		eventRec[x].eventdat4 = j.value<Uint8>("linknum", 0);
 
-	// Sint16 eventdat, eventdat2;
-	// Sint8  eventdat3, eventdat5, eventdat6;
-	// Uint8  eventdat4;
 	switch (eventRec[x].eventtype)
 	{
 		case   1: // StarfieldSpeed
