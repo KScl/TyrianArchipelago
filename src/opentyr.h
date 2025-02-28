@@ -77,12 +77,9 @@ void tyrianError(const char *msg, ...);
 //#define DEBUG_ARCADE_ITEM_DROPS
 
 // Enables "Unbounded" speed option for quickly advancing.
-#define UNBOUNDED_SPEED
+//#define UNBOUNDED_SPEED
 
-// Enables F-key cheats in menus to manipulate items.
-#define ITEM_CHEATS
-
-// Enables F-key cheats in level for invulnerability, skip level, etc.
-#define LEVEL_CHEATS
+// Simplifies cheats to F2=invuln, F3=level skip (fail), F4=level skip, F10=debug
+//#define SIMPLIFIED_LEVEL_CHEATS
 
 #endif /* OPENTYR_H */

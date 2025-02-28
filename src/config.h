@@ -111,10 +111,7 @@ extern JE_byte processorType;
 //extern JE_SaveFilesType saveFiles;
 //extern JE_SaveGameTemp saveTemp;
 //extern JE_word editorLevel;
-
-#ifdef LEVEL_CHEATS
 extern JE_boolean youAreCheating; // invulnerability
-#endif
 
 #ifdef DEBUG_OPTIONS
 extern bool debugGameInit; // Starts a debug game from apconnect.cpp on boot

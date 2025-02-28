@@ -1144,10 +1144,8 @@ void JE_inGameDisplays(void)
 		}
 	}
 
-#ifdef LEVEL_CHEATS
 	if (youAreCheating)
 		JE_outText(VGAScreen, 90, 170, "Cheaters always prosper.", 3, 4);
-#endif
 }
 
 void JE_mainKeyboardInput(void)
@@ -1168,42 +1166,52 @@ void JE_mainKeyboardInput(void)
 		}
 	}
 
-#if 0 // Uncomment this to finely control generator power for testing.
-	if (debugDamageViewer)
+	if (!Archipelago_IsRacing())
 	{
-		if (keysactive[SDL_SCANCODE_F8])
-			++powerSys[6].power;
-		if (keysactive[SDL_SCANCODE_F7])
-			--powerSys[6].power;
-	}
+		// Cheat: Invulnerability
+#ifdef SIMPLIFIED_LEVEL_CHEATS
+		if (keysactive[SDL_SCANCODE_F2])
+#else
+		if (keysactive[SDL_SCANCODE_F2] && keysactive[SDL_SCANCODE_F3] && keysactive[SDL_SCANCODE_F6])
 #endif
-
-#ifdef LEVEL_CHEATS
-	// Cheat: Invulnerability
-	if (keysactive[SDL_SCANCODE_F2])
-		youAreCheating = !youAreCheating;
+			youAreCheating = !youAreCheating;
 
 	// Cheat: Level Skip
-	if (keysactive[SDL_SCANCODE_F3])
-	{
-		levelTimer = true;
-		levelTimerCountdown = 0;
-		endLevel = true;
-		levelEnd = 40;
-	}
+#ifdef SIMPLIFIED_LEVEL_CHEATS
+		if (keysactive[SDL_SCANCODE_F3])
+#else
+		if (keysactive[SDL_SCANCODE_F2] && keysactive[SDL_SCANCODE_F6] && keysactive[SDL_SCANCODE_F7])
+#endif
+		{
+			levelTimer = true;
+			levelTimerCountdown = 0;
+			endLevel = true;
+			levelEnd = 40;
+		}
+#ifdef SIMPLIFIED_LEVEL_CHEATS
+		else if (keysactive[SDL_SCANCODE_F4])
+#else
+		else if (keysactive[SDL_SCANCODE_F2] && keysactive[SDL_SCANCODE_F6] && keysactive[SDL_SCANCODE_F8])
+#endif
+		{
+			endLevel = true;
+			levelEnd = 40;
+		}
 
 	// Cheat: Debug
-	if (keysactive[SDL_SCANCODE_F10])
-	{
-		debug = !debug;
+#ifdef SIMPLIFIED_LEVEL_CHEATS
+		if (keysactive[SDL_SCANCODE_F10])
+		{
+			debug = !debug;
 
-		debugHist = 1;
-		debugHistCount = 1;
+			debugHist = 1;
+			debugHistCount = 1;
 
-		/* YKS: clock ticks since midnight replaced by SDL_GetTicks */
-		lastDebugTime = SDL_GetTicks();
-	}
+			/* YKS: clock ticks since midnight replaced by SDL_GetTicks */
+			lastDebugTime = SDL_GetTicks();
+		}
 #endif
+	}
 
 	/* pause game */
 	pause_pressed = pause_pressed || keysactive[SDL_SCANCODE_P];

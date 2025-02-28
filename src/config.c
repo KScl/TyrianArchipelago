@@ -143,10 +143,7 @@ JE_boolean pentiumMode;
 /* Savegame files */
 JE_byte    gameSpeed;
 JE_byte    processorType;  /* 1=386 2=486 3=Pentium Hyper */
-
-#ifdef LEVEL_CHEATS
 JE_boolean youAreCheating;
-#endif
 
 #ifdef DEBUG_OPTIONS
 bool debugGameInit = false;

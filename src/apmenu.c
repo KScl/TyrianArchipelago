@@ -3155,13 +3155,6 @@ static void sidebarSimulateShots(void)
 	// Show weapon mode type
 	blit_sprite(VGAScreenSeg, 3, 56, OPTION_SHAPES, (player[0].weapon_mode == 1) ? 18 : 19);
 	blit_sprite(VGAScreenSeg, 3, 64, OPTION_SHAPES, (player[0].weapon_mode == 1) ? 19 : 18);
-
-#ifdef ITEM_CHEATS
-	if (newkey && lastkey_scan == SDL_SCANCODE_F2 && APStats.GeneratorLevel > 1)
-		--APStats.GeneratorLevel;
-	if (newkey && lastkey_scan == SDL_SCANCODE_F3 && APStats.GeneratorLevel < 6)
-		++APStats.GeneratorLevel;
-#endif
 }
 
 // ------------------------------------------------------------------
@@ -3246,7 +3239,12 @@ static void apmenu_chatbox(void)
 		// Draw online/offline marker
 		fill_rectangle_xy(VGAScreen, 282, 187, 312, 187+9, 228);
 		if (Archipelago_ConnectionStatus() == APCONN_READY)
-			JE_outTextAndDarken(VGAScreen, 284, 187, "Online", 12, 3, TINY_FONT);
+		{
+			if (Archipelago_IsRacing())
+				JE_outTextAndDarken(VGAScreen, 286, 187, "Race", 12, 3, TINY_FONT);
+			else
+				JE_outTextAndDarken(VGAScreen, 284, 187, "Online", 12, 3, TINY_FONT);
+		}
 		else
 			JE_outTextAndDarken(VGAScreen, 282, 187, "Offline", 4, 3, TINY_FONT);
 

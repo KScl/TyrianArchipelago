@@ -832,10 +832,7 @@ int main(int argc, char *argv[])
 
 	/* Default Options */
 	smoothScroll = true;
-
-#ifdef LEVEL_CHEATS
 	youAreCheating = false;
-#endif
 
 	if (!audio_disabled)
 	{

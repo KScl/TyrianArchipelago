@@ -401,11 +401,7 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 	// a hit to their armor in certain situations
 	int takenArmorDamage = 0;
 
-#ifdef LEVEL_CHEATS
 	if (!this_player->is_alive || youAreCheating)
-#else
-	if (!this_player->is_alive)
-#endif
 		return 0;
 
 	soundQueue[7] = S_SHIELD_HIT;

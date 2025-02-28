@@ -84,6 +84,8 @@ const char* Archipelago_GetConnectionError(void);
 void Archipelago_ChatMessage(const char *userMessage);
 void Archipelago_GoalComplete(void);
 
+bool Archipelago_IsRacing(void);
+
 // ----------------------------------------------------------------------------
 // Items and Checks
 // ----------------------------------------------------------------------------

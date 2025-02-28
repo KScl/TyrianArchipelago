@@ -137,6 +137,9 @@ apupdatereq_t APUpdateRequest; // When C++ side thinks C needs to redraw somethi
 // Name of the seed. Used for loading/saving
 static std::string multiworldSeedName;
 
+// True if game is in race mode.
+static bool isInRaceMode = false;
+
 // Local location number (first in region): Number of locations in region.
 static std::unordered_map<uint16_t, uint16_t> locationsPerRegion;
 
@@ -1473,6 +1476,7 @@ const char *Archipelago_StartDebugGame(void)
 	totalLocationCount = 0;
 
 	gameInProgress = true;
+	isInRaceMode = false;
 	return NULL;
 }
 
@@ -1564,6 +1568,7 @@ const char *Archipelago_StartLocalGame(FILE *file)
 	// Init other data (can't fail)
 	APLocal_InitLocationsPerRegion();
 	gameInProgress = true;
+	isInRaceMode = false;
 	return NULL;
 }
 
@@ -1639,6 +1644,13 @@ static void APRemote_CB_RoomInfo()
 		connection_stat = APCONN_TENTATIVE;
 		ap->ConnectSlot(ourSlotName, cx_serverPassword, 0b011, {}, targetAPVersion);
 	}
+}
+
+// *** Callback for "Retrieved" ***
+static void APRemote_CB_Retrieved(const std::map<std::string, json>& keys)
+{
+	if (keys.count("_read_race_mode") && keys.at("_read_race_mode").is_number())
+		isInRaceMode = (keys.at("_read_race_mode").template get<int>() != 0);
 }
 
 // *** Callback for "ConnectionRefused" ***
@@ -1757,6 +1769,10 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			// Init other data.
 			locationsPerRegion.clear(); // Will be properly init later (after data package is received)
 			gameInProgress = true;
+
+			// Check race mode status from server. Until proven otherwise, assume race mode.
+			isInRaceMode = true;
+			ap->Get({"_read_race_mode"});
 		}
 		catch (std::runtime_error& e)
 		{
@@ -1837,6 +1853,7 @@ void Archipelago_Connect(const char *slot_name, const char *address, const char 
 	ap->set_room_info_handler(APRemote_CB_RoomInfo);
 	ap->set_slot_refused_handler(APRemote_CB_SlotRefused);
 	ap->set_slot_connected_handler(APRemote_CB_SlotConnected);
+	ap->set_retrieved_handler(APRemote_CB_Retrieved);
 
 	connection_stat = APCONN_CONNECTING;
 	connection_error_desc = "";
@@ -1905,6 +1922,11 @@ archipelago_connectionstat_t Archipelago_ConnectionStatus(void)
 const char* Archipelago_GetConnectionError(void)
 {
 	return connection_error_desc.c_str();
+}
+
+bool Archipelago_IsRacing(void)
+{
+	return isInRaceMode;
 }
 
 void Archipelago_GoalComplete(void)
