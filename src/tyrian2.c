@@ -3538,7 +3538,7 @@ void JE_eventSystem(void)
 		for (int i = initial_i; i < max_i; i++)
 		{
 			// AP: If affecting all enemies, ignore scoreitems (so they don't behave erratically)
-			if (all_enemies && enemy[temp].scoreitem)
+			if (all_enemies && enemy[i].scoreitem)
 				continue;
 
 			if (all_enemies || enemy[i].linknum == eventRec[eventLoc-1].eventdat4)
