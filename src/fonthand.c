@@ -238,10 +238,6 @@ void JE_outTextAndDarken(SDL_Surface * screen, int x, int y, const char *s, unsi
 			x += 6;
 			break;
 
-		case '_':
-			y_offset = 2;
-			break;
-
 		case '~':
 			bright = (bright == 0) ? 4 : 0;
 			break;
@@ -255,6 +251,10 @@ void JE_outTextAndDarken(SDL_Surface * screen, int x, int y, const char *s, unsi
 		case '>':
 			bright = 0;
 			break;
+
+		case '_':
+			y_offset = 2;
+			// fall through
 
 		default:
 			if (sprite_id != -1 && sprite_exists(TINY_FONT, sprite_id))

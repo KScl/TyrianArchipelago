@@ -475,12 +475,19 @@ JE_boolean JE_inGameSetup(void)
 		push_joysticks_as_keyboard();
 		service_SDL_events(false);
 
+		// Special case start/menu as exiting the pause menu.
+		for (int j = 0; j < joysticks; ++j)
+		{
+			if (joystick[j].action_pressed[4])
+				done = true;
+		}
+
 		// Handle interaction.
 		bool action = false;
 		bool leftAction = false;
 		bool rightAction = false;
 
-		if (mouseActivity == MOUSE_ACTIVE)
+		if (!done && mouseActivity == MOUSE_ACTIVE)
 		{
 			// Find menu item that was hovered or clicked.
 			if (mouse_x >= xMenuItem && mouse_x < xMenuItem + wMenuItem)
@@ -554,7 +561,11 @@ JE_boolean JE_inGameSetup(void)
 			}
 		}
 
-		if (newmouse)
+		if (done)
+		{
+			JE_playSampleNum(S_SPRING);
+		}
+		else if (newmouse)
 		{
 			if (lastmouse_but == SDL_BUTTON_RIGHT)
 			{

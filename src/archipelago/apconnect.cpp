@@ -606,20 +606,21 @@ static Uint8 APLocal_GetItemFlags(Uint16 localItemID)
 		case 905: // Progressive Generator
 		case 906: // Maximum Power Up
 		case 907: // Armor Up
-		case 911: // Data Cube (Episode 1)
-		case 912: // Data Cube (Episode 2)
-		case 913: // Data Cube (Episode 3)
-		case 914: // Data Cube (Episode 4)
-		case 915: // Data Cube (Episode 5)
+		case 911: // Data Cube
 			return 1; // Progression
+		case 704: // Ice Beam
+		case 710: // Banana Bomb
 		case 721: // SDF Main Gun
 		case 805: // MegaMissile
 		case 806: // Atom Bombs
 		case 807: // Phoenix Device
 		case 808: // Plasma Storm
-		case 813: // 8-Way MicroBomb
+		case 819: // MicroSol FrontBlaster
 		case 821: // BattleShip-Class Firebomb
+		case 822: // Protron Cannon Indigo
 		case 824: // Protron Cannon Tangerine
+		case 825: // MicroSol FrontBlaster II
+		case 826: // Beno Wallop Beam
 		case 827: // Beno Protron System -B-
 		case 831: // Flying Punch
 		case 908: // Shield Up
@@ -852,8 +853,6 @@ static void APAll_ResolveItem(int64_t item, bool is_local)
 	else if (item == 911) ++APStats.DataCubes;
 	else if (item >= 980) APStats.Cash += remoteCashItemValues[item - 980];
 
-	std::cout << "Item resolved: " << item << std::endl;
-
 	if (!silentItemMode)
 		apmsg_playSFX(item >= 980 ? APSFX_RECEIVE_MONEY : APSFX_RECEIVE_ITEM);
 }
@@ -867,6 +866,9 @@ static void APAll_CheckDataCubeCount(void)
 
 	if (APStats.DataCubes >= APSeedSettings.DataCubesNeeded)
 	{
+		bool origSilent = silentItemMode;
+		silentItemMode = true;
+
 		for (int episode = 0; episode < 5; ++episode)
 		{
 			if (!AP_BITSET(APSeedSettings.GoalEpisodes, episode))
@@ -880,6 +882,7 @@ static void APAll_CheckDataCubeCount(void)
 			std::string output = "You got your " + APLocal_BuildItemString(localItemID, flags);
 			apmsg_enqueue(output.c_str());
 		}
+		silentItemMode = origSilent;
 
 		// Execute once only.
 		APStats.CubeRewardGiven = true;
@@ -1833,7 +1836,6 @@ void Archipelago_Connect(const char *slot_name, const char *address, const char 
 	APOptions.EnableDeathLink = true;
 
 	std::string cert = std::filesystem::exists("./cacert.pem") ? "./cacert.pem" : "";
-	std::cout << cert << std::endl;
 	ap.reset(new APClient(clientUUID, "Tyrian", cx_serverAddress));
 
 	// Chat and other communications
