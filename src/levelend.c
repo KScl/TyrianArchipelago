@@ -34,14 +34,19 @@ void levelend_doLevelStats(void) // fka JE_endLevelAni
 	// TODO? Can probably find a better place to do rank manipulation
 	//adjust_difficulty();
 
-	// Mark completion
-	const Uint16 episode = allLevelData[currentLevelID].episodeNum - 1;
-	const Uint16 levelID = allLevelData[currentLevelID].episodeLevelID;
-	APStats.Clears[episode] |= (1 << levelID);
 	lastLevelCompleted = true;
+	lastLevelFailed = (levelTimer && levelTimerCountdown <= 0);
 
-	// Scout for new shop checks that just opened
-	Archipelago_ScoutShopItems(allLevelData[currentLevelID].shopStart);
+	// Mark completion (unless exited via mission failure)
+	if (!lastLevelFailed)
+	{
+		const Uint16 episode = allLevelData[currentLevelID].episodeNum - 1;
+		const Uint16 levelID = allLevelData[currentLevelID].episodeLevelID;
+		APStats.Clears[episode] |= (1 << levelID);		
+
+		// Scout for new shop checks that just opened
+		Archipelago_ScoutShopItems(allLevelData[currentLevelID].shopStart);
+	}
 
 	// Add obtained cash to AP cash total
 	APStats.Cash += player[0].cash;
@@ -54,13 +59,13 @@ void levelend_doLevelStats(void) // fka JE_endLevelAni
 	SDL_Color white = { 255, 255, 255 };
 	set_colors(white, 254, 254);
 
-	if (!levelTimer || levelTimerCountdown > 0)
+	if (!lastLevelFailed)
 		nortsong_playVoice(V_LEVEL_END);
 	else
 		play_song(21);
 
 	// ----- Completed: LEvELNAME -----------------------------------
-	const char *levelAction = (levelTimer && levelTimerCountdown <= 0) ? "Failed:" : "Completed:";
+	const char *levelAction = lastLevelFailed ? "Failed:" : "Completed:";
 	snprintf(string_buffer, sizeof(string_buffer), "%s %s", levelAction, levelName);
 	JE_outTextGlow(VGAScreenSeg, 20, 20, string_buffer);
 

@@ -1,4 +1,4 @@
-Archipelago Tyrian v0.80.0
+Archipelago Tyrian v1.0.0
 
 == Setup =======================================================================
 
@@ -27,16 +27,14 @@ that has yet to be implemented.
 Progress is automatically saved after exiting a level or on quitting the game.
 
 The following things are planned but not yet implemented:
-- Level patches, locations, and logic for Episode 4: An End to Fate
-- Level patches, locations, and logic for Episode 5: Hazudra Fodder
-- Rebinding inputs in game; If you want to do this, you'll still have to edit
-  save/aptyrian.cfg yourself for now, sorry
 - "Chaos" Twiddles (full randomizer, instead of giving random vanilla twiddles)
-- "Ship Info" display
+- "Ship Specs" display screen (showing received item progress and other info)
 
 == Keyboard Controls ===========================================================
 
-alt-enter      -- toggle full-screen
+alt+enter      -- toggle full-screen
+escape         -- open in-game menu
+p              -- pause
 
 arrow keys     -- ship movement
 space          -- fire weapons

@@ -17,26 +17,16 @@ data files will work for all seeds.
 ### Important Notes
 
 Connecting to an Archipelago server can be done through the in-game menus, or
-alternatively through the command line with the following option:
-* `--connect="<slot_name>@archipelago.gg:<port_number>"`
+alternatively through the command line with the following option. Password may
+be omitted if there isn't one.
+* `--connect="<slot_name>:<password>@archipelago.gg:<port_number>"`
 
 If you have a single player .aptyrian file, drag and drop it over the game
 window while in the "Select Game Mode" menu to start playing it. The option
 within that menu to play a local game will eventually open a file dialog, but
 that has yet to be implemented.
 
-The menu for modifying controls has not been reimplemented yet. You'll need to
-start the game once, and then modify "aptyrian.cfg" in the "save" subdirectory
-that is automatically created. Sorry.
+Future roadmap:
+* Ship Specs screen (showing received item progress, twiddles, other stats)
+* Chaos twiddle randomizer (new actions, new inputs)
 
-The following things are planned, but not yet implemented:
-* Missing Episodes:
-  * Episode 4: An End to Fate (missing level patches and location info/logic)
-  * Episode 5: Hazudra Fodder (missing level patches and location info/logic)
-* Options:
-  * Twiddles: Chaos
-    * Not yet implemented (errors on generation)
-  * Show Twiddle Inputs: On
-    * Not respected by the client ("Ship Info" isn't implemented at all yet)
-* Other things:
-  * Rebinding inputs still isn't possible from in game yet

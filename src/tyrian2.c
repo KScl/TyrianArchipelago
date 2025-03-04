@@ -856,6 +856,7 @@ start_level:
 
 	difficultyLevel = oldDifficultyLevel;   /*Return difficulty to normal*/
 	lastLevelCompleted = false;
+	lastLevelFailed = false;
 
 	if (!play_demo)
 	{
@@ -2620,7 +2621,7 @@ bool JE_loadMap(void)
 	{
 		// If the last level completed was the end level of the episode, play the cutscene corresponding to it.
 		// This may also clear the player's goal and play the credits.
-		if (lastLevelCompleted && allLevelData[currentLevelID].endEpisode)
+		if (lastLevelCompleted && !lastLevelFailed && allLevelData[currentLevelID].endEpisode)
 			levelend_playEndScene(allLevelData[currentLevelID].episodeNum);
 
 		levelID = apmenu_itemScreen();

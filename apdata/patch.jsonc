@@ -1,5 +1,5 @@
 {
-"_version": [0, 80, 2],
+"_version": [1, 0, 0],
 // ===================================================================================================================
 "patches": {
 	/* "patch_name": {
@@ -328,7 +328,7 @@
 		"26:APPEND":   { "time": 356, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":70, "movement":"falling" },
 		"67:REPLACE":  { "time": 872, "event":201, /* AP_CheckFromEnemy */ "ap_id":71, "linknum": 9, "movement":"falling" },
 		"110:REPLACE": { "time":1280, "event":201, /* AP_CheckFromEnemy */ "ap_id":72, "linknum":22, "movement":"falling" },
-		"221:REPLACE": { "time":2420, "event":200, /* AP_CheckFreestanding */ "ap_id":73, "movement":"gnd2_falling", "ex":126, "ey":-14 },
+		"221:REPLACE": { "time":2420, "event":200, /* AP_CheckFreestanding */ "ap_id":73, "movement":"gnd2_falling", "ex":126 },
 		"257:REPLACE": { "time":2760, "event":201, /* AP_CheckFromEnemy */ "ap_id":75, "linknum": 4, "movement":"falling" },
 		"265:REPLACE": { "time":2820, "event":201, /* AP_CheckFromEnemy */ "ap_id":74, "linknum": 9, "movement":"falling" },
 
@@ -340,14 +340,17 @@
 		"26:APPEND":   { "time": 356, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":70, "movement":"falling" },
 		"67:REPLACE":  { "time": 872, "event":201, /* AP_CheckFromEnemy */ "ap_id":71, "linknum": 9, "movement":"falling" },
 		"110:REPLACE": { "time":1280, "event":201, /* AP_CheckFromEnemy */ "ap_id":72, "linknum":22, "movement":"falling" },
-		"222:REPLACE": { "time":2420, "event":200, /* AP_CheckFreestanding */ "ap_id":73, "movement":"gnd2_falling", "ex":126, "ey":-14 },
+		"222:REPLACE": { "time":2420, "event":200, /* AP_CheckFreestanding */ "ap_id":73, "movement":"gnd2_falling", "ex":126 },
 		"258:REPLACE": { "time":2760, "event":201, /* AP_CheckFromEnemy */ "ap_id":75, "linknum": 4, "movement":"falling" },
 		"266:REPLACE": { "time":2820, "event":201, /* AP_CheckFromEnemy */ "ap_id":74, "linknum": 9, "movement":"falling" }
 	},
 	// --------------------------------------------------------------
 	"Episode1 WINDY": {
 		// Addition of Archipelago Item(s...?)
-		"273:APPEND": { "time":850, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":80, "movement":"static", "backup":399 }
+		"273:APPEND": { "time":850, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":80, "movement":"static", "backup":399 },
+
+		// Make the other question mark that's barely on screen into something else so it doesn't look like I forgot something
+		"463:REPLACE": { "time":1644, "event":10, /* NewEnemy_Ground2 */ "type":845, "ex":288, "ey":-1, "eyc":2 }
 	},
 	// --------------------------------------------------------------
 	"Episode1 SAVARA Easy ver2.1": {
@@ -474,7 +477,7 @@
 		// Addition of Archipelago Items
 		"244:REPLACE": { "time": 751, "event":201, /* AP_CheckFromEnemy */ "ap_id":160, "linknum": 12, "movement":"static" },
 		"314:REPLACE": { "time": 881, "event":201, /* AP_CheckFromEnemy */ "ap_id":161, "linknum": 13, "movement":"static" },
-		"409:REPLACE": { "time":1310, "event":200, /* AP_CheckFreestanding */ "ap_id":162, "ex":200, "ey":8, "movement":"falling"},
+		"409:REPLACE": { "time":1310, "event":200, /* AP_CheckFreestanding */ "ap_id":162, "ex":200, "ey":23, "movement":"falling"},
 		"493:REPLACE": { "time":1701, "event":201, /* AP_CheckFromEnemy */ "ap_id":163, "linknum": 18, "movement":"static" },
 		"681:REPLACE": { "time":2541, "event":201, /* AP_CheckFromEnemy */ "ap_id":164, "linknum":  9, "movement":"static" },
 		"1128:APPEND": { "time":4960, "event":201, /* AP_CheckFromEnemy */ "ap_id":165, "linknum": 14, "movement":"static" },
@@ -742,7 +745,7 @@
 		"558:REPLACE": { "time":2680, "event":201, /* AP_CheckFromEnemy */ "ap_id":284, "linknum":42, "movement":"static" },
 		"799:REPLACE": { "time":4842, "event":201, /* AP_CheckFromEnemy */ "ap_id":285, "linknum":13, "movement":"static" },
 		"889:REPLACE": { "time":5788, "event":201, /* AP_CheckFromEnemy */ "ap_id":286, "linknum":62, "movement":"static" },
-		"898:REPLACE": { "time":5984, "event":200, /* AP_CheckFreestanding */ "ap_id":287, "movement":"static", "ex":90, "ey":-12 },
+		"898:REPLACE": { "time":5984, "event":200, /* AP_CheckFreestanding */ "ap_id":287, "movement":"static", "ex":90 },
 
 		// Port over the gate destruction fixes from Tyrian 2000.
 		"171:PREPEND": { "time": 860, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":41, "new_linknum":42 },
@@ -757,7 +760,7 @@
 		"559:REPLACE": { "time":2680, "event":201, /* AP_CheckFromEnemy */ "ap_id":284, "linknum":42, "movement":"static" },
 		"801:REPLACE": { "time":4842, "event":201, /* AP_CheckFromEnemy */ "ap_id":285, "linknum":13, "movement":"static" },
 		"892:REPLACE": { "time":5788, "event":201, /* AP_CheckFromEnemy */ "ap_id":286, "linknum":62, "movement":"static" },
-		"902:REPLACE": { "time":5984, "event":200, /* AP_CheckFreestanding */ "ap_id":287, "movement":"static", "ex":90, "ey":-12 }
+		"902:REPLACE": { "time":5984, "event":200, /* AP_CheckFreestanding */ "ap_id":287, "movement":"static", "ex":90 }
 	},
 	// --------------------------------------------------------------
 	"Episode3 IXMUCANE ver2.1":{
@@ -992,25 +995,46 @@
 		"456:REPLACE": { "time":1650, "event":201, /* AP_CheckFromEnemy */ "ap_id":391, "linknum":  1, "movement":"falling" },
 		"660:REPLACE": { "time":2460, "event":201, /* AP_CheckFromEnemy */ "ap_id":392, "linknum":  1, "movement":"falling" },
 		"910:REPLACE": { "time":3300, "event":201, /* AP_CheckFromEnemy */ "ap_id":393, "linknum": 59, "movement":"falling" },
-		"1507:APPEND": { "time":5048, "event":201, /* AP_CheckFromEnemy */ "ap_id":394, "linknum":254, "movement":"swaying", "is_boss":true }
+		"1507:APPEND": { "time":5048, "event":201, /* AP_CheckFromEnemy */ "ap_id":394, "linknum":254, "movement":"swaying", "is_boss":true },
+
+		// The forced jump to 8000 activates the boss loop again, since it's the first event before that time code.
+		// We add in a dummy event so the sequence plays out as it is intended to.
+		"2257:APPEND": { "time":7999, "event":0 /* NoOp */ },
+		"2258:APPEND": { "time":8150, "event":11 /* EndLevel */ }
 	},
 
 	// ========================================================================
 	// Episode 4 - An End To Fate
 	// ========================================================================
 
-	// The following stages are not finished:
-	// SURFACE
-	// CORE
-	// ICESECRET
-	// UNDERDELI
-	// APPROACH
-	// SAVARA IV
-	// EYESPY
-	// BRAINIAC
-	// NOSE DRIP
-
 	"Episode4 SURFACE": {
+		// Addition of Archipelago Items
+		"60:REPLACE":  { "time": 216, "event":201, /* AP_CheckFromEnemy */ "ap_id":400, "linknum": 42, "movement":"falling" },
+		"123:REPLACE": { "time": 500, "event":201, /* AP_CheckFromEnemy */ "ap_id":401, "linknum":  1, "movement":"sky_falling" },
+		"265:REPLACE": { "time":1421, "event":201, /* AP_CheckFromEnemy */ "ap_id":402, "linknum":  4, "movement":"sky_falling" },
+		"353:REPLACE": { "time":1890, "event":201, /* AP_CheckFromEnemy */ "ap_id":403, "linknum":  4, "movement":"sky_falling" },
+		"468:REPLACE": { "time":2722, "event":201, /* AP_CheckFromEnemy */ "ap_id":404, "linknum":199, "movement":"swaying", "is_boss":true },
+		"562:REPLACE": { "time":3241, "event":201, /* AP_CheckFromEnemy */ "ap_id":405, "linknum":  7, "movement":"sky_falling", "backup":399 },
+		"773:REPLACE": { "time":4750, "event":201, /* AP_CheckFromEnemy */ "ap_id":406, "linknum":  1, "movement":"sky_falling" },
+		"889:APPEND":  { "time":6041, "event":201, /* AP_CheckFromEnemy */ "ap_id":407, "linknum":199, "movement":"swaying", "is_boss":true },
+
+		// A whole slew of balance changes to the "rolling ball of death" to make it reasonable.
+		// - Move it down a bit more, so it can be hit at the top of the screen
+		// - Make it fire slower
+		// - Make it leave the screen when the main boss appears
+		// - Give it a boss healthbar
+		"558:REPLACE": [
+			{ "time":3221, "event":15, /* NewEnemy_Sky */ "linknum":5, "type":288, "ex":30, "ey":0, "eyc":6 },
+			{ "time":3231, "event":15, /* NewEnemy_Sky */ "linknum":6, "type":288, "ex":30, "ey":0, "eyc":6 },
+			{ "time":3241, "event":15, /* NewEnemy_Sky */ "linknum":7, "type":296, "ex":30, "ey":0, "eyc":6 }
+		],
+		"563:REPLACE": { "time":3251, "event":15, /* NewEnemy_Sky */ "linknum":8, "type":288, "ex":30, "ey":0, "eyc":6 },
+		"567:REPLACE": { "time":3261, "event":15, /* NewEnemy_Sky */ "linknum":9, "type":288, "ex":30, "ey":0, "eyc":6 },
+		"571:REPLACE": { "time":3271, "event":15, /* NewEnemy_Sky */ "linknum":4, "type":288, "ex":30, "ey":0, "eyc":6 },
+		"575:REPLACE": { "time":3281, "event":15, /* NewEnemy_Sky */ "linknum":3, "type":288, "ex":30, "ey":0, "eyc":6 },
+		"589:REPLACE": { "time":3317, "event":31, /* EnemyGlobal_FireOverride */ "linknum":7, "shot_freq":[20] },
+		"596:APPEND":  { "time":3317, "event":79, /* SetBossBar */ "linknum":[39, 0] },
+		"857:APPEND":  { "time":5900, "event":27, /* EnemyGlobal_AccelRev */ "linknum":39, "exrev":8 }
 	},
 	// --------------------------------------------------------------
 	"Episode4 WINDY": {
@@ -1066,11 +1090,47 @@
 	},
 	// --------------------------------------------------------------
 	"Episode4 CORE ver2.1": {
+		// Addition of Archipelago Items
+		"35:REPLACE":  { "time": 121, "event":201, /* AP_CheckFromEnemy */ "ap_id":430, "linknum":  5, "movement":"falling" },
+		"117:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":431, "linknum":221, "movement":"falling" },
+		"186:REPLACE": { "time":2580, "event":201, /* AP_CheckFromEnemy */ "ap_id":432, "linknum":  2, "movement":"falling" },
+		"238:REPLACE": { "time":3121, "event":201, /* AP_CheckFromEnemy */ "ap_id":433, "linknum":  5, "movement":"falling" },
+		"255:APPEND":  { "time":3600, "event":200, /* AP_CheckFreestanding */ "ap_id":434, "ex": 74, "movement":"top_falling" },
+		"257:APPEND":  { "time":4000, "event":200, /* AP_CheckFreestanding */ "ap_id":435, "ex":230, "movement":"top_falling" },
+		"394:APPEND":  { "time":5350, "event":201, /* AP_CheckFromEnemy */ "ap_id":436, "linknum":199, "movement":"swaying", "is_boss":true },
+
+		// If the timer expires with the boss dead, don't consider the level "failed".
+		"652:APPEND": [
+			{ "time":9199, "event": 0 /* NoOp */ },
+			{ "time":9200, "event":67, /* SetLevelTimer */ "enable":false },
+			{ "time":9200, "event":99, /* RandomExplosions */ "enable":false },
+			{ "time":9200, "event":36 /* ReadyToEndLevel */ }
+		],
+		"653:APPEND": { "time":10000, "event":70, /* Jump_SearchFor */ "jump_time":9200, "types":[199] },
+
 		// Random explosion events changed
 		"653:REPLACE": { "time": 9999, "event":99, /* RandomExplosions */ "enable":true },
 		"657:REPLACE": { "time":10000, "event":99, /* RandomExplosions */ "enable":true }
 	},
 	"Episode4 CORE ver2000": {
+		// Addition of Archipelago Items
+		"35:REPLACE":  { "time": 121, "event":201, /* AP_CheckFromEnemy */ "ap_id":430, "linknum":  5, "movement":"falling" },
+		"117:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":431, "linknum":221, "movement":"falling" },
+		"186:REPLACE": { "time":2580, "event":201, /* AP_CheckFromEnemy */ "ap_id":432, "linknum":  2, "movement":"falling" },
+		"238:REPLACE": { "time":3121, "event":201, /* AP_CheckFromEnemy */ "ap_id":433, "linknum":  5, "movement":"falling" },
+		"255:APPEND":  { "time":3600, "event":200, /* AP_CheckFreestanding */ "ap_id":434, "ex": 74, "movement":"top_falling" },
+		"257:APPEND":  { "time":4000, "event":200, /* AP_CheckFreestanding */ "ap_id":435, "ex":230, "movement":"top_falling" },
+		"394:APPEND":  { "time":5350, "event":201, /* AP_CheckFromEnemy */ "ap_id":436, "linknum":199, "movement":"swaying", "is_boss":true },
+
+		// If the timer expires with the boss dead, don't consider the level "failed".
+		"653:APPEND": [
+			{ "time":9199, "event": 0 /* NoOp */ },
+			{ "time":9200, "event":67, /* SetLevelTimer */ "enable":false },
+			{ "time":9200, "event":99, /* RandomExplosions */ "enable":false },
+			{ "time":9200, "event":36 /* ReadyToEndLevel */ }
+		],
+		"654:APPEND": { "time":10000, "event":70, /* Jump_SearchFor */ "jump_time":9200, "types":[199] },
+
 		// When changing random explosion events from 68 to 99, they forgot to change these!
 		// And because there's an extra ReadyToEndLevel inserted earlier in the level,
 		// we can't just use the same patch!
@@ -1080,43 +1140,46 @@
 	// --------------------------------------------------------------
 	"Episode4 LAVA EXIT ver2.1": {
 		// Addition of Archipelago Items
+		"181:APPEND": { "time": 280, "event":201, /* AP_CheckFromEnemy */ "ap_id":440, "linknum":61, "movement":"sky_falling" },
 		"771:REPLACE": [
 			// Also fix the health change event that goes along with this enemy.
 			{ "time":1420, "event": 25, /* EnemyGlobal_SetHealth */ "linknum":7, "health":40 },
-			{ "time":1420, "event":201, /* AP_CheckFromEnemy */ "ap_id":440, "linknum":7, "movement":"sky_falling", "backup":398 }
+			{ "time":1420, "event":201, /* AP_CheckFromEnemy */ "ap_id":441, "linknum":7, "movement":"sky_falling", "backup":398 }
 		],
-		"886:REPLACE": { "time":2220, "event":201, /* AP_CheckFromEnemy */ "ap_id":441, "linknum":17, "movement":"sky_falling", "backup":398 },
+		"886:REPLACE": { "time":2220, "event":201, /* AP_CheckFromEnemy */ "ap_id":442, "linknum":17, "movement":"sky_falling", "backup":398 },
 		"1001:REPLACE": [
-			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":443, "linknum": 1, "movement":"sky_falling" },
-			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":442, "linknum":11, "movement":"sky_falling" }
+			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":444, "linknum": 1, "movement":"sky_falling" },
+			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":443, "linknum":11, "movement":"sky_falling" }
 		],
-		"1153:APPEND": { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":444, "linknum": 9, "movement":"swaying", "is_boss":true },
+		"1153:APPEND": { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":445, "linknum": 9, "movement":"swaying", "is_boss":true },
 
 		// Add a missing AccelRev (added in Tyrian 2000) to make the first circling orbs leave the screen.
 		"839:APPEND": { "time":1900, "event":27, /* EnemyGlobal_AccelRev */ "linknum":5 }
 	},
 	"Episode4 LAVA EXIT ver2000": {
 		// Addition of Archipelago Items
+		"181:APPEND": { "time": 280, "event":201, /* AP_CheckFromEnemy */ "ap_id":440, "linknum":61, "movement":"sky_falling" },
 		"772:REPLACE": [
 			// Also fix the health change event that goes along with this enemy.
 			{ "time":1420, "event": 25, /* EnemyGlobal_SetHealth */ "linknum":7, "health":40 },
-			{ "time":1420, "event":201, /* AP_CheckFromEnemy */ "ap_id":440, "linknum":7, "movement":"sky_falling", "backup":398 }
+			{ "time":1420, "event":201, /* AP_CheckFromEnemy */ "ap_id":441, "linknum":7, "movement":"sky_falling", "backup":398 }
 		],
-		"889:REPLACE": { "time":2220, "event":201, /* AP_CheckFromEnemy */ "ap_id":441, "linknum":17, "movement":"sky_falling", "backup":398 },
+		"889:REPLACE": { "time":2220, "event":201, /* AP_CheckFromEnemy */ "ap_id":442, "linknum":17, "movement":"sky_falling", "backup":398 },
 		"1004:REPLACE": [
-			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":443, "linknum": 1, "movement":"sky_falling" },
-			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":442, "linknum":11, "movement":"sky_falling" }
+			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":444, "linknum": 1, "movement":"sky_falling" },
+			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":443, "linknum":11, "movement":"sky_falling" }
 		],
-		"1156:APPEND": { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":444, "linknum": 9, "movement":"swaying", "is_boss":true }
+		"1156:APPEND": { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":445, "linknum": 9, "movement":"swaying", "is_boss":true }
 	},
 	// --------------------------------------------------------------
 	"Episode4 DESERTRUN": {
 		// Addition of Archipelago Items
-		"530:REPLACE": { "time":6400, "event":200, /* AP_CheckFreestanding */ "ap_id":450, "movement":"gnd2_falling", "ex": 42, "backup":398 },
-		"534:REPLACE": { "time":6700, "event":200, /* AP_CheckFreestanding */ "ap_id":451, "movement":"gnd2_falling", "ex":262, "backup":398 },
-		"538:REPLACE": { "time":7000, "event":200, /* AP_CheckFreestanding */ "ap_id":452, "movement":"gnd2_falling", "ex": 42, "backup":398 },
-		"540:REPLACE": { "time":7300, "event":200, /* AP_CheckFreestanding */ "ap_id":453, "movement":"gnd2_falling", "ex":262, "backup":398 },
-		"544:REPLACE": { "time":7600, "event":200, /* AP_CheckFreestanding */ "ap_id":454, "movement":"gnd2_falling", "ex": 42, "backup":398 }
+		"432:REPLACE": { "time":4345, "event":200, /* AP_CheckFreestanding */ "ap_id":450, "linknum":10, "movement":"top_falling", "ex":162, "ey":45, "backup":398 },
+		"530:REPLACE": { "time":6400, "event":200, /* AP_CheckFreestanding */ "ap_id":451, "movement":"gnd2_falling", "ex": 42, "backup":398 },
+		"534:REPLACE": { "time":6700, "event":200, /* AP_CheckFreestanding */ "ap_id":452, "movement":"gnd2_falling", "ex":262, "backup":398 },
+		"538:REPLACE": { "time":7000, "event":200, /* AP_CheckFreestanding */ "ap_id":453, "movement":"gnd2_falling", "ex": 42, "backup":398 },
+		"540:REPLACE": { "time":7300, "event":200, /* AP_CheckFreestanding */ "ap_id":454, "movement":"gnd2_falling", "ex":262, "backup":398 },
+		"544:REPLACE": { "time":7600, "event":200, /* AP_CheckFreestanding */ "ap_id":455, "movement":"gnd2_falling", "ex": 42, "backup":398 }
 	},
 	// --------------------------------------------------------------
 	"Episode4 SIDE EXIT": {
@@ -1182,9 +1245,10 @@
 	// --------------------------------------------------------------
 	"Episode4 ICE EXIT ver2.1": {
 		// Addition of Archipelago Items
-		"397:APPEND":  { "time":1430, "event":201, /* AP_CheckFromEnemy */ "ap_id":480, "linknum": 36, "movement":"falling" },
-		"594:REPLACE": { "time":3330, "event":200, /* AP_CheckFreestanding */ "ap_id":481, "linknum":69, "movement":"sky_falling", "ex":130 },
-		"644:APPEND":  { "time":3700, "event":201, /* AP_CheckFromEnemy */ "ap_id":482, "linknum":189, "movement":"swaying", "is_boss":true },
+		"94:REPLACE":  { "time": 340, "event":201, /* AP_CheckFromEnemy */ "ap_id":480, "linknum":  4, "movement":"falling" },
+		"397:APPEND":  { "time":1430, "event":201, /* AP_CheckFromEnemy */ "ap_id":481, "linknum": 36, "movement":"falling" },
+		"594:REPLACE": { "time":3330, "event":200, /* AP_CheckFreestanding */ "ap_id":482, "linknum":69, "movement":"sky_falling", "ex":130 },
+		"644:APPEND":  { "time":3700, "event":201, /* AP_CheckFromEnemy */ "ap_id":483, "linknum":189, "movement":"swaying", "is_boss":true },
 
 		// We can't use "eyc" with Freestanding AP items because the movement/section setup uses that byte.
 		// So we have to add a little hack here to make the freestanding item fall at the proper speed.
@@ -1196,9 +1260,10 @@
 	},
 	"Episode4 ICE EXIT ver2000": {
 		// Addition of Archipelago Items
-		"396:APPEND":  { "time":1430, "event":201, /* AP_CheckFromEnemy */ "ap_id":480, "linknum": 36, "movement":"falling" },
-		"593:REPLACE": { "time":3330, "event":200, /* AP_CheckFreestanding */ "ap_id":481, "linknum":69, "movement":"sky_falling", "ex":130 },
-		"643:APPEND":  { "time":3700, "event":201, /* AP_CheckFromEnemy */ "ap_id":482, "linknum":189, "movement":"swaying", "is_boss":true },
+		"94:REPLACE":  { "time": 340, "event":201, /* AP_CheckFromEnemy */ "ap_id":480, "linknum":  4, "movement":"falling" },
+		"396:APPEND":  { "time":1430, "event":201, /* AP_CheckFromEnemy */ "ap_id":481, "linknum": 36, "movement":"falling" },
+		"593:REPLACE": { "time":3330, "event":200, /* AP_CheckFreestanding */ "ap_id":482, "linknum":69, "movement":"sky_falling", "ex":130 },
+		"643:APPEND":  { "time":3700, "event":201, /* AP_CheckFromEnemy */ "ap_id":483, "linknum":189, "movement":"swaying", "is_boss":true },
 
 		// We can't use "eyc" with Freestanding AP items because the movement/section setup uses that byte.
 		// So we have to add a little hack here to make the freestanding item fall at the proper speed.
@@ -1210,32 +1275,226 @@
 	},
 	// --------------------------------------------------------------
 	"Episode4 ICESECRET ver2.1": {
+		// Addition of Archipelago Items -- This level starts at time code 10000, not 0
+		// Note that we replace hardcoded "give special weapon" events in this version with item locations from T2K.
+		"586:REPLACE": { "time":10460, "event":201, /* AP_CheckFromEnemy */ "ap_id":490, "linknum": 25, "movement":"falling" },
+		"629:APPEND":  { "time":10600, "event":201, /* AP_CheckFromEnemy */ "ap_id":491, "linknum":189, "movement":"falling" }, 
+		"738:REPLACE": { "time":11015, "event":201, /* AP_CheckFromEnemy */ "ap_id":492, "linknum": 34, "movement":"falling" },
+		"26:REPLACE":  { "time":  140, "event":200, /* AP_CheckFreestanding */ "ap_id":493, "ex":100, "movement":"swaying" },
+		"101:REPLACE": { "time":  710, "event":201, /* AP_CheckFromEnemy */ "ap_id":494, "linknum": 36, "movement":"falling" },
+		"171:APPEND":  { "time": 1400, "event":201, /* AP_CheckFromEnemy */ "ap_id":495, "linknum":  9, "movement":"falling" },
+		"255:REPLACE": { "time": 2070, "event":201, /* AP_CheckFromEnemy */ "ap_id":496, "linknum": 33, "movement":"falling" },
+		"379:APPEND":  { "time": 3000, "event":200, /* AP_CheckFreestanding */ "ap_id":497, "ex":100, "movement":"swaying" },
+		"381:APPEND":  { "time": 3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":498, "linknum":  9, "movement":"swaying", "is_boss":true },
+
+		// Allow time for the boss's AP item to drop.
+		"515:REPLACE": [
+			{ "time":4080, "event":36 /* ReadyToEndLevel */ },
+			{ "time":4200, "event":11 /* EndLevel */ }
+		]
 	},
 	"Episode4 ICESECRET ver2000": {
+		// Addition of Archipelago Items -- This level starts at time code 10000, not 0
+		"586:REPLACE": { "time":10460, "event":201, /* AP_CheckFromEnemy */ "ap_id":490, "linknum": 25, "movement":"falling" },
+		"629:APPEND":  { "time":10600, "event":201, /* AP_CheckFromEnemy */ "ap_id":491, "linknum":189, "movement":"falling" }, 
+		"738:REPLACE": { "time":11015, "event":201, /* AP_CheckFromEnemy */ "ap_id":492, "linknum": 34, "movement":"falling" },
+		"29:REPLACE":  { "time":  140, "event":200, /* AP_CheckFreestanding */ "ap_id":493, "ex":100, "movement":"swaying" },
+		"101:REPLACE": { "time":  710, "event":201, /* AP_CheckFromEnemy */ "ap_id":494, "linknum": 36, "movement":"falling" },
+		"171:APPEND":  { "time": 1400, "event":201, /* AP_CheckFromEnemy */ "ap_id":495, "linknum":  9, "movement":"falling" },
+		"255:REPLACE": { "time": 2070, "event":201, /* AP_CheckFromEnemy */ "ap_id":496, "linknum": 33, "movement":"falling" },
+		"379:REPLACE": { "time": 3000, "event":200, /* AP_CheckFreestanding */ "ap_id":497, "ex":100, "movement":"swaying" },
+		"382:APPEND":  { "time": 3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":498, "linknum":  9, "movement":"swaying", "is_boss":true },
+
+		// Allow time for the boss's AP item to drop.
+		"516:REPLACE": [
+			{ "time":4080, "event":36 /* ReadyToEndLevel */ },
+			{ "time":4200, "event":11 /* EndLevel */ }
+		]
 	},
 	// --------------------------------------------------------------
 	"Episode4 HARVEST": {
 		// Addition of Archipelago Items
-		"250:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":500, "linknum":11, "movement":"falling" },
-		"410:REPLACE": { "time":2150, "event":201, /* AP_CheckFromEnemy */ "ap_id":501, "linknum":17, "movement":"falling" },
-		"690:REPLACE": { "time":3700, "event":201, /* AP_CheckFromEnemy */ "ap_id":502, "linknum":16, "movement":"falling" },
-		"859:REPLACE": { "time":4480, "event":201, /* AP_CheckFromEnemy */ "ap_id":503, "linknum":19, "movement":"static" },
-		"872:REPLACE": { "time":4530, "event":201, /* AP_CheckFromEnemy */ "ap_id":504, "linknum":18, "movement":"static" },
-		"885:REPLACE": { "time":4650, "event":201, /* AP_CheckFromEnemy */ "ap_id":505, "linknum":37, "movement":"falling" },
-		"1053:APPEND": { "time":5048, "event":201, /* AP_CheckFromEnemy */ "ap_id":506, "linknum":10, "movement":"swaying", "is_boss":true }
+		"106:REPLACE": { "time": 200, "event":201, /* AP_CheckFromEnemy */ "ap_id":500, "linknum":36, "movement":"falling" },
+		"250:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":501, "linknum":11, "movement":"falling" },
+		"299:APPEND":  { "time":1500, "event":201, /* AP_CheckFromEnemy */ "ap_id":502, "linknum":19, "movement":"falling" },
+		"410:REPLACE": { "time":2150, "event":201, /* AP_CheckFromEnemy */ "ap_id":503, "linknum":17, "movement":"falling" },
+		"690:REPLACE": { "time":3700, "event":201, /* AP_CheckFromEnemy */ "ap_id":504, "linknum":16, "movement":"falling" },
+		"859:REPLACE": { "time":4480, "event":201, /* AP_CheckFromEnemy */ "ap_id":505, "linknum":19, "movement":"static" },
+		"872:REPLACE": { "time":4530, "event":201, /* AP_CheckFromEnemy */ "ap_id":506, "linknum":18, "movement":"static" },
+		"885:REPLACE": { "time":4650, "event":201, /* AP_CheckFromEnemy */ "ap_id":507, "linknum":37, "movement":"falling" },
+		"1053:APPEND": { "time":5048, "event":201, /* AP_CheckFromEnemy */ "ap_id":508, "linknum":10, "movement":"swaying", "is_boss":true },
+		"1078:APPEND": { "time":6912, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":509, "movement":"static" }
 	},
 	// --------------------------------------------------------------
 	"Episode4 UNDERDELI ver2.1": {
+		// Addition of Archipelago Items
+		"286:APPEND":   { "time": 350, "event":201, /* AP_CheckFromEnemy */ "ap_id":510, "linknum":10, "movement":"falling" },
+		"344:REPLACE":  { "time":1000, "event":200, /* AP_CheckFreestanding */ "ap_id":511, "movement":"falling", "ex":234, "ey":28, "backup":397 },
+		"370:APPEND":   { "time":1550, "event":201, /* AP_CheckFromEnemy */ "ap_id":512, "linknum":10, "movement":"falling" },
+		"508:REPLACE":  { "time":2876, "event":200, /* AP_CheckFreestanding */ "ap_id":513, "movement":"falling", "ex": 42, "ey":28, "backup":397 },
+		"513:REPLACE":  { "time":2876, "event":200, /* AP_CheckFreestanding */ "ap_id":514, "movement":"falling", "ex":234, "ey":28, "backup":397 },
+		"676:REPLACE":  { "time":4304, "event":200, /* AP_CheckFreestanding */ "ap_id":515, "movement":"falling", "ex": 66, "ey":28, "backup":397 },
+		"680:REPLACE":  { "time":4599, "event":201, /* AP_CheckFromEnemy */ "ap_id":516, "linknum":18, "movement":"falling" },
+		"1148:APPEND":  { "time":9600, "event":201, /* AP_CheckFromEnemy */ "ap_id":517, "linknum":19, "movement":"swaying", "is_boss":true },
+
+		// Replace errant sound effect playback events.
+		"526:REPLACE":  { "time":2950, "event":16, /* VoicedCallout */ "output":"Intercepting enemy aircraft." },
+		"1149:REPLACE": { "time":9610, "event":62, /* PlaySound */ "sample":"HYPERD2" }
 	},
 	"Episode4 UNDERDELI ver2000": {
+		// Addition of Archipelago Items
+		"286:APPEND":   { "time": 350, "event":201, /* AP_CheckFromEnemy */ "ap_id":510, "linknum":10, "movement":"falling" },
+		"344:REPLACE":  { "time":1000, "event":200, /* AP_CheckFreestanding */ "ap_id":511, "movement":"falling", "ex":234, "ey":28, "backup":397 },
+		"370:APPEND":   { "time":1550, "event":201, /* AP_CheckFromEnemy */ "ap_id":512, "linknum":10, "movement":"falling" },
+		"508:REPLACE":  { "time":2876, "event":200, /* AP_CheckFreestanding */ "ap_id":513, "movement":"falling", "ex": 42, "ey":28, "backup":397 },
+		"513:REPLACE":  { "time":2876, "event":200, /* AP_CheckFreestanding */ "ap_id":514, "movement":"falling", "ex":234, "ey":28, "backup":397 },
+		"667:REPLACE":  { "time":4304, "event":200, /* AP_CheckFreestanding */ "ap_id":515, "movement":"falling", "ex": 66, "ey":28, "backup":397 },
+		"671:REPLACE":  { "time":4599, "event":201, /* AP_CheckFromEnemy */ "ap_id":516, "linknum":18, "movement":"falling" },
+		"1139:APPEND":  { "time":9600, "event":201, /* AP_CheckFromEnemy */ "ap_id":517, "linknum":19, "movement":"swaying", "is_boss":true },
+
+		// Replace errant sound effect playback events.
+		"526:REPLACE":  { "time":2950, "event":16, /* VoicedCallout */ "output":"Intercepting enemy aircraft." },
+		"1140:REPLACE": { "time":9610, "event":62, /* PlaySound */ "sample":"HYPERD2" }
 	},
 	// --------------------------------------------------------------
 	"Episode4 APPROACH": {
+		"156:REPLACE": { "time": 600, "event":201, /* AP_CheckFromEnemy */ "ap_id":520, "linknum":  7, "movement":"falling" },
+		"450:REPLACE": { "time":1660, "event":201, /* AP_CheckFromEnemy */ "ap_id":521, "linknum": 14, "movement":"falling" },
+		"1047:REPLACE": [
+			{ "time": 3320, "event":201, /* AP_CheckFromEnemy */ "ap_id":522, "linknum": 14, "movement":"falling" },
+			{ "time": 3320, "event":201, /* AP_CheckFromEnemy */ "ap_id":523, "linknum": 19, "movement":"falling" }
+		],
+		"1107:APPEND": { "time":3770, "event":201, /* AP_CheckFromEnemy */ "ap_id":524, "linknum":254, "movement":"swaying", "is_boss":true },
+
+		// Mass clear linknums for each set of brown planes after the game is done manipulating them.
+		// This fixes a slew of issues caused by leaving them alive.
+		"365:APPEND": [
+			{ "time":1321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":10 },
+			{ "time":1321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":11 },
+			{ "time":1321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":12 },
+			{ "time":1321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":13 },
+			{ "time":1321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":14 }
+		],
+		"386:APPEND": [
+			{ "time":1391, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":15 },
+			{ "time":1391, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":16 },
+			{ "time":1391, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":17 },
+			{ "time":1391, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":18 },
+			{ "time":1391, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":19 }
+		],
+		"407:APPEND": [
+			{ "time":1491, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":30 },
+			{ "time":1491, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":31 },
+			{ "time":1491, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":32 },
+			{ "time":1491, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":33 },
+			{ "time":1491, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":34 }
+		],
+		"428:APPEND": [
+			{ "time":1561, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":25 },
+			{ "time":1561, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":26 },
+			{ "time":1561, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":27 },
+			{ "time":1561, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":28 },
+			{ "time":1561, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":29 }
+		],
+		"450:APPEND": [
+			{ "time":1661, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":10 },
+			{ "time":1661, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":11 },
+			{ "time":1661, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":12 },
+			{ "time":1661, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":13 },
+			{ "time":1661, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":14 }
+		],
+		"906:APPEND": [
+			{ "time":3021, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":10 },
+			{ "time":3021, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":11 },
+			{ "time":3021, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":12 },
+			{ "time":3021, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":13 },
+			{ "time":3021, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":14 }
+		],
+		"927:APPEND": [
+			{ "time":3071, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":15 },
+			{ "time":3071, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":16 },
+			{ "time":3071, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":17 },
+			{ "time":3071, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":18 },
+			{ "time":3071, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":19 }
+		],
+		"948:APPEND": [
+			{ "time":3121, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":20 },
+			{ "time":3121, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":21 },
+			{ "time":3121, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":22 },
+			{ "time":3121, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":23 },
+			{ "time":3121, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":24 }
+		],
+		"990:APPEND": [
+			{ "time":3221, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":10 },
+			{ "time":3221, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":11 },
+			{ "time":3221, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":12 },
+			{ "time":3221, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":13 },
+			{ "time":3221, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":14 },
+			{ "time":3222, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":15 },
+			{ "time":3222, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":16 },
+			{ "time":3222, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":17 },
+			{ "time":3222, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":18 },
+			{ "time":3222, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":19 }
+		],
+		"1048:APPEND": [
+			{ "time":3321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":10 },
+			{ "time":3321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":11 },
+			{ "time":3321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":12 },
+			{ "time":3321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":13 },
+			{ "time":3321, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":14 },
+			{ "time":3322, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":15 },
+			{ "time":3322, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":16 },
+			{ "time":3322, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":17 },
+			{ "time":3322, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":18 },
+			{ "time":3322, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":19 }
+		],
+
+		// There's an event early on in the level that tries to spawn en enemy from Camanis/Ice Exit,
+		// but of course that bank of graphics isn't loaded. We change it to a proper Savara plane.
+		"152:REPLACE": { "time": 600, "event":15, /* NewEnemy_Sky */ "linknum":7, "type":164, "ex":20, "eyc":3 }
 	},
 	// --------------------------------------------------------------
 	"Episode4 SAVARA IV ver2.1": {
+		// Addition of Archipelago Items
+		"130:REPLACE": { "time": 420, "event":201, /* AP_CheckFromEnemy */ "ap_id":530, "linknum":  5, "movement":"falling" },
+		"186:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":531, "linknum": 10, "movement":"swaying", "backup":474 },
+		"236:REPLACE": { "time":1320, "event":201, /* AP_CheckFromEnemy */ "ap_id":532, "linknum":  5, "movement":"falling" },
+		"549:REPLACE": { "time":2600, "event":201, /* AP_CheckFromEnemy */ "ap_id":533, "linknum":  1, "movement":"swaying", "backup":474 },
+		"710:APPEND":  { "time":3660, "event":201, /* AP_CheckFromEnemy */ "ap_id":534, "linknum":143, "movement":"swaying", "is_boss":true },
+
+		// Make the drunk planes leave after a point, to fix potential linknum conflicts.
+		"293:PREPEND": [
+			{ "time":1600, "event":27, /* EnemyGlobal_AccelRev */ "linknum":10 },
+			{ "time":1600, "event":20, /* EnemyGlobal_Accel */ "linknum":10, "eycc":-18 }
+		],
+		"637:PREPEND": [
+			{ "time":3300, "event":27, /* EnemyGlobal_AccelRev */ "linknum": 1 },
+			{ "time":3300, "event":20, /* EnemyGlobal_Accel */ "linknum": 1, "eycc":-18 }
+		],
+
+		// Leave more time to collect AP items after the boss.
+		"1129:PREPEND": { "time":9020, "event":11 /* EndLevel */ }
 	},
 	"Episode4 SAVARA IV ver2000": {
+		// Addition of Archipelago Items
+		"129:REPLACE": { "time": 420, "event":201, /* AP_CheckFromEnemy */ "ap_id":530, "linknum":  5, "movement":"falling" },
+		"185:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":531, "linknum": 10, "movement":"swaying", "backup":474 },
+		"235:REPLACE": { "time":1320, "event":201, /* AP_CheckFromEnemy */ "ap_id":532, "linknum":  5, "movement":"falling" },
+		"548:REPLACE": { "time":2600, "event":201, /* AP_CheckFromEnemy */ "ap_id":533, "linknum":  1, "movement":"swaying", "backup":474 },
+		"709:APPEND":  { "time":3660, "event":201, /* AP_CheckFromEnemy */ "ap_id":534, "linknum":143, "movement":"swaying", "is_boss":true },
+
+		// Make the drunk planes leave after a point, to fix potential linknum conflicts.
+		"292:PREPEND": [
+			{ "time":1600, "event":27, /* EnemyGlobal_AccelRev */ "linknum":10 },
+			{ "time":1600, "event":20, /* EnemyGlobal_Accel */ "linknum":10, "eycc":-18 }
+		],
+		"636:PREPEND": [
+			{ "time":3300, "event":27, /* EnemyGlobal_AccelRev */ "linknum": 1 },
+			{ "time":3300, "event":20, /* EnemyGlobal_Accel */ "linknum": 1, "eycc":-18 }
+		],
+
+		// Leave more time to collect AP items after the boss.
+		"1188:PREPEND": { "time":9020, "event":11 /* EndLevel */ }
 	},
 	// --------------------------------------------------------------
 	"Episode4 DREAD-NOT": {
@@ -1250,12 +1509,50 @@
 	},
 	// --------------------------------------------------------------
 	"Episode4 EYESPY": {
+		// Addition of Archipelago Items
+		"82:REPLACE":  { "time": 400, "event":201, /* AP_CheckFromEnemy */ "ap_id":550, "linknum": 10, "movement":"falling" },
+		"197:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":551, "linknum": 19, "movement":"falling" },
+		"328:REPLACE": { "time":1500, "event":201, /* AP_CheckFromEnemy */ "ap_id":552, "linknum":  9, "movement":"falling" },
+		"635:APPEND" : { "time":3100, "event":201, /* AP_CheckFromEnemy */ "ap_id":554, "linknum":  6, "movement":"falling" },
+		"724:REPLACE": { "time":3800, "event":201, /* AP_CheckFromEnemy */ "ap_id":555, "linknum":  9, "movement":"falling" },
+		"936:APPEND":  { "time":6149, "event":201, /* AP_CheckFromEnemy */ "ap_id":556, "linknum":254, "movement":"swaying", "is_boss":true },
+
+		// Midway through the level, one of the guarded eye formations lacks the large eye between all the smaller ones.
+		// Later events indicate that this omission was not intentional, so we restore it here.
+		"397:APPEND": [
+			{ "time":1900, "event": 15, /* NewEnemy_Sky */ "linknum":11, "type":340, "ex":200, "ey":-20, "eyc":1 },
+			{ "time":1900, "event":201, /* AP_CheckFromEnemy */ "ap_id":553, "linknum":11, "movement":"falling" }
+		],
+
+		// Fix some linknum errors in the original script.
+		"628:APPEND":  { "time":3000, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":25, "new_linknum":26 },
+		"641:APPEND":  { "time":3100, "event": 39, /* EnemyGlobal_LinkNum */ "linknum": 5, "new_linknum": 6 }
 	},
 	// --------------------------------------------------------------
 	"Episode4 BRAINIAC": {
+		// Addition of Archipelago Items
+		"49:REPLACE":  { "time": 196, "event":200, /* AP_CheckFreestanding */ "ap_id":560, "movement":"static", "ex":210, "ey":-24 },
+		"103:REPLACE": { "time": 700, "event":200, /* AP_CheckFreestanding */ "ap_id":561, "movement":"static", "ex": 66, "ey":-24 },
+		"245:REPLACE": { "time":2128, "event":200, /* AP_CheckFreestanding */ "ap_id":562, "movement":"static", "ex":210, "ey":-24 },
+		"256:REPLACE": { "time":2251, "event":201, /* AP_CheckFromEnemy */ "ap_id":563, "linknum": 14, "movement":"falling" },
+		"597:REPLACE": { "time":3500, "event":201, /* AP_CheckFromEnemy */ "ap_id":564, "linknum":  9, "movement":"swaying", "is_boss":true },
+		"743:REPLACE": { "time":4420, "event":201, /* AP_CheckFromEnemy */ "ap_id":565, "linknum":  7, "movement":"falling" },
+		"819:APPEND":  { "time":5100, "event":201, /* AP_CheckFromEnemy */ "ap_id":566, "linknum":189, "movement":"swaying", "is_boss":true },
+		"1049:APPEND": { "time":6940, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":567, "movement":"falling" },
+		"1080:APPEND": { "time":7000, "event":201, /* AP_CheckFromEnemy */ "ap_id":568, "linknum":254, "movement":"swaying", "is_boss":true },
+
+		// Make the circling orbs that appear between the two minibosses leave, because they cause later linknum problems.
+		"799:APPEND":  { "time":4986, "event":27, /* EnemyGlobal_AccelRev */ "linknum":5 }
+
 	},
 	// --------------------------------------------------------------
 	"Episode4 NOSE DRIP": {
+		// Addition of Archipelago Item (singular)
+		"631:APPEND": { "time":5150, "event":201, /* AP_CheckFromEnemy */ "ap_id":570, "linknum":254, "movement":"swaying", "is_boss":true },
+
+		// Don't force end the level when the boss dies, give time to collect the item.
+		"666:PREPEND": { "time":7000, "event":11 /* EndLevel */ },
+
 		// Consistently apply a fix to the boss's section skips.
 		// Remember this: The map starts fully scrolled and returns to the starting point over time.
 		// Thus position goes *down* over time. Tyrian 2000 tried to change this, did it poorly, and broke things.
@@ -1269,12 +1566,15 @@
 	// ========================================================================
 
 	"Episode5 ASTEROIDS": {
+		// Addition of Archipelago Items
 		"73:REPLACE":  { "time": 350, "event":201, /* AP_CheckFromEnemy */ "ap_id":580, "linknum":  8, "movement":"sky_falling" },
-		"154:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":581, "linknum":  1, "movement":"sky_falling" },
-		"233:REPLACE": { "time":1300, "event":201, /* AP_CheckFromEnemy */ "ap_id":582, "linknum":  2, "movement":"sky_falling" },
-		"249:REPLACE": { "time":1450, "event":201, /* AP_CheckFromEnemy */ "ap_id":583, "linknum":  1, "movement":"sky_falling" },
-		"402:REPLACE": { "time":2600, "event":201, /* AP_CheckFromEnemy */ "ap_id":584, "linknum":  4, "movement":"sky_falling" },
-		"433:APPEND":  { "time":2800, "event":201, /* AP_CheckFromEnemy */ "ap_id":585, "linknum":254, "movement":"swaying", "is_boss":true},
+		"139:REPLACE": { "time": 692, "event":201, /* AP_CheckFromEnemy */ "ap_id":581, "linknum": 50, "movmeent":"falling" },
+		"154:REPLACE": { "time": 800, "event":201, /* AP_CheckFromEnemy */ "ap_id":582, "linknum":  1, "movement":"sky_falling" },
+		"233:REPLACE": { "time":1300, "event":201, /* AP_CheckFromEnemy */ "ap_id":583, "linknum":  2, "movement":"sky_falling" },
+		"249:REPLACE": { "time":1450, "event":201, /* AP_CheckFromEnemy */ "ap_id":584, "linknum":  1, "movement":"sky_falling" },
+		"332:REPLACE": { "time":2182, "event":201, /* AP_CheckFromEnemy */ "ap_id":585, "linknum": 90, "movmeent":"falling" },
+		"402:REPLACE": { "time":2600, "event":201, /* AP_CheckFromEnemy */ "ap_id":586, "linknum":  4, "movement":"sky_falling" },
+		"433:APPEND":  { "time":2800, "event":201, /* AP_CheckFromEnemy */ "ap_id":587, "linknum":254, "movement":"swaying", "is_boss":true },
 
 		// Give time for the AP item to drop.
 		"514:PREPEND": [
@@ -1284,26 +1584,85 @@
 	},
 	// --------------------------------------------------------------
 	"Episode5 AST ROCK": {
-
+		// Addition of Archipelago Items...? Oh god what is happening here
+		// We add in a few fixed spawns of normally randomly spawning enemies, because otherwise this level is barren.
+		"56:APPEND": [
+			{ "time":1000, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":590, "movement":"falling" },
+			{ "time":1337, "event": 15, /* NewEnemy_Sky */ "type":1081, "ex":-99 },
+			{ "time":1337, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":591, "movement":"sky_falling" }
+		],
+		"80:APPEND": { "time":2148, "event":201, /* AP_CheckFromEnemy */ "linknum":22, "ap_id":592, "movement":"falling" },
+		"93:APPEND": { "time":2344, "event":201, /* AP_CheckFromEnemy */ "linknum":25, "ap_id":593, "movement":"falling" },
+		"96:APPEND": { "time":2372, "event":201, /* AP_CheckFromEnemy */ "linknum":26, "ap_id":594, "movement":"falling" },
+		"118:APPEND": [
+			{ "time":3000, "event": 15, /* NewEnemy_Sky */ "type":1081, "ex":-99 },
+			{ "time":3000, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":595, "movement":"sky_falling" }
+		],
+		"162:APPEND": [
+			{ "time":4196, "event": 15, /* NewEnemy_Sky */ "type":590, "ex":-99 },
+			{ "time":4196, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":596, "movement":"sky_falling" }
+		],
+		"215:APPEND": [
+			{ "time":5210, "event": 15, /* NewEnemy_Sky */ "type":1081, "ex":100 },
+			{ "time":5210, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":597, "movement":"sky_falling" }
+		],
+		"297:APPEND": { "time":6292, "event":201, /* AP_CheckFromEnemy */ "linknum":254, "ap_id":598, "movement":"swaying", "is_boss":true }
 	},
 	// --------------------------------------------------------------
 	"Episode5 MINERS": {
-		"861:REPLACE": {"time":3050, "event":201, /* AP_CheckFromEnemy */ "ap_id":999, "linknum":19, "movement":534}
+		"65:APPEND":    { "time": 200, "event":201, /* AP_CheckFromEnemy */ "ap_id":600, "linknum":141, "movement":"gnd2_falling" },
+		"322:REPLACE":  { "time": 850, "event":201, /* AP_CheckFromEnemy */ "ap_id":601, "linknum": 19, "movement":"sky_falling" },
+		"479:REPLACE":  { "time":1500, "event":201, /* AP_CheckFromEnemy */ "ap_id":602, "linknum":  1, "movement":"sky_falling" },
+		"506:REPLACE":  { "time":1812, "event":201, /* AP_CheckFromEnemy */ "ap_id":603, "linknum": 21, "movement":"falling" },
+		"861:REPLACE":  { "time":3050, "event":201, /* AP_CheckFromEnemy */ "ap_id":604, "linknum": 19, "movement":"sky_falling" },
+		"1174:REPLACE": { "time":4220, "event":201, /* AP_CheckFromEnemy */ "ap_id":605, "linknum": 15, "movement":"gnd2_falling" },
+		"1214:APPEND":  { "time":4472, "event":201, /* AP_CheckFromEnemy */ "ap_id":606, "linknum":254, "movement":"swaying", "is_boss":true },
+
+		// Stop enemies from spawning when the boss dies by jumping to the time code where the timeout starts.
+		// Make sure we disable it when the timeout starts for real, though, so we don't exceed the level bounds.
+		"1216:APPEND": { "time":4472, "event": 57, /* Jump_OnLinkNum254Kill */ "jump_time":5800 },
+		"1440:APPEND": { "time":5799, "event": 57 /* Jump_OnLinkNum254Kill */ }
 	},
 	// --------------------------------------------------------------
 	"Episode5 SAVARA": {
-		"81:REPLACE":  {"time": 330, "event":201, /* AP_CheckFromEnemy */ "ap_id":999, "linknum":18, "movement":"sky_falling" },
-		"299:REPLACE": {"time":1505, "event":201, /* AP_CheckFromEnemy */ "ap_id":999, "linknum":19, "movement":"sky_falling" },
-		"675:REPLACE": {"time":3230, "event":201, /* AP_CheckFromEnemy */ "ap_id":999, "linknum":18, "movement":"sky_falling" }
+		// Addition of Archipelago Items
+		"81:REPLACE":  { "time": 330, "event":201, /* AP_CheckFromEnemy */ "ap_id":610, "linknum": 18, "movement":"sky_falling" },
+		"151:REPLACE": { "time": 540, "event":201, /* AP_CheckFromEnemy */ "ap_id":611, "linknum":  5, "movement":"falling" },
+		"260:REPLACE": { "time":1220, "event":201, /* AP_CheckFromEnemy */ "ap_id":612, "linknum":  3, "movement":"falling" },
+		"299:REPLACE": { "time":1505, "event":201, /* AP_CheckFromEnemy */ "ap_id":613, "linknum": 19, "movement":"sky_falling" },
+		"407:REPLACE": { "time":2020, "event":201, /* AP_CheckFromEnemy */ "ap_id":614, "linknum":  5, "movement":"sky_falling" },
+		"493:REPLACE": { "time":2340, "event":201, /* AP_CheckFromEnemy */ "ap_id":615, "linknum":  5, "movement":"sky_falling" },
+		"675:REPLACE": { "time":3230, "event":201, /* AP_CheckFromEnemy */ "ap_id":616, "linknum": 18, "movement":"sky_falling" },
+		"815:REPLACE": { "time":4746, "event":201, /* AP_CheckFromEnemy */ "ap_id":617, "linknum":  5, "movement":"gnd2_falling" },
+		"883:APPEND":  { "time":5250, "event":201, /* AP_CheckFromEnemy */ "ap_id":618, "linknum":143, "movement":"swaying", "is_boss":true },
+
+		// It feels like there should've been a level end event placed somewhere, but it's entirely missing!
+		// So, we just jump to the timed battle end point at around when you'd run out of time.
+		"929:APPEND": { "time":7000, "event":54, /* Jump */ "jump_time":10000 }
 	},
 	// --------------------------------------------------------------
 	"Episode5 CORAL": {
+		// Addition of Archipelago Items
+		"161:APPEND":  { "time": 820, "event":201, /* AP_CheckFromEnemy */ "ap_id":620, "linknum":  8, "movement":"gnd2_falling" },
+		"301:APPEND":  { "time":1700, "event":201, /* AP_CheckFromEnemy */ "ap_id":621, "linknum":142, "movement":"gnd2_falling" },
+		"325:REPLACE": { "time":1800, "event":201, /* AP_CheckFromEnemy */ "ap_id":622, "linknum": 19, "movement":"gnd2_falling" },
+		"343:REPLACE": { "time":2000, "event":201, /* AP_CheckFromEnemy */ "ap_id":623, "linknum": 19, "movement":"gnd2_falling" },
+		"463:APPEND":  { "time":2860, "event":201, /* AP_CheckFromEnemy */ "ap_id":624, "linknum":142, "movement":"gnd2_falling" },
+		"555:REPLACE": { "time":3820, "event":201, /* AP_CheckFromEnemy */ "ap_id":625, "linknum": 18, "movement":"gnd2_falling" },
+		"611:APPEND":  { "time":4470, "event":201, /* AP_CheckFromEnemy */ "ap_id":626, "linknum":122, "movement":"gnd2_falling" },
+		"743:APPEND":  { "time":5160, "event":201, /* AP_CheckFromEnemy */ "ap_id":627, "linknum":  2, "movement":"gnd2_falling" },
+
+		// Fix a linknum issue that affects an AP item.
+		"158:APPEND":  { "time": 819, "event":39, /* EnemyGlobal_LinkNum */ "linknum":8, "new_linknum":108 },
+
 		// We need to completely replace the ending sequence to deal with handing out an item for defeating the boss.
 		"894:PREPEND": [
 			{ "time": 9940, "event": 36 /* ReadyToEndLevel */ },
+			{ "time": 9940, "event":  2, /* MapBackMove */ "mode":[0] },
+			{ "time": 9940, "event": 53, /* ForceEvents */ "enable":true },
 			{ "time": 9940, "event": 99, /* RandomExplosions */ "enable":true },
-			{ "time": 9940, "event": 19, /* EnemyGlobal_Move */ "linknum":9, "eyc":-2 },
-			{ "time": 9940, "event":200, /* AP_CheckFreestanding */ "ap_id":620, "movement":"swaying", "ex":120 },
+			{ "time": 9940, "event": 19, /* EnemyGlobal_Move */ "linknum":9, "eyc":-1 },
+			{ "time": 9940, "event":200, /* AP_CheckFreestanding */ "ap_id":628, "movement":"swaying", "ex":120 },
 			{ "time":10040, "event": 99, /* RandomExplosions */ "enable":false },
 			{ "time":10080, "event": 19, /* EnemyGlobal_Move */ "linknum":9, "eyc":-64 },
 			{ "time":10440, "event": 11 /* EndLevel */ },
@@ -1312,10 +1671,11 @@
 	},
 	// --------------------------------------------------------------
 	"Episode5 STATION": {
+		// Addition of Archipelago Items
 		"12:REPLACE":  { "time":  20, "event":201, /* AP_CheckFromEnemy */ "ap_id":640, "linknum": 13, "movement":"sky_falling" },
 		"66:REPLACE":  { "time": 320, "event":201, /* AP_CheckFromEnemy */ "ap_id":641, "linknum": 13, "movement":"sky_falling" },
 		"104:REPLACE": { "time": 520, "event":201, /* AP_CheckFromEnemy */ "ap_id":642, "linknum": 14, "movement":"sky_falling" },
-		"215:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":643, "linknum": 15, "movement":"sky_falling" },
+		"215:REPLACE": { "time": 900, "event":201, /* AP_CheckFromEnemy */ "ap_id":643, "linknum": 13, "movement":"sky_falling" },
 		"255:REPLACE": { "time":1120, "event":201, /* AP_CheckFromEnemy */ "ap_id":644, "linknum": 20, "movement":"sky_falling" },
 		"356:REPLACE": { "time":1850, "event":201, /* AP_CheckFromEnemy */ "ap_id":645, "linknum":  8, "movement":"sky_falling" },
 		"480:REPLACE": { "time":2500, "event":201, /* AP_CheckFromEnemy */ "ap_id":646, "linknum": 59, "movement":"sky_falling" },
@@ -1334,7 +1694,29 @@
 	},
 	// --------------------------------------------------------------
 	"Episode5 FRUIT": {
-		"165:REPLACE": { "time": 760, "event":201, /* AP_CheckFromEnemy */ "ap_id":650, "linknum": 5, "movement":"sky_falling" }
+		// Addition of Archipelago Items
+		"165:REPLACE": { "time": 760, "event":201, /* AP_CheckFromEnemy */ "ap_id":650, "linknum":  5, "movement":"sky_falling" },
+		"355:REPLACE": { "time":2040, "event":201, /* AP_CheckFromEnemy */ "ap_id":651, "linknum": 15, "movement":"sky_falling" },
+		"491:APPEND":  { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":652, "linknum": 15, "movement":"top_falling" },
+		"716:REPLACE": { "time":4840, "event":201, /* AP_CheckFromEnemy */ "ap_id":653, "linknum":  5, "movement":"sky_falling" },
+		"756:REPLACE": { "time":5000, "event":201, /* AP_CheckFromEnemy */ "ap_id":654, "linknum":251, "movement":"swaying", "is_boss":true },
+
+		// Correct some turret positions that are obviously mismatched with the background.
+		"423:REPLACE": { "time":2540, "event":6, /* NewEnemy_Ground */ "type":1260, "ex":186, "ey":-1 },
+		"469:REPLACE": { "time":2932, "event":6, /* NewEnemy_Ground */ "type":1260, "ex":210, "ey":-1 },
+		"471:REPLACE": { "time":3072, "event":6, /* NewEnemy_Ground */ "type":1260, "ex":234, "ey":-1 },
+
+		// At least make an attempt to make the boss a decent "final" boss by letting it get on screen
+		// before allowing it to be vulnerable.
+		"754:APPEND": { "time":5000, "event":25, /* EnemyGlobal_SetHealth */ "linknum":254, "health":255 },
+		"764:APPEND": { "time":5028, "event":25, /* EnemyGlobal_SetHealth */ "linknum":254, "health":255 },
+		"765:APPEND": [
+			{ "time":5115, "event":25, /* EnemyGlobal_SetHealth */ "linknum":254, "health":254 },
+			{ "time":5115, "event":79, /* SetBossBar */ "linknum":[254, 0] },
+			{ "time":5115, "event":27, /* EnemyGlobal_AccelRev */ "linknum":254, "exrev":-99, "eyrev":-99, "filter":12 },
+			{ "time":5116, "event":27, /* EnemyGlobal_AccelRev */ "linknum":254, "exrev":-99, "eyrev":-99, "filter":12 },
+			{ "time":5117, "event":27, /* EnemyGlobal_AccelRev */ "linknum":254, "exrev":-99, "eyrev":-99, "filter":12 }
+		]
 	},
 
 	// ========================================================================
@@ -1524,7 +1906,7 @@
 			"20": "Episode4 ICESECRET ver2000"
 		},
 		"Episode 5": {
-			"2": "Episode5 AST. ROCK",
+			"2": "Episode5 AST ROCK",
 			"3": "Episode5 STATION",
 			"4": "Episode5 SAVARA",
 			"5": "Episode5 ASTEROIDS",

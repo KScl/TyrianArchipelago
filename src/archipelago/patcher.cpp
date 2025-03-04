@@ -20,6 +20,8 @@ extern "C" {
 		Uint8  eventdat4;
 	} eventRec[2500];
 	extern Uint16 maxEvent;
+
+	extern const char soundTitle[128][9]; // Sound effect event
 }
 
 using nlohmann::json;
@@ -338,6 +340,25 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 		case 111: // LastEnemy_IncrementFlag
 			eventRec[x].eventdat  = j.value<Sint16>("flag", 0);
 			eventRec[x].eventdat2 = j.value<Sint16>("value", 1);
+			break;
+
+		case  62: // PlaySound
+			if (!j.contains("sample"))
+				break;
+			if (j["sample"].is_number())
+				eventRec[x].eventdat = j.value<Sint16>("sample", 0);
+			else if (j["sample"].is_string())
+			{
+				std::string evStr = j["sample"].template get<std::string>();
+				for (int i = 0; soundTitle[i][0]; ++i)
+				{
+					if (evStr == soundTitle[i])
+					{
+						eventRec[x].eventdat = i + 1;
+						break;
+					}
+				}
+			}
 			break;
 
 		case  67: // SetLevelTimer

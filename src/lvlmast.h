@@ -76,6 +76,7 @@ typedef struct {
 
 extern int currentLevelID;
 extern bool lastLevelCompleted; // False if died/exited last level, true if beaten
+extern bool lastLevelFailed; // True if mission failure exit
 
 extern leveldata_t allLevelData[LEVELDATA_COUNT];
 
