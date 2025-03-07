@@ -4475,9 +4475,10 @@ void draw_boss_bar(void)
 		unsigned int x = (bars == 2)
 		               ? ((b == 0) ? 125 : 185)
 		               : ((levelTimer) ? 250 : 155);  // level timer and boss bar would overlap
+		unsigned int y = (levelTimer) ? 15 : 7;
 
-		JE_barX(x - 25, 7, x + 25, 12, 115);
-		JE_barX(x - (boss_bar[b].armor / 10), 7, x + (boss_bar[b].armor + 5) / 10, 12, 118 + boss_bar[b].color);
+		JE_barX(x - 25, y, x + 25, y + 5, 115);
+		JE_barX(x - (boss_bar[b].armor / 10), y, x + (boss_bar[b].armor + 5) / 10, y + 5, 118 + boss_bar[b].color);
 
 		if (boss_bar[b].color > 0)
 			boss_bar[b].color--;
