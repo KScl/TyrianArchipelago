@@ -4264,6 +4264,18 @@ void JE_eventSystem(void)
 		}
 		break;
 
+	case 120: // EnemyGlobal_SetShotType
+		for (temp = 0; temp < 100; temp++)
+		{
+			if (enemy[temp].linknum == eventRec[eventLoc-1].eventdat4)
+			{
+				enemy[temp].tur[0] = (JE_byte)eventRec[eventLoc-1].eventdat;
+				enemy[temp].tur[1] = (JE_byte)eventRec[eventLoc-1].eventdat2;
+				enemy[temp].tur[2] = (JE_byte)eventRec[eventLoc-1].eventdat3;
+			}
+		}
+		break;
+
 	case 200:; // AP_CheckFreestanding
 		bool using_backup = false;
 

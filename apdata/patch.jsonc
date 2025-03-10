@@ -1707,9 +1707,21 @@
 		"471:REPLACE": { "time":3072, "event":6, /* NewEnemy_Ground */ "type":1260, "ex":234, "ey":-1 },
 
 		// At least make an attempt to make the boss a decent "final" boss by letting it get on screen
-		// before allowing it to be vulnerable.
-		"754:APPEND": { "time":5000, "event":25, /* EnemyGlobal_SetHealth */ "linknum":254, "health":255 },
-		"764:APPEND": { "time":5028, "event":25, /* EnemyGlobal_SetHealth */ "linknum":254, "health":255 },
+		// before allowing it to be vulnerable, and fixing its turrets.
+		"748:REPLACE": { "time": 5000, "event":10, /* NewEnemy_Ground2 */ "linknum":253, "type":1279, "ex":204, "ey":-84 },
+		"752:REPLACE": { "time": 5000, "event":10, /* NewEnemy_Ground2 */ "linknum":253, "type":1274, "ex": 84, "ey":-84 },
+		"754:APPEND": [
+			{ "time":5000, "event":120, /* EnemyGlobal_SetShotType */ "linknum":253, "shot_type":[0, 45, 0] },
+			{ "time":5000, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":253, "new_linknum":254 },
+			{ "time":5000, "event": 25, /* EnemyGlobal_SetHealth */ "linknum":254, "health":255 }
+		],
+		"759:REPLACE": { "time": 5028, "event":10, /* NewEnemy_Ground2 */ "linknum":253, "type":1266, "ex": 84, "ey":-84 },
+		"764:REPLACE": { "time": 5028, "event":10, /* NewEnemy_Ground2 */ "linknum":253, "type":1271, "ex":204, "ey":-84 },
+		"764:APPEND": [
+			{ "time":5000, "event":120, /* EnemyGlobal_SetShotType */ "linknum":253, "shot_type":[0, 0, 0] },
+			{ "time":5000, "event": 39, /* EnemyGlobal_LinkNum */ "linknum":253, "new_linknum":254 },
+			{ "time":5028, "event": 25, /* EnemyGlobal_SetHealth */ "linknum":254, "health":255 }
+		],
 		"765:APPEND": [
 			{ "time":5115, "event":25, /* EnemyGlobal_SetHealth */ "linknum":254, "health":254 },
 			{ "time":5115, "event":79, /* SetBossBar */ "linknum":[254, 0] },

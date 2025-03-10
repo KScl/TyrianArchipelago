@@ -183,12 +183,12 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 		case   2: // MapBackMove
 		case   4: // MapStop
 		case  83: // T2K_MapStop
-			if (j.contains("mode"))
+			if (j.contains("mode") && j["mode"].is_array())
 				assignFromArray(j["mode"], x);
 			break;
 
 		case   5: // LoadEnemyShapeBanks
-			if (j.contains("banks"))
+			if (j.contains("banks") && j["banks"].is_array())
 				assignFromArray(j["banks"], x);
 			break;
 
@@ -278,7 +278,6 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			break;
 
 		case  26: // SmallEnemyAdjust
-		case  68: // RandomExplosions (TODO T2000 moved)
 		case  99: // RandomExplosions
 			eventRec[x].eventdat = j.value<bool>("enable", false) ? 1 : 0;
 			break;
@@ -290,7 +289,7 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			break;
 
 		case  31: // EnemyGlobal_FireOverride
-			if (j.contains("shot_freq"))
+			if (j.contains("shot_freq") && j["shot_freq"].is_array())
 				assignFromArray(j["shot_freq"], x);
 			eventRec[x].eventdat5 = j.value<Sint8> ("launch_freq", 0);
 			break;
@@ -329,15 +328,24 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat = j.value<bool>("enable", false) ? 0 : 99;
 			break;
 
+		case  58: // EnemyGlobal_SetLaunchType (Tyrian 2000)
+			eventRec[x].eventdat = j.value<Sint16>("launch_type", 0);
+			break;
+
+		case  59: // EnemyGlobal_ReplaceEnemy (Tyrian 2000)
+		case  68: // EnemyGlobal_ReplaceEnemy (Tyrian 2000)
+			eventRec[x].eventdat = j.value<Sint16>("new_type", 0);
+			break;
+
 		case  61: // Skip_IfFlagEquals
-		case 100: // Skip_IfFlagNotEquals
-		case 101: // Skip_IfFlagLessThan
-		case 102: // Skip_IfFlagGreaterThan
+		case 100: // Skip_IfFlagNotEquals (APTyrian)
+		case 101: // Skip_IfFlagLessThan (APTyrian)
+		case 102: // Skip_IfFlagGreaterThan (APTyrian)
 			eventRec[x].eventdat3 = j.value<Sint8>("skip_events", 0);
 			// fall through
 		case  60: // EnemyGlobal_SetFlag
-		case 110: // EnemyGlobal_IncrementFlag
-		case 111: // LastEnemy_IncrementFlag
+		case 110: // EnemyGlobal_IncrementFlag (APTyrian)
+		case 111: // LastEnemy_IncrementFlag (APTyrian)
 			eventRec[x].eventdat  = j.value<Sint16>("flag", 0);
 			eventRec[x].eventdat2 = j.value<Sint16>("value", 1);
 			break;
@@ -368,7 +376,8 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			break;
 
 		case  70: // Jump_SearchFor
-			assignFromArrayDat2(j["types"], x);
+			if (j.contains("types") && j["types"].is_array())
+				assignFromArrayDat2(j["types"], x);
 			goto commonjump_rejoin;
 
 		case  71: // Jump_IfMapPositionUnder
@@ -382,6 +391,11 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 				eventRec[x].eventdat = j.value<Sint16>("linknum", 0);
 			else if (j["linknum"].is_array())
 				assignFromArray(j["linknum"], x);
+			break;
+
+		case 120: // EnemyGlobal_SetShotType (APTyrian)
+			if (j.contains("shot_type") && j["shot_type"].is_array())
+				assignFromArray(j["shot_type"], x);
 			break;
 
 		case 200: // AP_CheckFreestanding
