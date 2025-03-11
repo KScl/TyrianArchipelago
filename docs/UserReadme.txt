@@ -1,4 +1,4 @@
-Archipelago Tyrian v1.0.0
+Archipelago Tyrian v0.99.0
 
 == Setup =======================================================================
 
@@ -47,7 +47,7 @@ Archipelago Tyrian:
   Client:  https://github.com/KScl/TyrianArchipelago
   APWorld: https://github.com/KScl/TyrianAPWorld
 
-OpenTyrian
+OpenTyrian:
   Project: https://github.com/opentyrian/opentyrian
   IRC:     ircs://irc.oftc.net/#opentyrian
   Forums:  https://tyrian2k.proboards.com/board/5
