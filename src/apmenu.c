@@ -3041,8 +3041,10 @@ static void submenuOptions_Exit(void)
 
 static void sidebarShipSprite(void)
 {
-	JE_barDrawShadow(VGAScreen,  42, 152, 2, 14, APStats.ArmorLevel  - 8, 2, 13); // Armor
-	JE_barDrawShadow(VGAScreen, 104, 152, 2, 14, APStats.ShieldLevel - 8, 2, 13); // Shield
+	if (APStats.ArmorLevel > 8)
+		JE_barDrawShadow(VGAScreen,  42, 152, 2, 14, APStats.ArmorLevel  - 8, 2, 13); // Armor
+	if (APStats.ShieldLevel > 8)
+		JE_barDrawShadow(VGAScreen, 104, 152, 2, 14, APStats.ShieldLevel - 8, 2, 13); // Shield
 	if (APItemChoices.Sidekick[0].Item)
 		sprites_blitArchipelagoItem(VGAScreen,   3, 84, APItemChoices.Sidekick[0].Item);
 	if (APItemChoices.Sidekick[1].Item)
@@ -3069,8 +3071,10 @@ static void sidebarShipSprite(void)
 
 static void sidebarArchipelagoInfo(void)
 {
-	JE_barDrawShadow(VGAScreen,  42, 152, 2, 14, APStats.ArmorLevel  - 8, 2, 13); // Armor
-	JE_barDrawShadow(VGAScreen, 104, 152, 2, 14, APStats.ShieldLevel - 8, 2, 13); // Shield
+	if (APStats.ArmorLevel > 8)
+		JE_barDrawShadow(VGAScreen,  42, 152, 2, 14, APStats.ArmorLevel  - 8, 2, 13); // Armor
+	if (APStats.ShieldLevel > 8)
+		JE_barDrawShadow(VGAScreen, 104, 152, 2, 14, APStats.ShieldLevel - 8, 2, 13); // Shield
 
 	// Draw player ship
 	if (useCustomShips)
