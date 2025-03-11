@@ -68,6 +68,8 @@ after_build:
 
     Copy-Item "..\OpenSSL\${env:PLATFORM}\bin\*.dll" "aptyrian\"
 
+    Copy-Item "visualc\${env:PLATFORM}\zlib\bin\zlib1.dll" "aptyrian\"
+
     Copy-Item "COPYING" "aptyrian\LICENSE-APTyrian.txt"
 
     Copy-Item "..\SDL2\COPYING.txt" "aptyrian\LICENSE-SDL2.txt"

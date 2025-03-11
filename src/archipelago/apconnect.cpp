@@ -29,8 +29,6 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wpedantic"
 #elif defined(_MSC_VER)
-// Temporarily disable compession on Windows until we work it out.
-#define WSWRAP_NO_COMPRESSION
 #pragma warning (push)
 #pragma warning (disable:4100)
 #pragma warning (disable:4127)
