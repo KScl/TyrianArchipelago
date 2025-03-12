@@ -1390,20 +1390,23 @@ level_loop:
 	{
 		VGAScreen = VGAScreenSeg; /* side-effect of game_screen */
 
-		// Give player queued superbombs if we can.
-		if (player[0].superbombs < 10 && APStats.QueuedSuperBombs)
+		if (!extraGame)
 		{
-			--APStats.QueuedSuperBombs;
-			++player[0].superbombs;
-		}
+			// Give player queued superbombs if we can.
+			if (player[0].superbombs < 10 && APStats.QueuedSuperBombs)
+			{
+				--APStats.QueuedSuperBombs;
+				++player[0].superbombs;
+			}
 
-		if (APUpdateRequest.Armor)
-			player_boostArmor(&player[0], APUpdateRequest.Armor);
-		if (APUpdateRequest.Armor || APUpdateRequest.Shield)
-		{
-			player_wipeShieldArmorBars();
-			player_drawShield();
-			player_drawArmor();
+			if (APUpdateRequest.Armor)
+				player_boostArmor(&player[0], APUpdateRequest.Armor);
+			if (APUpdateRequest.Armor || APUpdateRequest.Shield)
+			{
+				player_wipeShieldArmorBars();
+				player_drawShield();
+				player_drawArmor();
+			}			
 		}
 		memset(&APUpdateRequest, 0, sizeof(APUpdateRequest));
 
