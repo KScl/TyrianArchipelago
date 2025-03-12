@@ -75,7 +75,7 @@ void player_boostArmor(Player *this_player, int amount)
 			if (player[i].armor > 28)
 				player[i].armor = 28;
 
-			if (!APSeedSettings.ExcessArmor && player[i].armor > APStats.ArmorLevel)
+			if (!extraGame && !APSeedSettings.ExcessArmor && player[i].armor > APStats.ArmorLevel)
 				player[i].armor = APStats.ArmorLevel;
 		}
 	}
@@ -85,7 +85,7 @@ void player_boostArmor(Player *this_player, int amount)
 		if (this_player->armor > 28)
 			this_player->armor = 28;
 
-		if (!APSeedSettings.ExcessArmor && this_player->armor > APStats.ArmorLevel)
+		if (!extraGame && !APSeedSettings.ExcessArmor && this_player->armor > APStats.ArmorLevel)
 			this_player->armor = APStats.ArmorLevel;
 	}
 	player_drawArmor();
@@ -110,13 +110,26 @@ void player_updateShipData(void) // fka JE_getShipInfo
 	player[0].shield = (APStats.ShieldLevel >> 1); // start at half max shield
 	player[0].superbombs = 0;
 
-	// Player 2 stuff
-	// This is for the most part vestigial, but I keep it around just in case
+	// Player 2 stuff -- usually relevant for galaga mode, if anything
 	shipGr2 = 0;
 	shipGr2ptr = &spriteSheet9;
 	player[1].armor = APStats.ArmorLevel;
 	player[1].shield = (APStats.ShieldLevel >> 1); // start at half max shield
 	player[1].superbombs = 0;
+
+	if (extraGame)
+	{
+		if (!galagaMode)
+		{
+			// Zinglon's Revenge uses the Stalker 21.126 with all its twiddles.
+			// So use the Stalker sprite in game to clue the player in to this.
+			shipGr = 195;
+			shipGrPtr = &spriteSheet9;
+		}
+		player[0].armor = 28; // to match Stalker 21.126
+		player[1].armor = 10; // to match Dragonwing
+		player[0].shield = player[1].shield = 5; // max shield level is 10
+	}
 
 	// Ani was 2 for every ship??
 	// If it was ever somehow 0:
@@ -359,7 +372,11 @@ void player_wipeShieldArmorBars(void)
 
 void player_drawShield(void)
 {
-	if (twoPlayerMode && !galagaMode)
+	if (galagaMode)
+		return;
+
+	Uint8 maxShield = (extraGame) ? 10 : APStats.ShieldLevel;
+	if (twoPlayerMode)
 	{
 		for (uint i = 0; i < COUNTOF(player); ++i)
 			JE_dBar3(VGAScreenSeg, 270, 60 + 134 * i, roundf(player[i].shield * 0.8f), 144);
@@ -367,9 +384,9 @@ void player_drawShield(void)
 	else
 	{
 		JE_dBar3(VGAScreenSeg, 270, 194, player[0].shield, 144);
-		if (player[0].shield != APStats.ShieldLevel)
+		if (player[0].shield != maxShield)
 		{
-			const uint y = 193 - (APStats.ShieldLevel * 2);
+			const uint y = 193 - (maxShield * 2);
 			JE_rectangle(VGAScreenSeg, 270, y, 278, y, 68); /* <MXD> SEGa000 */
 		}
 	}
@@ -385,7 +402,7 @@ void player_drawArmor(void)
 	else
 	{
 		JE_dBar3(VGAScreenSeg, 307, 194, player[0].armor, 224);
-		if (!APSeedSettings.ExcessArmor && player[0].armor < APStats.ArmorLevel)
+		if (!extraGame && !APSeedSettings.ExcessArmor && player[0].armor < APStats.ArmorLevel)
 		{
 			const uint y = 193 - (APStats.ArmorLevel * 2);
 			JE_rectangle(VGAScreenSeg, 307, y, 315, y, 68); /* <MXD> SEGa000 */
@@ -405,7 +422,7 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 		return 0;
 
 	soundQueue[7] = S_SHIELD_HIT;
-	if (APSeedSettings.HardContact && damageType == DAMAGE_CONTACT && this_player->shield != 0)
+	if (!extraGame && APSeedSettings.HardContact && damageType == DAMAGE_CONTACT && this_player->shield != 0)
 	{
 		this_player->shield = 0;
 		damageAmount >>= 1;

@@ -282,6 +282,7 @@ void Archipelago_Save(void)
 	saveData["APItems"] += APItems.Specials;
 	for (int i = 0; i < 5; ++i)
 		saveData["APItems"] += APItems.Levels[i];
+	saveData["APItems"] += APItems.BonusGames;
 	for (int i = 0; i < 36; i += 3)
 		saveData["APItems"] += (APItems.Sidekicks[i]) | (APItems.Sidekicks[i+1] << 3) | (APItems.Sidekicks[i+2] << 6);
 
@@ -359,9 +360,10 @@ static bool Archipelago_Load(void)
 		APItems.Specials = saveData["APItems"].at(2).template get<Uint64>();
 		for (int i = 0; i < 5; ++i)
 			APItems.Levels[i] = saveData["APItems"].at(3 + i).template get<Uint32>();
+		APItems.BonusGames = saveData["APItems"].at(8).template get<Uint8>();
 		for (int i = 0; i < 12; ++i)
 		{
-			Uint16 combinedSidekicks = saveData["APItems"].at(8 + i).template get<Uint16>();
+			Uint16 combinedSidekicks = saveData["APItems"].at(9 + i).template get<Uint16>();
 			APItems.Sidekicks[0 + i*3] = (combinedSidekicks & 0x3);
 			APItems.Sidekicks[1 + i*3] = ((combinedSidekicks >> 3) & 0x3);
 			APItems.Sidekicks[2 + i*3] = ((combinedSidekicks >> 6) & 0x3);
@@ -851,6 +853,9 @@ static void APAll_ResolveItem(int64_t item, bool is_local)
 	else if (item == 909) APStats.SolarShield = true;
 	else if (item == 910) ++APStats.QueuedSuperBombs;
 	else if (item == 911) ++APStats.DataCubes;
+	else if (item == 920) APItems.BonusGames |= 1;
+	else if (item == 921) APItems.BonusGames |= 2;
+	else if (item == 922) APItems.BonusGames |= 4;
 	else if (item >= 980) APStats.Cash += remoteCashItemValues[item - 980];
 
 	if (!silentItemMode)
@@ -1457,7 +1462,6 @@ const char *Archipelago_StartDebugGame(void)
 	APSeedSettings.GoalEpisodes = tyrian2000detected ? 0x1F : 0xF;
 	APSeedSettings.Difficulty = 2;
 	APSeedSettings.SpecialMenu = true;
-	APSeedSettings.ArchipelagoRadar = true;
 
 	APAll_FreshInit();
 
@@ -1465,6 +1469,7 @@ const char *Archipelago_StartDebugGame(void)
 	APItems.FrontPorts = -1;
 	APItems.RearPorts = -1;
 	APItems.Specials = -1;
+	APItems.BonusGames = -1;
 	for (int i = 0; i < 5; ++i)
 		APItems.Levels[i] = -1;
 	for (int i = 0; i < 36; ++i)
@@ -1480,6 +1485,10 @@ const char *Archipelago_StartDebugGame(void)
 
 	gameInProgress = true;
 	isInRaceMode = false;
+
+	APOptions.EnableDeathLink = false; // No point if you're alone
+	APOptions.ArchipelagoRadar = true;
+
 	return NULL;
 }
 
@@ -1519,7 +1528,6 @@ const char *Archipelago_StartLocalGame(FILE *file)
 		APSeedSettings.ShopMode = aptyrianJSON["Settings"].value<int>("ShopMode", SHOP_MODE_NONE);
 		APSeedSettings.SpecialMenu = aptyrianJSON["Settings"].value<bool>("SpecialMenu", false);
 		APSeedSettings.TwiddleInputs = aptyrianJSON["Settings"].value<bool>("ShowTwiddles", false);
-		APSeedSettings.ArchipelagoRadar = aptyrianJSON["Settings"].value<bool>("APRadar", false);
 		APSeedSettings.Christmas = aptyrianJSON["Settings"].value<bool>("Christmas", false);
 		APSeedSettings.DeathLink = false; // No reason to enable in local play
 
@@ -1572,6 +1580,10 @@ const char *Archipelago_StartLocalGame(FILE *file)
 	APLocal_InitLocationsPerRegion();
 	gameInProgress = true;
 	isInRaceMode = false;
+
+	APOptions.EnableDeathLink = false; // No point if you're alone
+	APOptions.ArchipelagoRadar = true;
+
 	return NULL;
 }
 
@@ -1728,7 +1740,6 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			APSeedSettings.ShopMode = slot_data["Settings"].value<int>("ShopMode", SHOP_MODE_NONE);
 			APSeedSettings.SpecialMenu = slot_data["Settings"].value<bool>("SpecialMenu", false);
 			APSeedSettings.TwiddleInputs = slot_data["Settings"].value<bool>("ShowTwiddles", false);
-			APSeedSettings.ArchipelagoRadar = slot_data["Settings"].value<bool>("APRadar", false);
 			APSeedSettings.Christmas = slot_data["Settings"].value<bool>("Christmas", false);
 			APSeedSettings.DeathLink = slot_data["Settings"].value<bool>("DeathLink", false);
 
@@ -1833,7 +1844,8 @@ void Archipelago_Connect(const char *slot_name, const char *address, const char 
 	          << cx_serverAddress << ")" << std::endl;
 	ap.reset();
 
-	APOptions.EnableDeathLink = true;
+	APOptions.EnableDeathLink = true; // Only relevant if DeathLink was turned on in the YAML
+	APOptions.ArchipelagoRadar = true;
 
 	std::string cert = std::filesystem::exists("./cacert.pem") ? "./cacert.pem" : "";
 	ap.reset(new APClient(clientUUID, "Tyrian", cx_serverAddress));

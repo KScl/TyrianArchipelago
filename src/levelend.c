@@ -37,20 +37,23 @@ void levelend_doLevelStats(void) // fka JE_endLevelAni
 	lastLevelCompleted = true;
 	lastLevelFailed = (levelTimer && levelTimerCountdown <= 0);
 
-	// Mark completion (unless exited via mission failure)
-	if (!lastLevelFailed)
+	if (!extraGame)
 	{
-		const Uint16 episode = allLevelData[currentLevelID].episodeNum - 1;
-		const Uint16 levelID = allLevelData[currentLevelID].episodeLevelID;
-		APStats.Clears[episode] |= (1 << levelID);		
+		// Mark completion (unless exited via mission failure)
+		if (!lastLevelFailed)
+		{
+			const Uint16 episode = allLevelData[currentLevelID].episodeNum - 1;
+			const Uint16 levelID = allLevelData[currentLevelID].episodeLevelID;
+			APStats.Clears[episode] |= (1 << levelID);		
 
-		// Scout for new shop checks that just opened
-		Archipelago_ScoutShopItems(allLevelData[currentLevelID].shopStart);
+			// Scout for new shop checks that just opened
+			Archipelago_ScoutShopItems(allLevelData[currentLevelID].shopStart);
+		}
+
+		// Add obtained cash to AP cash total
+		APStats.Cash += player[0].cash;
+		player[0].cash = 0;		
 	}
-
-	// Add obtained cash to AP cash total
-	APStats.Cash += player[0].cash;
-	player[0].cash = 0;
 
 	JE_wipeKey();
 	frameCountMax = 3;
@@ -71,7 +74,10 @@ void levelend_doLevelStats(void) // fka JE_endLevelAni
 
 	// ----- Total Score: 0000000 -----------------------------------
 	// Even in a theoretical two player mode, cash would be shared between players.
-	snprintf(string_buffer, sizeof(string_buffer),  "%s %llu", miscText[28-1], (unsigned long long)APStats.Cash);
+	if (extraGame)
+		snprintf(string_buffer, sizeof(string_buffer),  "%s %lu", miscText[28-1], player[0].cash);
+	else
+		snprintf(string_buffer, sizeof(string_buffer),  "%s %llu", miscText[28-1], (unsigned long long)APStats.Cash);
 	JE_outTextGlow(VGAScreenSeg, 30, 50, string_buffer);
 
 	// ----- Destruction: 00% ---------------------------------------

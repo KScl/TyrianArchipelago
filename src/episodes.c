@@ -287,6 +287,7 @@ void JE_loadItemDat(FILE *f)
 	weaponPort[38].poweruse =  90; // NortShip Spreader B
 	weaponPort[39].poweruse = 100; // Atomic RailGun
 	weaponPort[37].opnum = 1; // Normally unused mode switch to Spreader B from Spreader A removed
+	special[32].stype = 18; // Fix right-only sidekick special spawning on left
 
 	// Correct typos in item names.
 	snprintf(weaponPort[32].name, 30, "Shuriken Field");

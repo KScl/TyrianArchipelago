@@ -914,6 +914,7 @@ typedef enum {
 
 typedef enum
 {
+	SUBMENU_JUKEBOX = -6, // Opens the full-screen jukebox.
 	SUBMENU_CHAT = -5, // Opens the chat box.
 	SUBMENU_ASSIGN = -4, // Options menus want game control to assign inputs
 	SUBMENU_EXIT = -3, // Exit the game and return to title screen
@@ -1002,6 +1003,34 @@ static void defaultMenuOptionDraw(const char *msg, int y, bool disable, bool hig
 		brightness += 2;
 
 	draw_font_hv_shadow(VGAScreen, 166, y, msg, SMALL_FONT_SHAPES, left_aligned, 15, brightness, false, 2);
+}
+
+static void smallMenuOptionLabel(const char *msg, int y, bool disable, bool highlight)
+{
+	int shade = highlight ? 15 : 28;
+	if (disable)
+		shade -= 4;
+
+	JE_textShade(VGAScreen, 171, y, msg, shade / 16, shade % 16 - 8, DARKEN);
+}
+
+static void smallMenuOptionValue(const char *msg, int y, bool disable, bool highlight)
+{
+	int shade = highlight ? 15 : 28;
+	if (disable)
+		shade -= 4;
+
+	JE_textShade(VGAScreen, 296 - JE_textWidth(msg, TINY_FONT), y, msg, shade / 16, shade % 16 - 8, DARKEN);
+}
+
+char *fstr(const char *msg, ...)
+{
+	va_list argptr;
+	va_start(argptr, msg);
+	vsnprintf(string_buffer, sizeof(string_buffer), msg, argptr);
+	string_buffer[31] = 0;
+	va_end(argptr);
+	return string_buffer;
 }
 
 // Default menu navigation. Handles altering subMenuSelections for you, as well as mouse movement.
@@ -1955,21 +1984,16 @@ static void submenuUpAll_Run(void)
 		if (selWeapon->PowerLevel == 0)
 			blit_sprite(VGAScreenSeg, 24, 149, OPTION_SHAPES, 13);  // downgrade disabled
 		else
-		{
-			sprintf(string_buffer, "%d", downCost);
-			JE_outText(VGAScreen, 26, 137, string_buffer, 1, 4);
-		}
+			JE_outText(VGAScreen, 26, 137, fstr("%d", downCost), 1, 4);
 
 		// Weapon upgrading
 		if (selWeapon->PowerLevel >= APStats.PowerMaxLevel)
 			blit_sprite(VGAScreenSeg, 119, 149, OPTION_SHAPES, 14);  // upgrade disabled
 		else
 		{
-			sprintf(string_buffer, "%d", upCost);
-
 			if (upCost + tempMoneySub > APStats.Cash)
 				blit_sprite(VGAScreenSeg, 119, 149, OPTION_SHAPES, 14);  // upgrade disabled
-			JE_outText(VGAScreen, 108, 137, string_buffer, (upCost + tempMoneySub > APStats.Cash) ? 7 : 1, 4);
+			JE_outText(VGAScreen, 108, 137, fstr("%d", upCost), (upCost + tempMoneySub > APStats.Cash) ? 7 : 1, 4);
 		}
 
 		// Show weapon power
@@ -1987,8 +2011,7 @@ static void submenuUpAll_Run(void)
 			blit_sprite(VGAScreenSeg, 51 + (6*i), 150, EXTRA_SHAPES, APSPR_POWER_LOCK);
 		}
 
-		sprintf(string_buffer, "POWER: %d", selWeapon->PowerLevel + 1);
-		JE_outText(VGAScreen, 58, 137, string_buffer, 15, 4);
+		JE_outText(VGAScreen, 58, 137, fstr("POWER: %d", selWeapon->PowerLevel + 1), 15, 4);
 	}
 
 	int ypos = 38;
@@ -2493,8 +2516,6 @@ static void submenuOptCustomShip_Run(void)
 	int ypos = 38;
 	for (int i = customShipScroll; i < customShipScroll + 14; ++i)
 	{
-		const int shade = subMenuSelections[currentSubMenu] == i ? 15 : 28;
-
 		if (!CustomShip_Exists(i))
 			break;
 
@@ -2505,7 +2526,7 @@ static void submenuOptCustomShip_Run(void)
 		}
 
 		const char *shipName = CustomShip_GetName(i);
-		JE_textShade(VGAScreen, 171, ypos, shipName, shade / 16, shade % 16 - 8, DARKEN);
+		smallMenuOptionLabel(shipName, ypos, false, SELECTED(i));
 		ypos += 9;
 	}
 
@@ -2592,8 +2613,6 @@ static void submenuOptKeyboard_Run(void)
 	int y = 38;
 	for (int i = 0; i < 9; ++i)
 	{
-		const int shade = subMenuSelections[currentSubMenu] == i ? 15 : 28;
-
 		if (keyboardInputs[i].id >= 0)
 			scancodeName = SDL_GetScancodeName(keySettings[keyboardInputs[i].id]);
 		else
@@ -2608,8 +2627,8 @@ static void submenuOptKeyboard_Run(void)
 			blit_sprite2(VGAScreen, 298, y-3, shopSpriteSheet, 247);
 		}
 
-		JE_textShade(VGAScreen, 171, y, keyboardInputs[i].name, shade / 16, shade % 16 - 8, DARKEN);
-		JE_textShade(VGAScreen, 296 - JE_textWidth(scancodeName, TINY_FONT), y, scancodeName, shade / 16, shade % 16 - 8, DARKEN);			
+		smallMenuOptionLabel(keyboardInputs[i].name, y, false, SELECTED(i));
+		smallMenuOptionValue(scancodeName,           y, false, SELECTED(i));
 		y += 9;
 	}
 
@@ -2697,7 +2716,6 @@ static const mousetargets_t configureJoystickTargets = {16, {
 static void submenuOptJoystick_Run(void)
 {
 	const char *joyName;
-	char local_buf[32];
 
 	if (joysticks == 0)
 	{
@@ -2774,7 +2792,7 @@ static void submenuOptJoystick_Run(void)
 	int y = 38;
 	for (int i = 0; i < 15; ++i)
 	{
-		int shade = subMenuSelections[currentSubMenu] == i ? 15 : 28;
+		bool disabled = false;
 
 		switch (joystickInputs[i].id)
 		{
@@ -2782,7 +2800,7 @@ static void submenuOptJoystick_Run(void)
 
 			case -1:
 				y += 2;
-				snprintf(local_buf, sizeof(local_buf), "%s", joystick[joyChoice].analog ? "Yes" : "No");
+				snprintf(string_buffer, sizeof(string_buffer), "%s", joystick[joyChoice].analog ? "Yes" : "No");
 				break;
 			case -2:
 				analog_opt = &joystick[joyChoice].sensitivity;
@@ -2791,23 +2809,23 @@ static void submenuOptJoystick_Run(void)
 				analog_opt = &joystick[joyChoice].threshold;
 			analog_option_draw:
 				if (!joystick[joyChoice].analog)
-					shade -= 4;
+					disabled = true;
 				JE_barDrawShadowSmall(VGAScreen, 225, y + 1, 1, joystick[joyChoice].analog ? 16 : 12,
 					*analog_opt, 3, 6);
-				snprintf(local_buf, sizeof(local_buf), "%d", *analog_opt);
+				snprintf(string_buffer, sizeof(string_buffer), "%d", *analog_opt);
 				break;
 			case -999:
 				y += 2;
-				local_buf[0] = '\0';
+				string_buffer[0] = '\0';
 				break;
 			case -1000: // 
-				snprintf(local_buf, sizeof(local_buf), "%d of %d", joyChoice + 1, joysticks);
+				snprintf(string_buffer, sizeof(string_buffer), "%d of %d", joyChoice + 1, joysticks);
 				break;
 			case 0:
 				y += 2;
 				// fall through
 			default:
-				joystick_assignments_to_string(local_buf, sizeof(local_buf),
+				joystick_assignments_to_string(string_buffer, sizeof(string_buffer),
 					joystick[joyChoice].assignment[joystickInputs[i].id]);
 				break;
 		}
@@ -2817,8 +2835,8 @@ static void submenuOptJoystick_Run(void)
 			fill_rectangle_xy(VGAScreen, 164, y+2, 300, y+6, 227);
 			blit_sprite2(VGAScreen, 298, y-3, shopSpriteSheet, 247);
 		}
-		JE_textShade(VGAScreen, 171, y, joystickInputs[i].name, shade / 16, shade % 16 - 8, DARKEN);
-		JE_textShade(VGAScreen, 296 - JE_textWidth(local_buf, TINY_FONT), y, local_buf, shade / 16, shade % 16 - 8, DARKEN);
+		smallMenuOptionLabel(joystickInputs[i].name, y, disabled, SELECTED(i));
+		smallMenuOptionValue(string_buffer,          y, disabled, SELECTED(i));
 		y += 8;
 	}
 
@@ -2896,31 +2914,32 @@ joystick_assign_end:
 // Options SubMenus
 // ----------------------------------------------------------------------------
 
-static void drawOnOffOption(int y, bool value, bool disable, bool highlight)
-{
-	int brightness = (disable) ? -7 : -3;
-	if (highlight)
-		brightness += 2;
-
-	draw_font_hv_shadow(VGAScreen, 304, y, value ? "On" : "Off", SMALL_FONT_SHAPES, right_aligned, 15, brightness, false, 2);
-}
-
 static void submenuOptions_Run(void)
 {
-	mousetargets_t optionTargets = {7, {
-		{164,  38, JE_textWidth("Music", SMALL_FONT_SHAPES), 12},
-		{164,  54, JE_textWidth("Sound", SMALL_FONT_SHAPES), 12},
-		{164,  70, JE_textWidth("DeathLink", SMALL_FONT_SHAPES), 12},
-		{164,  86, JE_textWidth("Joystick...", SMALL_FONT_SHAPES), 12},
-		{164, 104, JE_textWidth("Keyboard...", SMALL_FONT_SHAPES), 12},
-		{164, 120, JE_textWidth("Change Sprite...", SMALL_FONT_SHAPES), 12},
-		{164, 150, JE_textWidth("Done", SMALL_FONT_SHAPES), 12}
+	mousetargets_t optionTargets = {12, {
+		{171,  38, 125, 8},
+		{171,  47, 125, 8},
+		{171,  56, 125, 8},
+		{171,  65, 125, 8},
+		{171,  83, JE_textWidth("Joystick...", TINY_FONT), 8},
+		{171,  92, JE_textWidth("Keyboard...", TINY_FONT), 8},
+		{171, 101, JE_textWidth("Change Sprite...", TINY_FONT), 8},
+		{171, 119, JE_textWidth("Jukebox", TINY_FONT), 8},
+		{171, 128, JE_textWidth("Play Zinglon's Ale", TINY_FONT), 8},
+		{171, 137, JE_textWidth("Play Zinglon's Squadrons", TINY_FONT), 8},
+		{171, 146, JE_textWidth("Play Zinglon's Revenge", TINY_FONT), 8},
+		{269, 166,  35, 12}, // Done
 	}};
 
+	// ----- Input Handling ---------------------------------------------------
 	int menuResult;
 	if ((menuResult = defaultMenuNavigation(&optionTargets)) != MENUNAV_NONE)
 	{
-		switch (subMenuSelections[SUBMENU_OPTIONS])
+		if (menuResult != MENUNAV_SELECT && subMenuSelections[SUBMENU_OPTIONS] > 3)
+		{
+			// Do nothing. The only variable options are the first four. The rest are submenus and stuff.
+		}
+		else switch (subMenuSelections[SUBMENU_OPTIONS])
 		{
 			case 0:
 				if (menuResult == MENUNAV_SELECT)
@@ -2955,6 +2974,10 @@ static void submenuOptions_Run(void)
 				}
 				break;
 			case 2:
+				JE_playSampleNum((menuResult == MENUNAV_SELECT) ? S_CLICK : S_CURSOR);
+				APOptions.ArchipelagoRadar = !APOptions.ArchipelagoRadar;
+				break;
+			case 3:
 				if (!APSeedSettings.DeathLink)
 				{
 					JE_playSampleNum(S_CLINK);
@@ -2963,55 +2986,80 @@ static void submenuOptions_Run(void)
 				JE_playSampleNum((menuResult == MENUNAV_SELECT) ? S_CLICK : S_CURSOR);
 				APOptions.EnableDeathLink = !APOptions.EnableDeathLink;
 				break;
-			case 3:
-				if (menuResult != MENUNAV_SELECT)
-					break;
-				if (joysticks == 0)
-				{
-					JE_playSampleNum(S_CLINK);
-					break;
-				}
-				nextSubMenu = SUBMENU_OPTIONS_JOYSTICK;
-				JE_playSampleNum(S_CLICK);
-				break;
+
+			// ----- MENUNAV_SELECT only past this line -----
 			case 4:
-				if (menuResult != MENUNAV_SELECT)
-					break;
+				if (joysticks != 0)
+					nextSubMenu = SUBMENU_OPTIONS_JOYSTICK;
+				JE_playSampleNum(nextSubMenu ? S_CLICK : S_CLINK);
+				break;
+			case 5:
 				nextSubMenu = SUBMENU_OPTIONS_KEYBOARD;
 				JE_playSampleNum(S_CLICK);
 				break;
-			case 5:
-				if (menuResult != MENUNAV_SELECT)
-					break;
-				if (!useCustomShips)
-					JE_playSampleNum(S_CLINK);
-				else
-				{
-					nextSubMenu = SUBMENU_OPTIONS_CUSTOMSHIP;
-					JE_playSampleNum(S_CLICK);
-				}
-				break;
 			case 6:
-				if (menuResult != MENUNAV_SELECT)
-					break;
+				if (useCustomShips)
+					nextSubMenu = SUBMENU_OPTIONS_CUSTOMSHIP;
+				JE_playSampleNum(nextSubMenu ? S_CLICK : S_CLINK);
+				break;
+			case 7:
+				nextSubMenu = SUBMENU_JUKEBOX;
+				JE_playSampleNum(S_CLICK);
+				break;
+			case 8:
+				if (APItems.BonusGames & 1)
+				{
+					subMenuSelections[SUBMENU_NEXT_LEVEL] = 65;
+					nextSubMenu = SUBMENU_LEVEL;
+				}
+				JE_playSampleNum(nextSubMenu ? S_CLICK : S_CLINK);
+				break;
+			case 9:
+				if (APItems.BonusGames & 2)
+				{
+					subMenuSelections[SUBMENU_NEXT_LEVEL] = 66;
+					nextSubMenu = SUBMENU_LEVEL;
+				}
+				JE_playSampleNum(nextSubMenu ? S_CLICK : S_CLINK);
+				break;
+			case 10:
+				if (APItems.BonusGames & 4)
+				{
+					subMenuSelections[SUBMENU_NEXT_LEVEL] = 67;
+					nextSubMenu = SUBMENU_LEVEL;
+				}
+				JE_playSampleNum(nextSubMenu ? S_CLICK : S_CLINK);
+				break;
+			case 11:
 				nextSubMenu = SUBMENU_RETURN;
 				JE_playSampleNum(S_CLICK);
 				break;
 		}
 	}
 
-	JE_barDrawShadow(VGAScreen, 225, 38,    1, music_disabled ? 12 : 16, tyrMusicVolume / 12, 3, 13);
-	JE_barDrawShadow(VGAScreen, 225, 38+16, 1, samples_disabled ? 12 : 16, fxVolume / 12, 3, 13);
-	drawOnOffOption(38 + 32, APOptions.EnableDeathLink, !APSeedSettings.DeathLink, SELECTED(2));
+	// ----- Drawing ----------------------------------------------------------
+	JE_barDrawShadowSmall(VGAScreen, 198, 1+38,   1, music_disabled ? 12 : 16, tyrMusicVolume / 12, 3, 6);
+	JE_barDrawShadowSmall(VGAScreen, 198, 1+38+9, 1, samples_disabled ? 12 : 16, fxVolume / 12, 3, 6);
 
-	defaultMenuOptionDraw("Music",            38,       false,                     SELECTED(0));
-	defaultMenuOptionDraw("Sound",            38 +  16, false,                     SELECTED(1));
-	defaultMenuOptionDraw("DeathLink",        38 +  32, !APSeedSettings.DeathLink, SELECTED(2));
-	defaultMenuOptionDraw("Joystick...",      38 +  48, joysticks == 0,            SELECTED(3));
-	defaultMenuOptionDraw("Keyboard...",      38 +  64, false,                     SELECTED(4));
-	defaultMenuOptionDraw("Change Sprite...", 38 +  80, !useCustomShips,           SELECTED(5));
-	defaultMenuOptionDraw("Done",             38 + 112, false,                     SELECTED(6));
+	smallMenuOptionValue(fstr("%d", tyrMusicVolume), 38,      false, SELECTED(0));
+	smallMenuOptionValue(fstr("%d", fxVolume),       38 +  9, false, SELECTED(1));
+	smallMenuOptionValue(fstr("%s", APOptions.ArchipelagoRadar ? "On" : "Off"), 38 + 18, false, SELECTED(2));
+	smallMenuOptionValue(fstr("%s", APOptions.EnableDeathLink ? "On" : "Off"),  38 + 27, !APSeedSettings.DeathLink, SELECTED(3));
 
+	smallMenuOptionLabel("Music",                    38,       false,                     SELECTED(0));
+	smallMenuOptionLabel("SFX",                      38 +   9, false,                     SELECTED(1));
+	smallMenuOptionLabel("Archipelago Radar",        38 +  18, false,                     SELECTED(2));
+	smallMenuOptionLabel("DeathLink",                38 +  27, !APSeedSettings.DeathLink, SELECTED(3));
+	smallMenuOptionLabel("Joysticks...",             38 +  45, joysticks == 0,            SELECTED(4));
+	smallMenuOptionLabel("Keyboard Inputs...",       38 +  54, false,                     SELECTED(5));
+	smallMenuOptionLabel("Change Sprite...",         38 +  63, !useCustomShips,           SELECTED(6));
+	smallMenuOptionLabel("Jukebox",                  38 +  81, false,                     SELECTED(7));
+	smallMenuOptionLabel("Play Zinglon's Ale",       38 +  90, !(APItems.BonusGames & 1), SELECTED(8));
+	smallMenuOptionLabel("Play Zinglon's Squadrons", 38 +  99, !(APItems.BonusGames & 2), SELECTED(9));
+	smallMenuOptionLabel("Play Zinglon's Revenge",   38 + 108, !(APItems.BonusGames & 4), SELECTED(10));
+
+	draw_font_hv_shadow(VGAScreen, 304, 38 + 128, "Done", SMALL_FONT_SHAPES,
+		right_aligned, 15, -3 + (SELECTED(11) ? 2 : 0), false, 2);
 
 	// ----- Help Text --------------------------------------------------------
 	const char *helpText;
@@ -3019,11 +3067,22 @@ static void submenuOptions_Run(void)
 	{
 		case 0:  // fall through
 		case 1:  helpText = "Use left/right to adjust volume, select for on/off."; break;
-		case 2:  helpText = "Enable or disable DeathLink."; break;
-		case 3:  helpText = "Configure your joystick controls."; break;
-		case 4:  helpText = "Change the keys used to play the game."; break;
-		case 5:  helpText = "Change the sprite that your ship uses."; break;
-		default: helpText = "Go back to the previous menu."; break;
+		case 2:  helpText = "Highlight enemies containing Archipelago Items."; break;
+		case 3:  helpText = "Enable or disable DeathLink."; break;
+		case 4:  helpText = "Configure your joystick controls."; break;
+		case 5:  helpText = "Change the keys used to play the game."; break;
+		case 6:  helpText = "Change the sprite that your ship uses."; break;
+		case 7:  helpText = "Listen to the music of Tyrian."; break;
+		case 11: helpText = "Go back to the previous menu."; break;
+		default:
+		{
+			const Uint8 gameBit = 1 << (GETSELECTED() - 8);
+			if (!(APItems.BonusGames & gameBit))
+				helpText = "You haven't found this bonus game yet.";
+			else
+				helpText = "Play a bonus game.";
+			break;
+		}
 	}
 	JE_outTextAndDarken(VGAScreen, 10, 187, helpText, 14, 1, TINY_FONT);
 }
@@ -3119,13 +3178,11 @@ static void sidebarArchipelagoInfo(void)
 	// If in Data Cube Hunt mode, display cubes obtained/goal
 	if (APSeedSettings.DataCubesNeeded > 0)
 	{
-		char local_buf[32];
-
 		blit_sprite(VGAScreenSeg, 86, 17, OPTION_SHAPES, 34);  // Data Cube
-		snprintf(local_buf, sizeof(local_buf), "%d", APStats.DataCubes);
-		JE_textShade(VGAScreen, 66 - JE_textWidth(local_buf, TINY_FONT), 21, local_buf, 15, 6, DARKEN);		
-		snprintf(local_buf, sizeof(local_buf), "/%d", APSeedSettings.DataCubesNeeded);
-		JE_textShade(VGAScreen, 66, 21, local_buf, 15, 4, DARKEN);
+		snprintf(string_buffer, sizeof(string_buffer), "%d", APStats.DataCubes);
+		JE_textShade(VGAScreen, 66 - JE_textWidth(string_buffer, TINY_FONT), 21, string_buffer, 15, 6, DARKEN);
+		snprintf(string_buffer, sizeof(string_buffer), "/%d", APSeedSettings.DataCubesNeeded);
+		JE_textShade(VGAScreen, 66, 21, string_buffer, 15, 4, DARKEN);
 	}
 }
 
@@ -3366,6 +3423,25 @@ int apmenu_itemScreen(void)
 				else if (currentSubMenu == SUBMENU_OPTIONS_KEYBOARD)
 					submenuOptKeyboard_Assign();
 				nextSubMenu = SUBMENU_NONE;
+				break;
+
+			case SUBMENU_JUKEBOX:
+				// Jukebox blocks until exiting, obviously.
+				fade_black(10);
+				jukebox();
+
+				// Restore default music.
+				play_song(DEFAULT_SONG_BUY);
+
+				// Return to the main Archipelago menu.
+				currentSubMenu = SUBMENU_MAIN;
+				nextSubMenu = SUBMENU_NONE;
+				itemSubMenus[SUBMENU_MAIN].initFunc();
+				if (mouseActivity == MOUSE_ACTIVE)
+					mouseActivity = MOUSE_DELAYED;
+
+				// Palette must be restored after exiting the jukebox.
+				updatePalette = true;
 				break;
 
 			case SUBMENU_RETURN:

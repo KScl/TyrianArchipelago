@@ -67,6 +67,7 @@ static void level_loadEvents(FILE *level_f)
 // ----------------------------------------------------------------------------
 
 int currentLevelID = 0;
+int lastLevelID = 0;
 bool lastLevelCompleted = false;
 bool lastLevelFailed = false;
 
@@ -86,7 +87,7 @@ leveldata_t allLevelData[LEVELDATA_COUNT] = {
 	{1, 12,     7,  0, 10, 17,    120, 1120,    "MINES    ", "Mines"},
 	{1, 13,     5,  0, 10, 14,    130, 1130,    "DELIANI  ", "Deliani"},
 	{1, 14,    17,  0,  8, 33,    140, 1140,    "SAVARA V ", "Savara V"},
-	{1, 15,    16,  0,  1, 36,    150, 1150,    "ASSASSIN ", "Assassin", true},
+	{1, 15,    16,  0,  1, 36,    150, 1150,    "ASSASSIN ", "Assassin", L_EPISODE_END},
 
 	{2,  0,     1,  0, 12, 28,    160, 1160,    "TORM     ", "Torm"},
 	{2,  1,     2,  0,  9, 14,    170, 1170,    "GYGES    ", "Gyges"},
@@ -99,7 +100,7 @@ leveldata_t allLevelData[LEVELDATA_COUNT] = {
 	{2,  8,     5,  0,  5,  4,    240, 1240,    "SOH JIN  ", "Soh Jin"},
 	{2,  9,    10,  0, 17, 24,    250, 1250,    "BOTANY A ", "Botany A"},
 	{2, 10,    11,  0, 18, 13,    260, 1260,    "BOTANY B ", "Botany B"},
-	{2, 11,     6,  0,  7, 24,    270, 1270,    "GRYPHON  ", "Gryphon", true},
+	{2, 11,     6,  0,  7, 24,    270, 1270,    "GRYPHON  ", "Gryphon", L_EPISODE_END},
 
 	{3,  0,     3,  0, 20,  1,    280, 1280,    "GAUNTLET ", "Gauntlet"},
 	{3,  1,     4,  0, 11, 14,    290, 1290,    "IXMUCANE ", "Ixmucane"},
@@ -112,7 +113,7 @@ leveldata_t allLevelData[LEVELDATA_COUNT] = {
 	{3,  8,     8,  0,  1, 18,    360, 1360,    "TYRIAN X ", "Tyrian X"},
 	{3,  9,    10,  0,  8, 21,    370, 1370,    "SAVARA Y ", "Savara Y"},
 	{3, 10,    11,  0, 10, 14,    380, 1380,    "NEW DELI ", "New Deli"},
-	{3, 11,     6,  0, 16, 29,    390, 1390,    "FLEET    ", "Fleet", true},
+	{3, 11,     6,  0, 16, 29,    390, 1390,    "FLEET    ", "Fleet", L_EPISODE_END},
 
 	{4,  0,     4,  0, 11, 38,    400, 1400,    "SURFACE  ", "Surface"},
 	{4,  1,     2,  0, 11,  1,    410, 1410,    "WINDY    ", "Windy"},
@@ -131,7 +132,7 @@ leveldata_t allLevelData[LEVELDATA_COUNT] = {
 	{4, 14,    14,  0, 16, 35,    540, 1540,    "DREAD-NOT", "Dread-Not"},
 	{4, 15,    13,  0,  9, 13,    550, 1550,    "EYESPY   ", "EyeSpy"},
 	{4, 16,    15,  0,  9, 38,    560, 1560,    "BRAINIAC ", "Brainiac"},
-	{4, 17,    16,  0,  1, 18,    570, 1570,    "NOSE DRIP", "Nose Drip", true},
+	{4, 17,    16,  0,  1, 18,    570, 1570,    "NOSE DRIP", "Nose Drip", L_EPISODE_END},
 
 	{5,  0,     5,  0,  4, 35,    580, 1580,    "ASTEROIDS", "Asteroids"},
 	{5,  1,     2,  0,  2,  2,    590, 1590,    "AST ROCK ", "Ast. Rock"},
@@ -140,7 +141,12 @@ leveldata_t allLevelData[LEVELDATA_COUNT] = {
 	{5,  4,     7,  0,  6, 37,    620, 1620,    "CORAL    ", "Coral"},
 	//{5,  5,     1,  0,  1,  1,    630, 1630,    "CANYONRUN", "CanyonRun"},
 	{5,  5,     3,  0,  9, 23,    640, 1640,    "STATION  ", "Station"},
-	{5,  6,     8,  0, 13, 14,    650, 1650,    "FRUIT    ", "Fruit", true},
+	{5,  6,     8,  0, 13, 14,    650, 1650,    "FRUIT    ", "Fruit", L_EPISODE_END},
+
+	// Bonus games
+	{1, 90,    18,  0,  5, 41,      0,    0,    "** ALE **", "Zinglon's Ale", L_BONUS_GAME|L_GALAGA_MODE},
+	{4, 90,    18,  0,  5, 37,      0,    0,    "SQUADRON ", "Zinglon's Squadrons", L_BONUS_GAME|L_GALAGA_MODE},
+	{4, 91,    17,  0,  5, 37,      0,    0,    "TIME WAR ", "Zinglon's Revenge", L_BONUS_GAME},
 };
 
 void level_loadFromLevelID(int levelID)

@@ -42,7 +42,6 @@ typedef struct {
 
 	int ForceGameSpeed;
 	bool TwiddleInputs;
-	bool ArchipelagoRadar;
 	bool Christmas;
 	bool DeathLink;
 } archipelago_settings_t;
@@ -50,6 +49,7 @@ typedef struct {
 extern archipelago_settings_t APSeedSettings;
 
 typedef struct {
+	bool ArchipelagoRadar;
 	bool EnableDeathLink;
 } archipelago_options_t;
 
@@ -104,6 +104,7 @@ typedef struct {
 	Uint64 Specials; // One bit per weapon, 1 enables
 	Uint32 Levels[5]; // One bit per level, per episode
 	Uint8  Sidekicks[36]; // Total number obtained, per sidekick
+	Uint8  BonusGames; // One bit per bonus game
 } apitem_t;
 
 // Player's item choices (see above)

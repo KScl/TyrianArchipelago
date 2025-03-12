@@ -52,7 +52,11 @@ void level_loadFromLevelID(int levelID);
 
 // ----------------------------------------------------------------------------
 
-#define LEVELDATA_COUNT 65
+#define LEVELDATA_COUNT 68
+
+#define L_EPISODE_END  1
+#define L_BONUS_GAME   2
+#define L_GALAGA_MODE  4
 
 typedef struct {
 	Uint16 episodeNum; // Which episode?
@@ -71,10 +75,11 @@ typedef struct {
 	const char *levelName; // Shown in level
 	const char *prettyName; // Shown in menus
 
-	bool endEpisode;
+	Uint8 specialFlags;
 } leveldata_t;
 
 extern int currentLevelID;
+extern int lastLevelID; // Used for loading bonus games
 extern bool lastLevelCompleted; // False if died/exited last level, true if beaten
 extern bool lastLevelFailed; // True if mission failure exit
 

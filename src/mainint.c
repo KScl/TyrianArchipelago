@@ -1012,6 +1012,10 @@ bool replay_demo_keys(void)
 /*Street Fighter codes*/
 void JE_SFCodes(JE_byte playerNum_, JE_integer PX_, JE_integer PY_, JE_integer mouseX_, JE_integer mouseY_)
 {
+	// No twiddles for the galaga-like extra games
+	if (galagaMode)
+		return;
+
 	JE_byte buttonCount = (mouseY_ > PY_) +    /*UP*/
 	                      (mouseY_ < PY_) +    /*DOWN*/
 	                      (PX_ < mouseX_) +    /*LEFT*/
@@ -1032,16 +1036,25 @@ void JE_SFCodes(JE_byte playerNum_, JE_integer PX_, JE_integer PY_, JE_integer m
 	// Add in the fire button state.
 	inputCode += button[0] * 4;
 
-	for (int i = 0; i < APTwiddles.Count; i++)
+	// In extra games, we use the original list of twiddles for the Stalker 21.126.
+	// Otherwise we use the AP specified twiddle list.
+	const int numTwiddles = (extraGame) ? 21 : APTwiddles.Count;
+	const Uint8 *curCode; // Uint8[8]
+
+	for (int i = 0; i < numTwiddles; i++)
 	{
-		aptwiddle_t *curCode = &APTwiddles.Code[i];
-		JE_byte nextInputCode = curCode->Command[SFCurrentCode[playerNum_-1][i]];
+		if (extraGame)
+			curCode = keyboardCombos[shipCombosB[i] - 1];
+		else
+			curCode = APTwiddles.Code[i].Command;
+
+		JE_byte nextInputCode = curCode[SFCurrentCode[playerNum_-1][i]];
 
 		if (nextInputCode == inputCode) // correct key
 		{
 			++SFCurrentCode[playerNum_-1][i];
 
-			nextInputCode = curCode->Command[SFCurrentCode[playerNum_-1][i]];
+			nextInputCode = curCode[SFCurrentCode[playerNum_-1][i]];
 			if (nextInputCode > 100 && nextInputCode <= 100 + SPECIAL_NUM)
 			{
 				SFCurrentCode[playerNum_-1][i] = 0;
@@ -1053,7 +1066,7 @@ void JE_SFCodes(JE_byte playerNum_, JE_integer PX_, JE_integer PY_, JE_integer m
 			if ((inputCode != 9) &&
 			    (nextInputCode - 1) % 4 != (inputCode - 1) % 4 &&
 			    (SFCurrentCode[playerNum_-1][i] == 0 ||
-			     curCode->Command[SFCurrentCode[playerNum_-1][i]-1] != inputCode))
+			     curCode[SFCurrentCode[playerNum_-1][i]-1] != inputCode))
 			{
 				SFCurrentCode[playerNum_-1][i] = 0;
 			}
@@ -1080,12 +1093,16 @@ void JE_inGameDisplays(void)
 			snprintf(tempstr, sizeof(tempstr), "%s", difficultyNameB[difficultyLevel+1]);
 			JE_textShade(VGAScreen, 30, 167, tempstr, 3, 4, FULL_SHADE);
 		}
+#endif
+	if (extraGame)
+		snprintf(tempstr, sizeof(tempstr), "%lu", player[0].cash);
+	else
+	{
 		const Uint64 totalCash = APStats.Cash + player[0].cash;
 		snprintf(tempstr, sizeof(tempstr), "%llu", (unsigned long long)totalCash);
 	}
-#else
-	const Uint64 totalCash = APStats.Cash + player[0].cash;
-	snprintf(tempstr, sizeof(tempstr), "%llu", (unsigned long long)totalCash);
+#ifdef DEBUG_OPTIONS	
+	}
 #endif
 
 	if (smoothies[6-1]) // This is the same way Tyrian 2000 fixed this and it's good enough for me
@@ -1177,7 +1194,7 @@ void JE_mainKeyboardInput(void)
 		}
 	}
 
-	if (!Archipelago_IsRacing())
+	if (!Archipelago_IsRacing() && !extraGame)
 	{
 		// Cheat: Invulnerability
 #ifdef SIMPLIFIED_LEVEL_CHEATS
@@ -1440,13 +1457,19 @@ redo:
 					this_player->is_alive = true;
 					endLevel = false;
 
-					if (galagaMode || episodeNum == 4)
+					player_resetDeathLink();
+
+					if (extraGame)
+						this_player->armor = 28;
+					else if (episodeNum == 4)
 						this_player->armor = APStats.ArmorLevel;
 					else
 						this_player->armor = APStats.ArmorLevel / 2;
 
 					if (galagaMode)
 						this_player->shield = 0;
+					else if (extraGame)
+						this_player->shield = 5;
 					else
 						this_player->shield = APStats.ShieldLevel / 2;
 

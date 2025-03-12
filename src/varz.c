@@ -105,32 +105,32 @@ const JE_byte randomEnemyLaunchSounds[3] /* [1..3] */ = {13,6,26};
  */
 const JE_byte keyboardCombos[26][8] /* [1..26, 1..8] */ =
 {
-	{ 2, 1,   2,   5, 137,           0, 0, 0}, /*Invulnerability*/
-	{ 4, 3,   2,   5, 138,           0, 0, 0}, /*Atom Bomb*/
-	{ 3, 4,   6, 139,             0, 0, 0, 0}, /*Seeker Bombs*/
-	{ 2, 5, 142,               0, 0, 0, 0, 0}, /*Ice Blast*/
-	{ 6, 2,   6, 143,             0, 0, 0, 0}, /*Auto Repair*/
-	{ 6, 7,   5,   8,   6,   7,  5, 112     }, /*Spin Wave*/
-	{ 7, 8, 101,               0, 0, 0, 0, 0}, /*Repulsor*/
-	{ 1, 7,   6, 146,             0, 0, 0, 0}, /*Protron Field*/
-	{ 8, 6,   7,   1, 120,           0, 0, 0}, /*Minefield*/
-	{ 3, 6,   8,   5, 121,           0, 0, 0}, /*Post-It Blast*/
-	{ 1, 2,   7,   8, 119,           0, 0, 0}, /*Drone Ship - TBC*/
-	{ 3, 4,   3,   6, 123,           0, 0, 0}, /*Repair Player 2*/
-	{ 6, 7,   5,   8, 124,           0, 0, 0}, /*Super Bomb - TBC*/
-	{ 1, 6, 125,               0, 0, 0, 0, 0}, /*Hot Dog*/
-	{ 9, 5, 126,               0, 0, 0, 0, 0}, /*Lightning UP      */
-	{ 1, 7, 127,               0, 0, 0, 0, 0}, /*Lightning UP+LEFT */
-	{ 1, 8, 128,               0, 0, 0, 0, 0}, /*Lightning UP+RIGHT*/
-	{ 9, 7, 129,               0, 0, 0, 0, 0}, /*Lightning    LEFT */
-	{ 9, 8, 130,               0, 0, 0, 0, 0}, /*Lightning    RIGHT*/
-	{ 4, 2,   3,   5, 131,           0, 0, 0}, /*Warfly            */
-	{ 3, 1,   2,   8, 132,           0, 0, 0}, /*FrontBlaster      */
-	{ 2, 4,   5, 133,             0, 0, 0, 0}, /*Gerund            */
-	{ 3, 4,   2,   8, 134,           0, 0, 0}, /*FireBomb          */
-	{ 1, 4,   6, 135,             0, 0, 0, 0}, /*Indigo            */
-	{ 1, 3,   6, 137,             0, 0, 0, 0}, /*Invulnerability [easier] */
-	{ 1, 4,   3,   4,   7, 136,         0, 0}  /*D-Media Protron Drone    */
+	{ 2, 1,   2,   5, 137,           0, 0, 137}, /*  1 Invulnerability*/
+	{ 4, 3,   2,   5, 138,           0, 0, 138}, /*  2 Atom Bomb*/
+	{ 3, 4,   6, 139,             0, 0, 0, 139}, /*  3 Seeker Bombs*/
+	{ 2, 5, 142,               0, 0, 0, 0, 142}, /*  4 Ice Blast*/
+	{ 6, 2,   6, 143,             0, 0, 0, 143}, /*  5 Auto Repair*/
+	{ 6, 7,   5,   8,   6,   7,  5,        112}, /*  6 Spin Wave*/
+	{ 7, 8, 101,               0, 0, 0, 0, 101}, /*  7 Repulsor*/
+	{ 1, 7,   6, 146,             0, 0, 0, 146}, /*  8 Protron Field*/
+	{ 8, 6,   7,   1, 120,           0, 0, 120}, /*  9 Minefield*/
+	{ 3, 6,   8,   5, 121,           0, 0, 121}, /* 10 Post-It Blast*/
+	{ 1, 2,   7,   8, 119,           0, 0, 119}, /* 11 Drone Ship - TBC*/
+	{ 3, 4,   3,   6, 123,           0, 0, 123}, /* 12 Repair Player 2*/
+	{ 6, 7,   5,   8, 124,           0, 0, 124}, /* 13 Super Bomb - TBC*/
+	{ 1, 6, 125,               0, 0, 0, 0, 125}, /* 14 Hot Dog*/
+	{ 9, 5, 126,               0, 0, 0, 0, 126}, /* 15 Lightning UP      */
+	{ 1, 7, 127,               0, 0, 0, 0, 127}, /* 16 Lightning UP+LEFT */
+	{ 1, 8, 128,               0, 0, 0, 0, 128}, /* 17 Lightning UP+RIGHT*/
+	{ 9, 7, 129,               0, 0, 0, 0, 129}, /* 18 Lightning    LEFT */
+	{ 9, 8, 130,               0, 0, 0, 0, 130}, /* 19 Lightning    RIGHT*/
+	{ 4, 2,   3,   5, 131,           0, 0, 131}, /* 20 Warfly            */
+	{ 3, 1,   2,   8, 132,           0, 0, 132}, /* 21 FrontBlaster      */
+	{ 2, 4,   5, 133,             0, 0, 0, 133}, /* 22 Gerund            */
+	{ 3, 4,   2,   8, 134,           0, 0, 134}, /* 23 FireBomb          */
+	{ 1, 4,   6, 135,             0, 0, 0, 135}, /* 24 Indigo            */
+	{ 1, 3,   6, 137,             0, 0, 0, 137}, /* 25 Invulnerability [easier] */
+	{ 1, 4,   3,   4,   7, 136,         0, 136}  /* 26 D-Media Protron Drone    */
 };
 
 const JE_byte shipCombosB[21] /* [1..21] */ =
@@ -292,8 +292,6 @@ unsigned int last_superpixel;
 /*Temporary Numbers*/
 JE_byte temp, temp2, temp3;
 JE_word tempW;
-
-JE_boolean doNotSaveBackup;
 
 JE_word x, y;
 JE_integer b;
@@ -545,7 +543,6 @@ void JE_specialComplete(JE_byte playerNum, JE_byte specialType, JE_byte sfCodeCo
 			player_boostArmor(&player[0], sfCodeCost / 4 + 1);
 			soundQueue[3] = S_POWERUP;
 			break;
-#if 0 // Dummied out the following cases, because they don't work in AP context.
 		case 14:
 			player_boostArmor(&player[1], sfCodeCost / 4 + 1);
 			soundQueue[3] = S_POWERUP;
@@ -573,11 +570,10 @@ void JE_specialComplete(JE_byte playerNum, JE_byte specialType, JE_byte sfCodeCo
 
 			JE_drawOptions();
 
-			soundQueue[4] = S_POWERUP;
+			soundQueue[3] = S_POWERUP;
 
 			shotMultiPos[RIGHT_SIDEKICK] = 0;
 			break;
-#endif
 	}
 }
 
@@ -592,11 +588,22 @@ void JE_doSpecialShot(JE_byte playerNum, uint *armor, uint *shield)
 		specialWait--;
 	}
 
-	JE_byte sfCodeIdx = SFExecuted[playerNum-1];
-	if (sfCodeIdx > 0 && sfCodeIdx <= APTwiddles.Count && shotRepeat[SHOT_SPECIAL] == 0 && flareDuration == 0)
+	const JE_byte sfCodeIdx = SFExecuted[playerNum-1];
+
+	if (sfCodeIdx > 0 && shotRepeat[SHOT_SPECIAL] == 0 && flareDuration == 0)
 	{
-		JE_byte sfCost = APTwiddles.Code[sfCodeIdx - 1].Cost;
-		JE_byte sfCommand = APTwiddles.Code[sfCodeIdx - 1].Command[7] - 100;
+		JE_byte sfCommand, sfCost;
+		if (extraGame) // use Stalker 21.126's twiddles
+		{
+			sfCommand = keyboardCombos[shipCombosB[sfCodeIdx - 1] - 1][7] - 100;
+			sfCost = special[sfCommand].pwr;
+		}
+		else // use twiddles from AP
+		{
+			sfCommand = APTwiddles.Code[sfCodeIdx - 1].Command[7] - 100;
+			sfCost = APTwiddles.Code[sfCodeIdx - 1].Cost;
+		}
+
 		bool can_afford = true;
 
 		if (sfCost > 0)

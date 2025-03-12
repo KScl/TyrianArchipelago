@@ -281,7 +281,7 @@ void JE_drawEnemy(int enemyOffset) // actually does a whole lot more than just d
 
 	// ------------------------------------------------------------------------
 	// Draw AP Radar behind all enemies, to better highlight larger enemies
-	if (APSeedSettings.ArchipelagoRadar)
+	if (APOptions.ArchipelagoRadar)
 	{
 		for (int i = enemyOffset - 25; i < enemyOffset; i++)
 		{
@@ -873,10 +873,11 @@ start_level:
 			fade_black(10);
 
 			//JE_loadGame(twoPlayerMode ? 22 : 11);
-			if (doNotSaveBackup)
+			if (extraGame)
 			{
 				superTyrian = false;
 				onePlayerAction = false;
+				twoPlayerMode = false;
 				player[0].items.super_arcade_mode = SA_NONE;
 			}
 			if (bonusLevelCurrent && !playerEndLevel)
@@ -891,7 +892,7 @@ start_level:
 		else if (playerEndLevel)
 			++APPlayData.ExitedLevels;
 	}
-	doNotSaveBackup = false;
+	extraGame = false;
 
 	if (play_demo)
 		return;
@@ -915,9 +916,6 @@ start_level_first:
 	endLevel = false;
 	reallyEndLevel = false;
 	playerEndLevel = false;
-	extraGame = false;
-
-	doNotSaveBackup = false;
 
 	if (JE_loadMap() == 0)  // if quit itemscreen
 		return;          // back to titlescreen
@@ -964,7 +962,39 @@ start_level_first:
 	
 	JE_loadPic(VGAScreen, twoPlayerMode ? 6 : 3, false);
 
-	player_updateItemChoices(); // sync AP items with internal items
+	// Ensure cheats are disabled if need be
+	if (Archipelago_IsRacing() || extraGame)
+		youAreCheating = false;
+
+	if (extraGame)
+	{
+		onePlayerAction = true;
+		superTyrian = true;
+		twoPlayerMode = false;
+
+		player[0].items.weapon[FRONT_WEAPON].id = 39;  // Atomic RailGun
+		player[0].items.weapon[FRONT_WEAPON].power = 3;
+		player[0].items.weapon[REAR_WEAPON].id = 0;    // None
+		player[0].items.weapon[REAR_WEAPON].power = 1;
+		player[0].items.sidekick[LEFT_SIDEKICK] = 0;   // None
+		player[0].items.sidekick[RIGHT_SIDEKICK] = 0;  // None
+		player[0].items.generator = 6;                 // Gravitron Pulse-Wave (ignored)
+		player[0].items.shield = 10;                   // Base shield
+		player[0].items.special = 0;                   // None
+
+		if (galagaMode)
+		{
+			player[1].items = player[0].items;
+			player[1].items.weapon[REAR_WEAPON].id = 15;  // Vulcan Cannon
+		}
+	}
+	else
+	{
+		onePlayerAction = false;
+		superTyrian = false;
+		twoPlayerMode = false;
+		player_updateItemChoices(); // sync AP items with internal items
+	}
 	JE_drawOptions();
 
 	JE_outText(VGAScreen, 268, twoPlayerMode ? 76 : 118, levelName, 12, 4);
@@ -1270,7 +1300,7 @@ start_level_first:
 
 	galagaShotFreq = 0;
 
-	if (galagaMode)
+	if (extraGame)
 	{
 		difficultyLevel = DIFFICULTY_NORMAL;
 	}
@@ -1409,6 +1439,8 @@ level_loop:
 			uint shieldT = APStats.SolarShield ? 20 : 140;
 			// shieldT = shields[player[0].items.shield].tpwr * 20;
 
+			const Uint8 maxShield = (extraGame) ? 10 : APStats.ShieldLevel;
+
 			if (twoPlayerMode)
 			{
 				if (--shieldWait == 0)
@@ -1417,14 +1449,14 @@ level_loop:
 
 					for (uint i = 0; i < COUNTOF(player); ++i)
 					{
-						if (player[i].shield < APStats.ShieldLevel && player[i].is_alive)
+						if (player[i].shield < maxShield && player[i].is_alive)
 							++player[i].shield;
 					}
 
 					player_drawShield();
 				}
 			}
-			else if (player[0].is_alive && player[0].shield < APStats.ShieldLevel && generatorPower > shieldT)
+			else if (player[0].is_alive && player[0].shield < maxShield && generatorPower > shieldT)
 			{
 				if (--shieldWait == 0)
 				{
@@ -1433,7 +1465,7 @@ level_loop:
 					generatorPower -= shieldT;
 
 					++player[0].shield;
-					if (player[1].shield < APStats.ShieldLevel)
+					if (player[1].shield < maxShield)
 						++player[1].shield;
 
 					player_drawShield();
@@ -2619,9 +2651,13 @@ bool JE_loadMap(void)
 	}
 	else
 	{
+		// If we were in a bonus game, revert to last level ID for menu purposes.
+		if (allLevelData[currentLevelID].specialFlags & L_BONUS_GAME)
+			currentLevelID = lastLevelID;
+
 		// If the last level completed was the end level of the episode, play the cutscene corresponding to it.
 		// This may also clear the player's goal and play the credits.
-		if (lastLevelCompleted && !lastLevelFailed && allLevelData[currentLevelID].endEpisode)
+		else if (lastLevelCompleted && !lastLevelFailed && (allLevelData[currentLevelID].specialFlags & L_EPISODE_END))
 			levelend_playEndScene(allLevelData[currentLevelID].episodeNum);
 
 		levelID = apmenu_itemScreen();
@@ -2631,13 +2667,19 @@ bool JE_loadMap(void)
 	{
 		Archipelago_Disconnect();
 		return 0;
-	}		
+	}
+	lastLevelID = currentLevelID;
 	level_loadFromLevelID(levelID);
 
 	loadLevelOk = true;
 	gameJustLoaded = false;
 	bonusLevelCurrent = false;
 	normalBonusLevelCurrent = false;
+
+	if (allLevelData[currentLevelID].specialFlags & L_BONUS_GAME)
+		extraGame = true;
+	if (allLevelData[currentLevelID].specialFlags & L_GALAGA_MODE)
+		galagaMode = true;
 	return 1;
 }
 
@@ -3270,8 +3312,8 @@ bool JE_searchFor/*enemy*/(JE_byte PLType, JE_byte* out_index)
 		if (enemyAvail[i] == 0 && enemy[i].linknum == PLType)
 		{
 			found_id = i;
-			if (galagaMode)
-				enemy[i].evalue += enemy[i].evalue;
+			if (galagaMode) // Originally this blindly doubled evalue, but that caused problems with ALE
+				enemy[i].evalue = (enemyDat[enemy[i].enemytype].value * 2);
 		}
 	}
 
