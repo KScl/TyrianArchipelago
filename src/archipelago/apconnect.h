@@ -41,7 +41,6 @@ typedef struct {
 	bool ExcessArmor;
 
 	int ForceGameSpeed;
-	bool TwiddleInputs;
 	bool Christmas;
 	bool DeathLink;
 } archipelago_settings_t;

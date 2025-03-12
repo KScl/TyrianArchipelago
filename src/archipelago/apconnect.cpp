@@ -1527,7 +1527,6 @@ const char *Archipelago_StartLocalGame(FILE *file)
 
 		APSeedSettings.ShopMode = aptyrianJSON["Settings"].value<int>("ShopMode", SHOP_MODE_NONE);
 		APSeedSettings.SpecialMenu = aptyrianJSON["Settings"].value<bool>("SpecialMenu", false);
-		APSeedSettings.TwiddleInputs = aptyrianJSON["Settings"].value<bool>("ShowTwiddles", false);
 		APSeedSettings.Christmas = aptyrianJSON["Settings"].value<bool>("Christmas", false);
 		APSeedSettings.DeathLink = false; // No reason to enable in local play
 
@@ -1739,7 +1738,6 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 
 			APSeedSettings.ShopMode = slot_data["Settings"].value<int>("ShopMode", SHOP_MODE_NONE);
 			APSeedSettings.SpecialMenu = slot_data["Settings"].value<bool>("SpecialMenu", false);
-			APSeedSettings.TwiddleInputs = slot_data["Settings"].value<bool>("ShowTwiddles", false);
 			APSeedSettings.Christmas = slot_data["Settings"].value<bool>("Christmas", false);
 			APSeedSettings.DeathLink = slot_data["Settings"].value<bool>("DeathLink", false);
 
