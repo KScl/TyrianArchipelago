@@ -1077,6 +1077,16 @@
 		"756:REPLACE": { "time":2230, "event":201, /* AP_CheckFromEnemy */ "ap_id":423, "linknum":  4, "movement":"sky_falling" },
 		"982:APPEND":  { "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":424, "linknum":254, "movement":"swaying", "is_boss":true },
 
+		// Fix some linknum conflicts that affect AP items... but try to make them behave the same.
+		"524:PREPEND": [
+			{ "time":1630, "event":39, /* EnemyGlobal_LinkNum */ "linknum":4, "new_linknum":204 },
+			{ "time":1630, "event":19, /* EnemyGlobal_Move */ "linknum":204, "eyc":6 }
+		],
+		"754:PREPEND": [
+			{ "time":2230, "event":39, /* EnemyGlobal_LinkNum */ "linknum":4, "new_linknum":204 },
+			{ "time":2230, "event":19, /* EnemyGlobal_Move */ "linknum":204, "eyc":-6 }
+		],
+
 		// Additional callouts for contact_bypasses_shields
 		"158:APPEND":  { "time": 550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 		"860:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
@@ -1256,7 +1266,8 @@
 
 		// Additional callouts for contact_bypasses_shields
 		"525:REPLACE": { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
-		"525:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false }
+		"525:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false },
+		"634:REPLACE": { "time":3650, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
 	},
 	"Episode4 ICE EXIT ver2000": {
 		// Addition of Archipelago Items
@@ -1271,7 +1282,8 @@
 
 		// Additional callouts for contact_bypasses_shields
 		"524:REPLACE": { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
-		"524:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false }
+		"524:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"** Danger! **", "hard_contact":false },
+		"633:REPLACE": { "time":3650, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true }
 	},
 	// --------------------------------------------------------------
 	"Episode4 ICESECRET ver2.1": {
@@ -1286,6 +1298,9 @@
 		"255:REPLACE": { "time": 2070, "event":201, /* AP_CheckFromEnemy */ "ap_id":496, "linknum": 33, "movement":"falling" },
 		"379:APPEND":  { "time": 3000, "event":200, /* AP_CheckFreestanding */ "ap_id":497, "ex":100, "movement":"swaying" },
 		"381:APPEND":  { "time": 3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":498, "linknum":  9, "movement":"swaying", "is_boss":true },
+
+		// Additional callouts for contact_bypasses_shields
+		"88:APPEND": { "time": 650, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 
 		// Allow time for the boss's AP item to drop.
 		"515:REPLACE": [
@@ -1305,6 +1320,9 @@
 		"379:REPLACE": { "time": 3000, "event":200, /* AP_CheckFreestanding */ "ap_id":497, "ex":100, "movement":"swaying" },
 		"382:APPEND":  { "time": 3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":498, "linknum":  9, "movement":"swaying", "is_boss":true },
 
+		// Additional callouts for contact_bypasses_shields
+		"88:APPEND": { "time": 650, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+
 		// Allow time for the boss's AP item to drop.
 		"516:REPLACE": [
 			{ "time":4080, "event":36 /* ReadyToEndLevel */ },
@@ -1323,7 +1341,18 @@
 		"872:REPLACE": { "time":4530, "event":201, /* AP_CheckFromEnemy */ "ap_id":506, "linknum":18, "movement":"static" },
 		"885:REPLACE": { "time":4650, "event":201, /* AP_CheckFromEnemy */ "ap_id":507, "linknum":37, "movement":"falling" },
 		"1053:APPEND": { "time":5048, "event":201, /* AP_CheckFromEnemy */ "ap_id":508, "linknum":10, "movement":"swaying", "is_boss":true },
-		"1078:APPEND": { "time":6912, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":509, "movement":"static" }
+		"1078:APPEND": { "time":6912, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":509, "movement":"static" },
+
+		// A small conundrum... The enemy for ID 504 doesn't actually spawn in Easy difficulty.
+		// So, in that case, we just drop it as a freebie item.
+		"688:REPLACE": { "time":3699, "event": 66, /* Skip_IfDiffcultyLessOrEqual */ "difficulty":1, "skip_events":3 },
+		"691:PREPEND": [
+			{ "time":3700, "event": 63, /* Skip_IfNotArcadeMode */ "skip_events":1 },
+			{ "time":3700, "event":200, /* AP_CheckFreestanding */ "ap_id":504, "movement":"sky_falling", "ex":260 }
+		],
+
+		// Fix a linknum conflict that can affect an AP item.
+		"298:APPEND": { "time":1500, "event":39, /* EnemyGlobal_LinkNum */ "linknum":19 }
 	},
 	// --------------------------------------------------------------
 	"Episode4 UNDERDELI ver2.1": {

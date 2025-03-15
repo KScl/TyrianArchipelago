@@ -369,6 +369,16 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			}
 			break;
 
+		case  63: // Skip_IfNotArcadeMode
+		case  80: // Skip_IfTwoPlayerMode
+			eventRec[x].eventdat = j.value<Sint16>("skip_events", 0);
+			break;
+
+		case  66: // Skip_IfDifficultyLessOrEqual
+			eventRec[x].eventdat = j.value<Sint16>("difficulty", 0);
+			eventRec[x].eventdat2 = j.value<Sint16>("skip_events", 0);
+			break;
+
 		case  67: // SetLevelTimer
 			eventRec[x].eventdat  = j.value<bool>("enable", false) ? 1 : 0;
 			eventRec[x].eventdat2 = j.value<Sint16>("jump_time", 0);
