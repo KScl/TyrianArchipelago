@@ -50,6 +50,8 @@ extern archipelago_settings_t APSeedSettings;
 typedef struct {
 	bool ArchipelagoRadar;
 	bool EnableDeathLink;
+
+	bool PracticeMode; // aka Debug Mode, possibly used for things later
 } archipelago_options_t;
 
 extern archipelago_options_t APOptions;
@@ -138,6 +140,7 @@ typedef struct {
 typedef struct {
 	Uint64 TimeInLevel; // Tracked with SDL_GetTicks/SDL_GetTicks64
 	Uint64 TimeInMenu; // Tracked with SDL_GetTicks/SDL_GetTicks64
+	Uint64 TimeInBonus; // Tracked with SDL_GetTicks/SDL_GetTicks64
 
 	Uint16 Deaths;
 	Uint16 ExitedLevels;

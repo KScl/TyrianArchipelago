@@ -887,11 +887,36 @@ start_level:
 		}
 
 		// Track some stats on the way out, if we left without completing the level.
-		if (all_players_dead())
-			++APPlayData.Deaths;
-		else if (playerEndLevel)
-			++APPlayData.ExitedLevels;
+		if (!extraGame)
+		{
+			if (all_players_dead())
+				++APPlayData.Deaths;
+			else if (playerEndLevel)
+				++APPlayData.ExitedLevels;			
+		}
 	}
+
+	if (levelStartTime) // Increment total time spent in levels
+	{
+		// Randomizer doesn't start until a real level is played
+		if (extraGame && APPlayData.TimeInLevel > 0)
+		{
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+			APPlayData.TimeInBonus += SDL_GetTicks64() - levelStartTime;
+#else
+			APPlayData.TimeInBonus += SDL_GetTicks() - levelStartTime;
+#endif
+		}
+		else if (!extraGame)
+		{
+#if SDL_VERSION_ATLEAST(2, 0, 18)
+			APPlayData.TimeInLevel += SDL_GetTicks64() - levelStartTime;
+#else
+			APPlayData.TimeInLevel += SDL_GetTicks() - levelStartTime;
+#endif
+		}
+	}
+
 	extraGame = false;
 
 	if (play_demo)
@@ -899,15 +924,6 @@ start_level:
 
 	 // Player cash is cleared between levels (added to APStats.Cash on level completion)
 	player[0].cash = 0;
-	if (levelStartTime) // Increment total time spent in levels
-	{
-#if SDL_VERSION_ATLEAST(2, 0, 18)
-		APPlayData.TimeInLevel += SDL_GetTicks64() - levelStartTime;
-#else
-		APPlayData.TimeInLevel += SDL_GetTicks() - levelStartTime;
-#endif
-	}
-
 
 start_level_first:
 
@@ -4409,6 +4425,9 @@ void JE_eventSystem(void)
 			Sint16 xmin = INT16_MAX, ymin = INT16_MAX;
 			Sint16 xmax = INT16_MIN, ymax = INT16_MIN;
 			Uint8 assigned = 0xFF;
+#if 0
+			printf("\n--- AP Check: %d ---\n", eventRec[eventLoc-1].eventdat);
+#endif
 
 			for (temp = 0; temp < 100; temp++)
 			{
@@ -4423,7 +4442,9 @@ void JE_eventSystem(void)
 						assigned = temp;
 					}
 
-					//printf("enemy%3d: %d, %d\n", temp, enemy[temp].ex, enemy[temp].ey);
+#if 0
+					printf("enemy%3d: %d, %d\n", temp, enemy[temp].ex, enemy[temp].ey);
+#endif
 					xmin = MIN(xmin, enemy[temp].ex);
 					xmax = MAX(xmax, enemy[temp].ex);
 					ymin = MIN(ymin, enemy[temp].ey);
@@ -4435,9 +4456,11 @@ void JE_eventSystem(void)
 
 			apCheckData[apCheckCount].alignX = ((xmax + xmin) / 2) - enemy[assigned].ex;
 			apCheckData[apCheckCount].alignY = ((ymax + ymin) / 2) - enemy[assigned].ey;
-			//printf("x: %d, %d\n", xmin, xmax);
-			//printf("y: %d, %d\n", ymin, ymax);
-			//printf("align: %d, %d\n", apCheckData[apCheckCount].alignX, apCheckData[apCheckCount].alignY);
+#if 0
+			printf("x: %d, %d\n", xmin, xmax);
+			printf("y: %d, %d\n", ymin, ymax);
+			printf("align: %d, %d\n", apCheckData[apCheckCount].alignX, apCheckData[apCheckCount].alignY);
+#endif
 			apCheckData[apCheckCount].location = eventRec[eventLoc-1].eventdat;
 			apCheckData[apCheckCount].behavesAs = apBehaviorList[eventRec[eventLoc-1].eventdat3];
 			++apCheckCount;

@@ -1111,8 +1111,10 @@ void JE_inGameDisplays(void)
 		JE_textShade(VGAScreen, 30, 175, tempstr, 2, 4, FULL_SHADE);
 
 	/*Special Weapon?*/
-	if (APItemChoices.Special.Item > 0)
+	if (player[0].items.special)
 	{
+		// Don't use the sprite chosen in game, use the AP item sprite instead.
+		// We've updated some of the sprites away from their original question marks.
 		sprites_blitArchipelagoItem(VGAScreen, 25, 1, APItemChoices.Special.Item);
 
 		// This code was moved out of JE_doSpecialshot because ... why there??

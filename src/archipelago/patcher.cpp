@@ -317,6 +317,12 @@ static void jsonEventToGameEvent(json &j, Uint16 x)
 			eventRec[x].eventdat = j.value<bool>("all", true) ? 0 : 1;
 			break;
 
+		case  46: // AdjustDifficulty
+			eventRec[x].eventdat  = j.value<Sint16>("adjust", 0);
+			eventRec[x].eventdat2 = j.value<bool>("in_full_game", true) ? 0 : 1;
+			eventRec[x].eventdat3 = j.value<Sint8>("damage_rate", 0);
+			break;
+
 		case  38: // Jump_NoReturn
 		case  54: // Jump
 		case  57: // Jump_OnLinkNum254Kill

@@ -1018,11 +1018,15 @@
 		"773:REPLACE": { "time":4750, "event":201, /* AP_CheckFromEnemy */ "ap_id":406, "linknum":  1, "movement":"sky_falling" },
 		"889:APPEND":  { "time":6041, "event":201, /* AP_CheckFromEnemy */ "ap_id":407, "linknum":199, "movement":"swaying", "is_boss":true },
 
+		// Ease the difficulty up a bit since this is a starting level.
+		// This level adds a static +1 to difficulty always, we save it until after the mid-boss.
+		"7:REPLACE":   { "time":   0, "event": 0 /* NoOp */ },
+		"489:APPEND":  { "time":2869, "event":46, /* AdjustDifficulty */ "adjust":1 },
+
 		// A whole slew of balance changes to the "rolling ball of death" to make it reasonable.
 		// - Move it down a bit more, so it can be hit at the top of the screen
-		// - Make it fire slower
+		// - Stop it from firing (it is difficult enough already)
 		// - Make it leave the screen when the main boss appears
-		// - Give it a boss healthbar
 		"558:REPLACE": [
 			{ "time":3221, "event":15, /* NewEnemy_Sky */ "linknum":5, "type":288, "ex":30, "ey":0, "eyc":6 },
 			{ "time":3231, "event":15, /* NewEnemy_Sky */ "linknum":6, "type":288, "ex":30, "ey":0, "eyc":6 },
@@ -1032,8 +1036,7 @@
 		"567:REPLACE": { "time":3261, "event":15, /* NewEnemy_Sky */ "linknum":9, "type":288, "ex":30, "ey":0, "eyc":6 },
 		"571:REPLACE": { "time":3271, "event":15, /* NewEnemy_Sky */ "linknum":4, "type":288, "ex":30, "ey":0, "eyc":6 },
 		"575:REPLACE": { "time":3281, "event":15, /* NewEnemy_Sky */ "linknum":3, "type":288, "ex":30, "ey":0, "eyc":6 },
-		"589:REPLACE": { "time":3317, "event":31, /* EnemyGlobal_FireOverride */ "linknum":7, "shot_freq":[20] },
-		"596:APPEND":  { "time":3317, "event":79, /* SetBossBar */ "linknum":[39, 0] },
+		"589:REPLACE": { "time":3317, "event":31, /* EnemyGlobal_FireOverride */ "linknum":7, "shot_freq":[0] },
 		"857:APPEND":  { "time":5900, "event":27, /* EnemyGlobal_AccelRev */ "linknum":39, "exrev":8 }
 	},
 	// --------------------------------------------------------------
@@ -1089,6 +1092,7 @@
 
 		// Additional callouts for contact_bypasses_shields
 		"158:APPEND":  { "time": 550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"541:APPEND":  { "time":1650, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 		"860:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 
 		// Don't immediately end the level on boss death.
@@ -1366,8 +1370,14 @@
 		"680:REPLACE":  { "time":4599, "event":201, /* AP_CheckFromEnemy */ "ap_id":516, "linknum":18, "movement":"falling" },
 		"1148:APPEND":  { "time":9600, "event":201, /* AP_CheckFromEnemy */ "ap_id":517, "linknum":19, "movement":"swaying", "is_boss":true },
 
+		// Additional callouts for contact_bypasses_shields
+		"526:APPEND":   { "time":2950, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"865:APPEND":   { "time":7010, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"957:APPEND":   { "time":7810, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"1036:APPEND":  { "time":8610, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+
 		// Replace errant sound effect playback events.
-		"526:REPLACE":  { "time":2950, "event":16, /* VoicedCallout */ "output":"Intercepting enemy aircraft." },
+		"526:REPLACE":  { "time":2950, "event":216, /* ConditionalVoicedCallout */ "output":"Intercepting enemy aircraft.", "hard_contact":false },
 		"1149:REPLACE": { "time":9610, "event":62, /* PlaySound */ "sample":"HYPERD2" }
 	},
 	"Episode4 UNDERDELI ver2000": {
@@ -1381,8 +1391,14 @@
 		"671:REPLACE":  { "time":4599, "event":201, /* AP_CheckFromEnemy */ "ap_id":516, "linknum":18, "movement":"falling" },
 		"1139:APPEND":  { "time":9600, "event":201, /* AP_CheckFromEnemy */ "ap_id":517, "linknum":19, "movement":"swaying", "is_boss":true },
 
+		// Additional callouts for contact_bypasses_shields
+		"526:APPEND":   { "time":2950, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"856:APPEND":   { "time":7010, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"948:APPEND":   { "time":7810, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"1027:APPEND":  { "time":8610, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+
 		// Replace errant sound effect playback events.
-		"526:REPLACE":  { "time":2950, "event":16, /* VoicedCallout */ "output":"Intercepting enemy aircraft." },
+		"526:REPLACE":  { "time":2950, "event":216, /* ConditionalVoicedCallout */ "output":"Intercepting enemy aircraft.", "hard_contact":false },
 		"1140:REPLACE": { "time":9610, "event":62, /* PlaySound */ "sample":"HYPERD2" }
 	},
 	// --------------------------------------------------------------
@@ -1570,9 +1586,12 @@
 		"1049:APPEND": { "time":6940, "event":202, /* AP_CheckFromLastNewEnemy */ "ap_id":567, "movement":"falling" },
 		"1080:APPEND": { "time":7000, "event":201, /* AP_CheckFromEnemy */ "ap_id":568, "linknum":254, "movement":"swaying", "is_boss":true },
 
+		// Additional callouts for contact_bypasses_shields
+		"353:APPEND":  { "time":2550, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+		"830:APPEND":  { "time":5250, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
+
 		// Make the circling orbs that appear between the two minibosses leave, because they cause later linknum problems.
 		"799:APPEND":  { "time":4986, "event":27, /* EnemyGlobal_AccelRev */ "linknum":5 }
-
 	},
 	// --------------------------------------------------------------
 	"Episode4 NOSE DRIP": {
@@ -1728,7 +1747,7 @@
 		"355:REPLACE": { "time":2040, "event":201, /* AP_CheckFromEnemy */ "ap_id":651, "linknum": 15, "movement":"sky_falling" },
 		"491:APPEND":  { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":652, "linknum": 15, "movement":"top_falling" },
 		"716:REPLACE": { "time":4840, "event":201, /* AP_CheckFromEnemy */ "ap_id":653, "linknum":  5, "movement":"sky_falling" },
-		"756:REPLACE": { "time":5000, "event":201, /* AP_CheckFromEnemy */ "ap_id":654, "linknum":251, "movement":"swaying", "is_boss":true },
+		"756:REPLACE": { "time":5000, "event":201, /* AP_CheckFromEnemy */ "ap_id":654, "linknum":254, "movement":"swaying", "is_boss":true },
 
 		// Correct some turret positions that are obviously mismatched with the background.
 		"423:REPLACE": { "time":2540, "event":6, /* NewEnemy_Ground */ "type":1260, "ex":186, "ey":-1 },

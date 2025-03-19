@@ -818,17 +818,18 @@ void apmenu_RandomizerStats(void)
 
 	draw_font_hv_shadow(VGAScreen2, 160, 8, "Results", FONT_SHAPES, centered, 15, -3, false, 2);
 
-	Uint64 totalTime = APPlayData.TimeInMenu + APPlayData.TimeInLevel;
-	drawRandomizerStat(48+(16*0), "Locations Checked", getCheckCount());
-	drawRandomizerStat(48+(16*2), "Total Time", ticksToString(totalTime));
-	drawRandomizerStat(48+(16*3), "Time in Menus", ticksToString(APPlayData.TimeInMenu));
-	drawRandomizerStat(48+(16*4), "Time in Levels", ticksToString(APPlayData.TimeInLevel));
-	drawRandomizerStat(48+(16*6), "Deaths", getIntString(APPlayData.Deaths));
-	drawRandomizerStat(48+(16*7), "Exited Levels", getIntString(APPlayData.ExitedLevels));
+	Uint64 totalTime = APPlayData.TimeInMenu + APPlayData.TimeInLevel + APPlayData.TimeInBonus;
+	drawRandomizerStat(40+(16*0), "Locations Checked", getCheckCount());
+	drawRandomizerStat(40+(16*2), "Total Time", ticksToString(totalTime));
+	drawRandomizerStat(40+(16*3), "Time in Menus", ticksToString(APPlayData.TimeInMenu));
+	drawRandomizerStat(40+(16*4), "Time in Levels", ticksToString(APPlayData.TimeInLevel));
+	drawRandomizerStat(40+(16*5), "Time in Bonus Games", ticksToString(APPlayData.TimeInBonus));
+	drawRandomizerStat(40+(16*7), "Deaths", getIntString(APPlayData.Deaths));
+	drawRandomizerStat(40+(16*8), "Exited Levels", getIntString(APPlayData.ExitedLevels));
 
 	const char *remoteChecksText = getRemoteCheckCount();
 	if (remoteChecksText)
-		draw_font_hv_full_shadow(VGAScreen2, 160, 48+12, remoteChecksText, TINY_FONT, centered, 15, 4, true, 1);
+		draw_font_hv_full_shadow(VGAScreen2, 160, 40+12, remoteChecksText, TINY_FONT, centered, 15, 4, true, 1);
 
 	memcpy(VGAScreen->pixels, VGAScreen2->pixels, VGAScreen->pitch * VGAScreen->h);
 

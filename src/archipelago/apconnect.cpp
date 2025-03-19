@@ -120,7 +120,7 @@ static bool silentItemMode = true;
 #define ARCHIPELAGO_BASE_ID 20031000
 
 // Should match TyrianWorld.aptyrian_net_version
-#define APTYRIAN_NET_VERSION 5
+#define APTYRIAN_NET_VERSION 6
 
 static APClient::Version targetAPVersion = {0, 5, 1};
 
@@ -301,6 +301,7 @@ void Archipelago_Save(void)
 	saveData["APPlayData"] += APPlayData.TimeInMenu;
 	saveData["APPlayData"] += APPlayData.Deaths;
 	saveData["APPlayData"] += APPlayData.ExitedLevels;
+	saveData["APPlayData"] += APPlayData.TimeInBonus;
 
 	saveData["APItemChoices"] += APItemChoices.FrontPort.Item
 		| (APItemChoices.FrontPort.PowerLevel << 10);
@@ -390,14 +391,19 @@ static bool Archipelago_Load(void)
 		}
 
 		// APPlayData isn't important to care enough if it's the wrong size.
-		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 1)
-			APPlayData.TimeInLevel = saveData["APPlayData"].at(0).template get<Uint64>();
-		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 2)
-			APPlayData.TimeInMenu = saveData["APPlayData"].at(1).template get<Uint64>();
-		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 3)
-			APPlayData.Deaths = saveData["APPlayData"].at(2).template get<Uint16>();
-		if (saveData.contains("APPlayData") && saveData["APPlayData"].size() >= 4)
-			APPlayData.ExitedLevels = saveData["APPlayData"].at(3).template get<Uint16>();
+		if (saveData.contains("APPlayData"))
+		{
+			if (saveData["APPlayData"].size() >= 1)
+				APPlayData.TimeInLevel = saveData["APPlayData"].at(0).template get<Uint64>();
+			if (saveData["APPlayData"].size() >= 2)
+				APPlayData.TimeInMenu = saveData["APPlayData"].at(1).template get<Uint64>();
+			if (saveData["APPlayData"].size() >= 3)
+				APPlayData.Deaths = saveData["APPlayData"].at(2).template get<Uint16>();
+			if (saveData["APPlayData"].size() >= 4)
+				APPlayData.ExitedLevels = saveData["APPlayData"].at(3).template get<Uint16>();
+			if (saveData["APPlayData"].size() >= 5)
+				APPlayData.TimeInBonus = saveData["APPlayData"].at(4).template get<Uint64>();
+		}
 
 		APItemChoices.FrontPort.Item = saveData["APItemChoices"].at(0).template get<Uint16>();
 		APItemChoices.RearPort.Item = saveData["APItemChoices"].at(1).template get<Uint16>();
@@ -1488,6 +1494,7 @@ const char *Archipelago_StartDebugGame(void)
 
 	APOptions.EnableDeathLink = false; // No point if you're alone
 	APOptions.ArchipelagoRadar = true;
+	APOptions.PracticeMode = true;
 
 	return NULL;
 }
@@ -1582,6 +1589,7 @@ const char *Archipelago_StartLocalGame(FILE *file)
 
 	APOptions.EnableDeathLink = false; // No point if you're alone
 	APOptions.ArchipelagoRadar = true;
+	APOptions.PracticeMode = false;
 
 	return NULL;
 }
@@ -1844,6 +1852,7 @@ void Archipelago_Connect(const char *slot_name, const char *address, const char 
 
 	APOptions.EnableDeathLink = true; // Only relevant if DeathLink was turned on in the YAML
 	APOptions.ArchipelagoRadar = true;
+	APOptions.PracticeMode = false;
 
 	std::string cert = std::filesystem::exists("./cacert.pem") ? "./cacert.pem" : "";
 	ap.reset(new APClient(clientUUID, "Tyrian", cx_serverAddress));
