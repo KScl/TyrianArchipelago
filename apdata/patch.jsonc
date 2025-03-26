@@ -1168,7 +1168,10 @@
 		"1153:APPEND": { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":445, "linknum": 9, "movement":"swaying", "is_boss":true },
 
 		// Add a missing AccelRev (added in Tyrian 2000) to make the first circling orbs leave the screen.
-		"839:APPEND": { "time":1900, "event":27, /* EnemyGlobal_AccelRev */ "linknum":5 }
+		"839:APPEND": { "time":1900, "event":27, /* EnemyGlobal_AccelRev */ "linknum":5 },
+
+		// Move the timeout ending to a more reasonable time.
+		"1442:APPEND": { "time":5000, "event":11 /* EndLevel */ }
 	},
 	"Episode4 LAVA EXIT ver2000": {
 		// Addition of Archipelago Items
@@ -1183,7 +1186,10 @@
 			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":444, "linknum": 1, "movement":"sky_falling" },
 			{ "time":3000, "event":201, /* AP_CheckFromEnemy */ "ap_id":443, "linknum":11, "movement":"sky_falling" }
 		],
-		"1156:APPEND": { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":445, "linknum": 9, "movement":"swaying", "is_boss":true }
+		"1156:APPEND": { "time":3400, "event":201, /* AP_CheckFromEnemy */ "ap_id":445, "linknum": 9, "movement":"swaying", "is_boss":true },
+
+		// Move the timeout ending to a more reasonable time.
+		"1445:APPEND": { "time":5000, "event":11 /* EndLevel */ }
 	},
 	// --------------------------------------------------------------
 	"Episode4 DESERTRUN": {
@@ -1193,7 +1199,13 @@
 		"534:REPLACE": { "time":6700, "event":200, /* AP_CheckFreestanding */ "ap_id":452, "movement":"gnd2_falling", "ex":262, "backup":398 },
 		"538:REPLACE": { "time":7000, "event":200, /* AP_CheckFreestanding */ "ap_id":453, "movement":"gnd2_falling", "ex": 42, "backup":398 },
 		"540:REPLACE": { "time":7300, "event":200, /* AP_CheckFreestanding */ "ap_id":454, "movement":"gnd2_falling", "ex":262, "backup":398 },
-		"544:REPLACE": { "time":7600, "event":200, /* AP_CheckFreestanding */ "ap_id":455, "movement":"gnd2_falling", "ex": 42, "backup":398 }
+		"544:REPLACE": { "time":7600, "event":200, /* AP_CheckFreestanding */ "ap_id":455, "movement":"gnd2_falling", "ex": 42, "backup":398 },
+
+		// Fix overrunning the edge of the map at the end.
+		"551:APPEND": [
+			{ "time":8090, "event":  2, /* MapBackMove */ "mode":[5, 5, 5] },
+			{ "time":8120, "event":  2, /* MapBackMove */ "mode":[4, 4, 4] }
+		]
 	},
 	// --------------------------------------------------------------
 	"Episode4 SIDE EXIT": {
