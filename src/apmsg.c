@@ -3,6 +3,7 @@
 #include "apmsg.h"
 
 #include "fonthand.h"
+#include "jukebox.h"
 #include "mainint.h"
 #include "nortsong.h"
 #include "sprite.h"
@@ -171,6 +172,17 @@ void apmsg_drawScrollBack(Uint8 dist, Uint8 count)
 		fonthand_outTextColorize(VGAScreen, 10, y, messageQueue[current], 14, 1, true);
 		y -= 9;
 	}
+}
+
+void apmsg_manageQueueJukebox(void)
+{
+	while (mq_cur != mq_head)
+	{
+		if (!jbmsg_queueMessage(messageQueue[mq_cur], mq_speed * 2))
+			return;
+		++mq_cur;
+	}
+	mq_speed = 70;
 }
 
 void apmsg_manageQueueMenu(bool stripColor)

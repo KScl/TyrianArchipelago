@@ -749,7 +749,7 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 		s << APRemote_BuildLocationString(args.item->location, args.item->player);
 		s << "\nin " << APRemote_GetPlayerName(args.item->player) << "'s world. ";
 		if (*args.found)
-			s << "<C5(found)";
+			s << "<25(found)";
 		else
 			s << "<45(not found)";
 	}

@@ -23,4 +23,6 @@
 
 void jukebox(void);
 
+bool jbmsg_queueMessage(const char *str, int nudge_time);
+
 #endif /* JUKEBOX_H */

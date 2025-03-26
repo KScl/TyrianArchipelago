@@ -131,29 +131,45 @@ void draw_font_hv(SDL_Surface *surface, int x, int y, const char *text, Font fon
 	}
 	
 	bool highlight = false;
+	Sint8 defaultValue = value;
 	
 	for (; *text != '\0'; ++text)
 	{
 		int sprite_id = font_ascii[(unsigned char)*text];
+		int y_offset = 0;
 		
 		switch (*text)
 		{
 		case ' ':
 			x += 6;
 			break;
-			
-		case '~':
+
+		case '~': // Enable / disable highlight
 			highlight = !highlight;
-			if (highlight)
-				value += 4;
-			else
-				value -= 4;
+			value = defaultValue + (highlight ? 4 : 0);
 			break;
+
+		case '>': // Return to original color
+			highlight = false;
+			value = defaultValue;
+			break;
+
+		case '<': // Arbitrary color change
+			if (!text[1] || !text[2])
+				return; // Unsupported behavior
+			// text[1] is for hue changes, which we ignore
+			value = (text[2] >= 'A') ? text[2] + 10 - 'A' : text[2] - '0';
+			text += 2;
+			break;
+
+		case '_':
+			y_offset = 2;
+			// fall through
 			
 		default:
 			if (sprite_id != -1 && sprite_exists(font, sprite_id))
 			{
-				blit_sprite_hv(surface, x, y, font, sprite_id, hue, value);
+				blit_sprite_hv(surface, x, y + y_offset, font, sprite_id, hue, value);
 				
 				x += sprite(font, sprite_id)->width + 1;
 			}
@@ -196,6 +212,7 @@ void draw_font_hv_blend(SDL_Surface *surface, int x, int y, const char *text, Fo
 	for (; *text != '\0'; ++text)
 	{
 		int sprite_id = font_ascii[(unsigned char)*text];
+		int y_offset = 0;
 		
 		switch (*text)
 		{
@@ -203,13 +220,26 @@ void draw_font_hv_blend(SDL_Surface *surface, int x, int y, const char *text, Fo
 			x += 6;
 			break;
 			
-		case '~':
+		case '~': // Enable / disable highlight
 			break;
-			
+
+		case '>': // Return to original color
+			break;
+
+		case '<': // Arbitrary color change
+			if (!text[1] || !text[2])
+				return; // Unsupported behavior
+			text += 2;
+			break;
+
+		case '_':
+			y_offset = 2;
+			// fall through
+
 		default:
 			if (sprite_id != -1 && sprite_exists(font, sprite_id))
 			{
-				blit_sprite_hv_blend(surface, x, y, font, sprite_id, hue, value);
+				blit_sprite_hv_blend(surface, x, y + y_offset, font, sprite_id, hue, value);
 				
 				x += sprite(font, sprite_id)->width + 1;
 			}
@@ -252,6 +282,7 @@ void draw_font_dark(SDL_Surface *surface, int x, int y, const char *text, Font f
 	for (; *text != '\0'; ++text)
 	{
 		int sprite_id = font_ascii[(unsigned char)*text];
+		int y_offset = 0;
 		
 		switch (*text)
 		{
@@ -259,13 +290,26 @@ void draw_font_dark(SDL_Surface *surface, int x, int y, const char *text, Font f
 			x += 6;
 			break;
 			
-		case '~':
+		case '~': // Enable / disable highlight
 			break;
+
+		case '>': // Return to original color
+			break;
+
+		case '<': // Arbitrary color change
+			if (!text[1] || !text[2])
+				return; // Unsupported behavior
+			text += 2;
+			break;
+
+		case '_':
+			y_offset = 2;
+			// fall through
 			
 		default:
 			if (sprite_id != -1 && sprite_exists(font, sprite_id))
 			{
-				blit_sprite_dark(surface, x, y, font, sprite_id, black);
+				blit_sprite_dark(surface, x, y + y_offset, font, sprite_id, black);
 				
 				x += sprite(font, sprite_id)->width + 1;
 			}

@@ -7,6 +7,7 @@
 
 // Call to manage the queue and draw text on screen.
 void apmsg_drawScrollBack(Uint8 dist, Uint8 count);
+void apmsg_manageQueueJukebox(void);
 void apmsg_manageQueueMenu(bool stripColor);
 void apmsg_manageQueueInGame(void);
 

@@ -18,6 +18,7 @@
  */
 #include "jukebox.h"
 
+#include "apmsg.h"
 #include "font.h"
 #include "joystick.h"
 #include "keyboard.h"
@@ -33,6 +34,62 @@
 #include "video.h"
 
 #include <stdio.h>
+
+#define NUM_JUKEBOX_MESSAGES 8
+
+static char msg_queue[NUM_JUKEBOX_MESSAGES][80];
+static int msg_timer = 0;
+static unsigned int msg_index = 0;
+
+static void jbmsg_popMessage(void)
+{
+	if (msg_index > 0)
+	{
+		for (unsigned int i = 1; i < msg_index; ++i)
+			memcpy(msg_queue[i-1], msg_queue[i], 80);
+		msg_queue[--msg_index][0] = 0;
+	}
+	msg_timer = 0;
+}
+
+static void jbmsg_manageAndDraw(bool hide_text)
+{
+	if (msg_index > 1 && ++msg_timer >= 160)
+		jbmsg_popMessage();
+	else if (msg_index == 1 && ++msg_timer >= 240)
+		jbmsg_popMessage();
+
+	apmsg_manageQueueJukebox();
+
+	if (hide_text)
+		return;
+	for (unsigned int i = 0; i < msg_index; ++i)
+		draw_font_hv(VGAScreen, 10, 10+(10*i), msg_queue[i], small_font, left_aligned, 1, 0);
+}
+
+bool jbmsg_queueMessage(const char *str, int nudge_time)
+{
+	if (msg_index == 0)
+		msg_timer = 0;
+
+	// No room, try to nudge the topmost message off
+	if (msg_index >= NUM_JUKEBOX_MESSAGES)
+	{
+		if (msg_timer >= nudge_time)
+			jbmsg_popMessage();
+	}
+
+	// If still above, couldn't make room
+	if (msg_index >= NUM_JUKEBOX_MESSAGES)
+		return false;
+
+	strncpy(msg_queue[msg_index], str, 80-1);
+	msg_queue[msg_index][80-1] = 0;
+	++msg_index;
+	return true;
+}
+
+// ----- Original jukebox code -----
 
 void jukebox(void)  // FKA Setup.jukeboxGo
 {
@@ -55,32 +112,56 @@ void jukebox(void)  // FKA Setup.jukeboxGo
 	JE_starlib_init();
 
 	int fade_volume = tyrMusicVolume;
-	
+
+	// Init message queue
+	memset(msg_queue, 0, sizeof(msg_queue));
+	msg_timer = 0;
+	msg_index = 0;
+
+	// Don't instantly fade out song if we've been in the menu a while
+	songlooped = false;
+
 	for (; ; )
 	{
 		if (!stopped && !audio_disabled)
 		{
+			bool play_new_song = !playing;
+
 			if (songlooped && fade_looped_songs)
 				fading_song = true;
 
 			if (fading_song)
 			{
-				if (fade_volume > 5)
+				if (fade_volume > 2)
 				{
-					fade_volume -= 2;
+					--fade_volume;
 				}
 				else
 				{
 					fade_volume = tyrMusicVolume;
 
 					fading_song = false;
+					play_new_song = true;
 				}
 
 				set_volume(fade_volume, fxVolume);
 			}
 
-			if (!playing || (songlooped && fade_looped_songs && !fading_song))
-				play_song(mt_rand() % MUSIC_NUM);
+			// If the music faded out or stopped, restart it.
+			if (play_new_song)
+			{
+				if (fade_looped_songs) // Shuffle
+				{
+					unsigned int next_song = song_playing;
+					while (next_song == song_playing)
+						next_song = mt_rand() % MUSIC_NUM;
+					play_song(next_song);
+				}
+				else // Loop forever
+				{
+					restart_song();
+				}
+			}
 		}
 
 		setDelay(1);
@@ -108,10 +189,11 @@ void jukebox(void)  // FKA Setup.jukeboxGo
 			draw_font_hv(VGAScreen, x, 180, "Arrow keys change the song being played.", small_font, centered, 1, 0);
 			draw_font_hv(VGAScreen, x, 190, buffer,                                     small_font, centered, 1, 4);
 		}
+		jbmsg_manageAndDraw(hide_text);
 
 		if (palette_fade_steps > 0)
 			step_fade_palette(diff, palette_fade_steps--, 0, 255);
-		
+
 		JE_showVGA();
 
 		wait_delay();
@@ -139,10 +221,18 @@ void jukebox(void)  // FKA Setup.jukeboxGo
 				break;
 			case SDL_SCANCODE_N:
 				fade_looped_songs = !fade_looped_songs;
+				if (fade_looped_songs)
+					jbmsg_queueMessage("Play mode: Shuffle", 0);
+				else
+					jbmsg_queueMessage("Play mode: Loop forever", 0);
 				break;
 
 			case SDL_SCANCODE_SLASH: // switch to sfx mode
 				fx = !fx;
+				if (fx)
+					jbmsg_queueMessage("Sound effects mode: Enabled (use ~comma~, ~period~, ~semicolon~)", 0);
+				else
+					jbmsg_queueMessage("Sound effects mode: Disabled", 0);
 				break;
 			case SDL_SCANCODE_COMMA:
 				if (!fx)
@@ -185,6 +275,16 @@ void jukebox(void)  // FKA Setup.jukeboxGo
 			case SDL_SCANCODE_R: // restart song
 				restart_song();
 				stopped = false;
+				break;
+
+			case SDL_SCANCODE_F1:
+				jbmsg_queueMessage("~Jukebox Hotkeys~", 0);
+				jbmsg_queueMessage("  ~space~: Toggle text displays", 0);
+				jbmsg_queueMessage("  ~/~: Toggle sound effects mode", 0);
+				jbmsg_queueMessage("  ~N~: Change play mode (shuffle/loop)", 0);
+				jbmsg_queueMessage("  ~F~: Fade out song", 0);
+				jbmsg_queueMessage("  ~R~: Restart song", 0);
+				jbmsg_queueMessage("  ~S~: Stop all music", 0);
 				break;
 
 			default:
