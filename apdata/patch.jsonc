@@ -1,5 +1,5 @@
 {
-"_version": [0, 99, 0],
+"_version": [0, 99, 1],
 // ===================================================================================================================
 "patches": {
 	/* "patch_name": {
@@ -1021,7 +1021,10 @@
 		// Ease the difficulty up a bit since this is a starting level.
 		// This level adds a static +1 to difficulty always, we save it until after the mid-boss.
 		"7:REPLACE":   { "time":   0, "event": 0 /* NoOp */ },
-		"489:APPEND":  { "time":2869, "event":46, /* AdjustDifficulty */ "adjust":1 },
+		"491:APPEND":  { "time":2900, "event":46, /* AdjustDifficulty */ "adjust":1 },
+
+		// Don't spawn the single ship flying under the arch if the secret is missed
+		"262:PREPEND": { "time":1420, "event":61, /* Skip_IfFlagSet */  "flag":3, "value":0, "skip_events":2 },
 
 		// A whole slew of balance changes to the "rolling ball of death" to make it reasonable.
 		// - Move it down a bit more, so it can be hit at the top of the screen

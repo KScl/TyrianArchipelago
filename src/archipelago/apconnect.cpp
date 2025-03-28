@@ -122,7 +122,7 @@ static bool silentItemMode = true;
 // Should match TyrianWorld.aptyrian_net_version
 #define APTYRIAN_NET_VERSION 6
 
-static APClient::Version targetAPVersion = {0, 5, 1};
+static APClient::Version targetAPVersion = {0, 6, 0};
 
 static std::unique_ptr<APClient> ap;
 
