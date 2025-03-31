@@ -1730,6 +1730,7 @@ level_loop:
 	{
 		if (shotAvail[z] != 0)
 		{
+			JE_integer destroyTotal = 0; // See the vanilla bug fix at the end of the loop
 			bool is_special = false;
 			int tempShotX = 0, tempShotY = 0;
 			JE_byte chain;
@@ -1999,11 +2000,28 @@ level_loop:
 							}
 							else
 							{
-								playerShotData[z].shotDmg -= armorleft;
+								// See the vanilla bug fix below
+								//playerShotData[z].shotDmg -= armorleft;
+								destroyTotal += armorleft;
 							}
 						}
 					}
 				}
+			}
+
+			if (destroyTotal > 0)
+			{
+				// Vanilla bug fix: If a player shot collides with multiple distinct enemies simultaneously, then
+				// `damage` won't be updated for subsequent enemies. If the player shot destroys every one of those
+				// enemies even though it wouldn't have the damage for it otherwise, shotDmg will underflow.
+				//
+				// We could fix this with just doing the following above:
+				//     damage -= armorleft;
+				// However, this makes player shots feel weaker, not destroying the same enemy groups they do vanilla.
+				// So instead, we detect the underflow here, and destroy the bullet if it would underflow.
+				if (destroyTotal >= playerShotData[z].shotDmg)
+					shotAvail[z] = 0;
+				playerShotData[z].shotDmg -= destroyTotal;
 			}
 
 draw_player_shot_loop_end:

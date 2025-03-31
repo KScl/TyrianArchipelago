@@ -1,5 +1,5 @@
 {
-"_version": [0, 99, 1],
+"_version": [1, 0, 0],
 // ===================================================================================================================
 "patches": {
 	/* "patch_name": {
@@ -1018,6 +1018,13 @@
 		"773:REPLACE": { "time":4750, "event":201, /* AP_CheckFromEnemy */ "ap_id":406, "linknum":  1, "movement":"sky_falling" },
 		"889:APPEND":  { "time":6041, "event":201, /* AP_CheckFromEnemy */ "ap_id":407, "linknum":199, "movement":"swaying", "is_boss":true },
 
+		// Fix some linknum conflicts
+		"361:PREPEND": [
+			{ "time":1929, "event":39, /* EnemyGlobal_LinkNum */ "linknum":4, "new_linknum":7 },
+			{ "time":1929, "event":39, /* EnemyGlobal_LinkNum */ "linknum":5, "new_linknum":8 },
+			{ "time":1929, "event":39, /* EnemyGlobal_LinkNum */ "linknum":6, "new_linknum":9 }
+		],
+
 		// Ease the difficulty up a bit since this is a starting level.
 		// This level adds a static +1 to difficulty always, we save it until after the mid-boss.
 		"7:REPLACE":   { "time":   0, "event": 0 /* NoOp */ },
@@ -1370,8 +1377,9 @@
 			{ "time":3700, "event":200, /* AP_CheckFreestanding */ "ap_id":504, "movement":"sky_falling", "ex":260 }
 		],
 
-		// Fix a linknum conflict that can affect an AP item.
-		"298:APPEND": { "time":1500, "event":39, /* EnemyGlobal_LinkNum */ "linknum":19 }
+		// Fix linknum conflicts that can affect an AP item.
+		"298:APPEND":  { "time":1500, "event":39, /* EnemyGlobal_LinkNum */ "linknum":19 },
+		"369:PREPEND": { "time":1700, "event":39, /* EnemyGlobal_LinkNum */ "linknum":19 }
 	},
 	// --------------------------------------------------------------
 	"Episode4 UNDERDELI ver2.1": {
@@ -1639,6 +1647,9 @@
 		"402:REPLACE": { "time":2600, "event":201, /* AP_CheckFromEnemy */ "ap_id":586, "linknum":  4, "movement":"sky_falling" },
 		"433:APPEND":  { "time":2800, "event":201, /* AP_CheckFromEnemy */ "ap_id":587, "linknum":254, "movement":"swaying", "is_boss":true },
 
+		// Fix some linknum conflicts affecting AP items.
+		"234:PREPEND":  { "time":1301, "event":39, /* EnemyGlobal_LinkNum */ "linknum":2, "new_linknum":102 },
+
 		// Give time for the AP item to drop.
 		"514:PREPEND": [
 			{ "time": 5040, "event": 36 /* ReadyToEndLevel */ },
@@ -1699,6 +1710,12 @@
 		"815:REPLACE": { "time":4746, "event":201, /* AP_CheckFromEnemy */ "ap_id":617, "linknum":  5, "movement":"gnd2_falling" },
 		"883:APPEND":  { "time":5250, "event":201, /* AP_CheckFromEnemy */ "ap_id":618, "linknum":143, "movement":"swaying", "is_boss":true },
 
+		// Fix some linknum conflicts affecting AP items.
+		"275:PREPEND": [
+			{ "time":1299, "event":39, /* EnemyGlobal_LinkNum */ "linknum":3 },
+			{ "time":1299, "event":39, /* EnemyGlobal_LinkNum */ "linknum":4 }
+		],
+
 		// It feels like there should've been a level end event placed somewhere, but it's entirely missing!
 		// So, we just jump to the timed battle end point at around when you'd run out of time.
 		"929:APPEND": { "time":7000, "event":54, /* Jump */ "jump_time":10000 }
@@ -1710,13 +1727,14 @@
 		"301:APPEND":  { "time":1700, "event":201, /* AP_CheckFromEnemy */ "ap_id":621, "linknum":142, "movement":"gnd2_falling" },
 		"325:REPLACE": { "time":1800, "event":201, /* AP_CheckFromEnemy */ "ap_id":622, "linknum": 19, "movement":"gnd2_falling" },
 		"343:REPLACE": { "time":2000, "event":201, /* AP_CheckFromEnemy */ "ap_id":623, "linknum": 19, "movement":"gnd2_falling" },
-		"463:APPEND":  { "time":2860, "event":201, /* AP_CheckFromEnemy */ "ap_id":624, "linknum":142, "movement":"gnd2_falling" },
-		"555:REPLACE": { "time":3820, "event":201, /* AP_CheckFromEnemy */ "ap_id":625, "linknum": 18, "movement":"gnd2_falling" },
-		"611:APPEND":  { "time":4470, "event":201, /* AP_CheckFromEnemy */ "ap_id":626, "linknum":122, "movement":"gnd2_falling" },
-		"743:APPEND":  { "time":5160, "event":201, /* AP_CheckFromEnemy */ "ap_id":627, "linknum":  2, "movement":"gnd2_falling" },
+		"555:REPLACE": { "time":3820, "event":201, /* AP_CheckFromEnemy */ "ap_id":624, "linknum": 18, "movement":"gnd2_falling" },
+		"611:APPEND":  { "time":4470, "event":201, /* AP_CheckFromEnemy */ "ap_id":625, "linknum":122, "movement":"gnd2_falling" },
+		"743:APPEND":  { "time":5160, "event":201, /* AP_CheckFromEnemy */ "ap_id":626, "linknum":  2, "movement":"gnd2_falling" },
 
-		// Fix a linknum issue that affects an AP item.
-		"158:APPEND":  { "time": 819, "event":39, /* EnemyGlobal_LinkNum */ "linknum":8, "new_linknum":108 },
+		// Fix a few linknum issues that affect AP items.
+		"158:APPEND":  { "time": 819, "event":39, /* EnemyGlobal_LinkNum */ "linknum": 8, "new_linknum":108 },
+		"323:PREPEND": { "time":1799, "event":39, /* EnemyGlobal_LinkNum */ "linknum":19, "new_linknum":119 },
+		"341:PREPEND": { "time":1999, "event":39, /* EnemyGlobal_LinkNum */ "linknum":19, "new_linknum":119 },
 
 		// We need to completely replace the ending sequence to deal with handing out an item for defeating the boss.
 		"894:PREPEND": [
@@ -1725,7 +1743,7 @@
 			{ "time": 9940, "event": 53, /* ForceEvents */ "enable":true },
 			{ "time": 9940, "event": 99, /* RandomExplosions */ "enable":true },
 			{ "time": 9940, "event": 19, /* EnemyGlobal_Move */ "linknum":9, "eyc":-1 },
-			{ "time": 9940, "event":200, /* AP_CheckFreestanding */ "ap_id":628, "movement":"swaying", "ex":120 },
+			{ "time": 9940, "event":200, /* AP_CheckFreestanding */ "ap_id":627, "movement":"swaying", "ex":120 },
 			{ "time":10040, "event": 99, /* RandomExplosions */ "enable":false },
 			{ "time":10080, "event": 19, /* EnemyGlobal_Move */ "linknum":9, "eyc":-64 },
 			{ "time":10440, "event": 11 /* EndLevel */ },
