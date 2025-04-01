@@ -633,6 +633,7 @@ static Uint8 APLocal_GetItemFlags(Uint16 localItemID)
 		case 831: // Flying Punch
 		case 908: // Shield Up
 		case 909: // Solar Shields
+		case 999: // 1,000,000 Credits
 			return 2; // Useful
 		default:
 			return 0; // Filler

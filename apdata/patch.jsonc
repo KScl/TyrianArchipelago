@@ -1614,7 +1614,10 @@
 		"830:APPEND":  { "time":5250, "event":216, /* ConditionalVoicedCallout */ "output":"Enemy approaching from behind.", "hard_contact":true },
 
 		// Make the circling orbs that appear between the two minibosses leave, because they cause later linknum problems.
-		"799:APPEND":  { "time":4986, "event":27, /* EnemyGlobal_AccelRev */ "linknum":5 }
+		"799:APPEND":  { "time":4986, "event":27, /* EnemyGlobal_AccelRev */ "linknum":5 },
+
+		// Random explosion event changed
+		"1953:REPLACE": { "time":10000, "event":99, /* RandomExplosions */ "enable":true }
 	},
 	// --------------------------------------------------------------
 	"Episode4 NOSE DRIP": {
