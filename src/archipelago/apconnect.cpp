@@ -760,7 +760,9 @@ static void APRemote_CB_ReceivePrint(const APClient::PrintJSONArgs &args)
 		s << "<04" << APRemote_GetPlayerName(*args.slot, *args.team);
 		if (args.type == "Join")
 		{
-			s << " [<08" << ap->get_player_game(*args.slot) << "<04]";
+			s << " [<08";
+			s << APRemote_CleanString(ap->get_player_game(*args.slot));
+			s << "<04]";
 			s << " joined the game";
 		}
 		else
@@ -1717,7 +1719,7 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			APRemote_FatalError("Game seed mismatch after reconnecting.");
 			return;
 		}
-		apmsg_enqueue("<45Reconnected to Archipelago server.");
+		apmsg_enqueue("<25Reconnected to Archipelago server.");
 	}
 	else // Initial connection to the server.
 	{
