@@ -6,7 +6,7 @@ branches:
 clone_folder: c:\projects\aptyrian
 environment:
   Configuration: Release
-  SDLVersion: 2.30.0
+  SDLVersion: 2.32.0
   OpenSSLVersion: 3.2.1
   matrix:
   - Platform: x86
@@ -72,7 +72,7 @@ after_build:
 
     Copy-Item "COPYING" "aptyrian\LICENSE-APTyrian.txt"
 
-    Copy-Item "..\SDL2\COPYING.txt" "aptyrian\LICENSE-SDL2.txt"
+    Copy-Item "..\SDL2\LICENSE.txt" "aptyrian\LICENSE-SDL2.txt"
 
     Copy-Item "..\OpenSSL\LICENSE.txt" "aptyrian\LICENSE-OpenSSL.txt"
 
