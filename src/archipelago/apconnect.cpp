@@ -1219,7 +1219,7 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 		if (APSeedSettings.ShopMode == SHOP_MODE_HIDDEN)
 		{
 			// Hidden shop contents mode (local or remote, doesn't matter)
-			itemName = "Archipelago Item " + std::to_string(i);
+			itemName = "Archipelago Item " + std::to_string(i + 1);
 			shopItemBuffer[i].Icon = 9003;
 		}
 		else if (!ap)
@@ -1236,6 +1236,7 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 			int64_t itemID = scoutedShopLocations[shopStartID + i].item;
 
 			itemName = ap->get_item_name(itemID, ap->get_player_game(playerID));
+			itemName = APRemote_CleanString(itemName);
 
 			if (playerID != ap->get_player_number())
 			{
@@ -1254,7 +1255,7 @@ int Archipelago_GetShopItems(int shopStartID, shopitem_t **shopItems)
 		else
 		{
 			// We don't have the scouted info, for some reason
-			itemName = "Unknown Item " + std::to_string(i);
+			itemName = "Unknown Item " + std::to_string(i + 1);
 			shopItemBuffer[i].Icon = 9003;
 		}
 
