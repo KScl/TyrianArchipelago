@@ -3109,6 +3109,8 @@ static void sidebarShipSprite(void)
 		sprites_blitArchipelagoItem(VGAScreen,   3, 84, APItemChoices.Sidekick[0].Item);
 	if (APItemChoices.Sidekick[1].Item)
 		sprites_blitArchipelagoItem(VGAScreen, 129, 84, APItemChoices.Sidekick[1].Item);
+	if (APStats.SolarShield)
+		blit_sprite(VGAScreenSeg, 87, 155, EXTRA_SHAPES, APSPR_SOLAR_SHIELD);
 
 	int customShipID = subMenuSelections[SUBMENU_OPTIONS_CUSTOMSHIP];
 	if (customShipID < 0)
@@ -3165,6 +3167,8 @@ static void sidebarArchipelagoInfo(void)
 		sprites_blitArchipelagoItem(VGAScreen,   3, 84, APItemChoices.Sidekick[0].Item);
 	if (APItemChoices.Sidekick[1].Item)
 		sprites_blitArchipelagoItem(VGAScreen, 129, 84, APItemChoices.Sidekick[1].Item);
+	if (APStats.SolarShield)
+		blit_sprite(VGAScreenSeg, 87, 155, EXTRA_SHAPES, APSPR_SOLAR_SHIELD);
 
 	if (APStats.GeneratorLevel > 0 && APStats.GeneratorLevel <= 6)
 	{
