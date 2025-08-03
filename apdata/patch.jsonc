@@ -1,5 +1,5 @@
 {
-"_version": [1, 0, 0],
+"_version": [1, 0, 3],
 // ===================================================================================================================
 "patches": {
 	/* "patch_name": {
@@ -933,7 +933,7 @@
 			{ "time":5400, "event":25, /* EnemyGlobal_SetHealth */ "linknum":  42, "health":254 },
 			{ "time":5400, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 141, "health":254 },
 			{ "time":5400, "event":25, /* EnemyGlobal_SetHealth */ "linknum": 142, "health":254 },
-			{ "time":5400, "event":201, /* AP_CheckFromEnemy */ "ap_id":366, "linknum":142, "movement":"swaying", "is_boss":true }
+			{ "time":5400, "event":201, /* AP_CheckFromEnemy */ "ap_id":367, "linknum":142, "movement":"swaying", "is_boss":true }
 		]
 	},
 	"Episode3 TYRIAN X ver2000": {
