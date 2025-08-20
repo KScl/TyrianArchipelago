@@ -460,7 +460,8 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 		else
 		{
 			// Through armor, player is dead
-			Archipelago_SendDeathLink(damageType);
+			if (!extraGame) // Don't send bonus game deaths
+				Archipelago_SendDeathLink(damageType);
 
 			this_player->armor = 0;
 			levelTimer = false;
@@ -483,6 +484,7 @@ Uint8 player_takeDamage(Player *this_player, Uint8 damageAmount, damagetype_t da
 void player_handleDeathLink(Player *this_player)
 {
 	if (!this_player->is_alive
+		|| extraGame // Currently in a bonus game
 		|| !APSeedSettings.DeathLink // DeathLink off in seed
 		|| !APOptions.EnableDeathLink // DeathLink off in options menu
 		|| !APDeathLinkReceived) // Haven't received one
