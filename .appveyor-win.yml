@@ -7,7 +7,7 @@ clone_folder: c:\projects\aptyrian
 environment:
   Configuration: Release
   SDLVersion: 2.32.0
-  OpenSSLVersion: 3.2.1
+  OpenSSLVersion: 3.5.4
   matrix:
   - Platform: x86
   - Platform: x64
@@ -29,11 +29,13 @@ install:
 
     Move-Item "SDL2-${env:SDLVERSION}" "SDL2"
 
+    New-Item -Path . -Name "OpenSSL" -ItemType "Directory"
+
+    cd C:\projects\OpenSSL\
+
     Start-FileDownload "https://download.firedaemon.com/FireDaemon-OpenSSL/openssl-${env:OPENSSLVERSION}.zip"
 
     7z x "openssl-${env:OPENSSLVERSION}.zip"
-
-    Move-Item "openssl-3" "OpenSSL"
 before_build:
 - ps: >-
     $ErrorActionPreference = "Stop"
