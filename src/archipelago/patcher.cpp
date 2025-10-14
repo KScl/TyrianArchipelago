@@ -59,7 +59,7 @@ int patchVersionCompare(const patcher_version_t *ours, const patcher_version_t *
 }
 // ----------------------------------------------------------------------------
 
-static const patcher_version_t requiredVersion = {1, 0, 0};
+static const patcher_version_t requiredVersion = {1, 0, 3};
 static json patchData;
 
 static std::string errorString;
