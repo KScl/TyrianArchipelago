@@ -223,7 +223,7 @@ static void apmenu_textInputUpdate(textinput_t *input, const char *newText)
 // ============================================================================
 
 // Last successful online server input
-char lastGoodServerAddr[128] = "archipelago.gg:";
+char lastGoodServerAddr[128] = "";
 char lastGoodSlotName[20] = "";
 char autoConnectPassword[128] = "";
 

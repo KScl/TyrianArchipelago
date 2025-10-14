@@ -18,6 +18,7 @@
  */
 #include "config.h"
 
+#include "apmenu.h"
 #include "episodes.h"
 #include "file.h"
 #include "joystick.h"
@@ -205,6 +206,18 @@ static void loadOpts_archipelago(ConfigSection *section)
 	currentCustomShip = (size_t)-1;
 	if (section != NULL)
 	{
+		// Do not overwrite if something set them earlier
+		if (!lastGoodServerAddr[0])
+		{
+			if (config_get_string_option(section, "last_server", &temp_str))
+				snprintf(lastGoodServerAddr, 128, "%s", temp_str);
+			else
+				snprintf(lastGoodServerAddr, 128, "%s", "archipelago.gg:");
+
+			if (config_get_string_option(section, "last_slot_name", &temp_str))
+				snprintf(lastGoodSlotName, 20, "%s", temp_str);
+		}
+
 		if (config_get_string_option(section, "uuid", &temp_str))
 			Archipelago_SetUUID(temp_str);
 		else
@@ -218,6 +231,9 @@ static void loadOpts_archipelago(ConfigSection *section)
 	}
 	else
 	{
+		// Do not overwrite if something set them earlier
+		if (!lastGoodServerAddr[0])
+			snprintf(lastGoodServerAddr, 128, "%s", "archipelago.gg:");
 		Archipelago_GenerateUUID();
 		gameSpeed = 4;
 	}
@@ -236,6 +252,8 @@ static void saveOpts_archipelago(ConfigSection *section)
 	if (section == NULL) // out of memory
 		exit(EXIT_FAILURE);
 
+	config_set_string_option(section, "last_server", lastGoodServerAddr);
+	config_set_string_option(section, "last_slot_name", lastGoodSlotName);
 	config_set_string_option(section, "uuid", Archipelago_GetUUID());
 	config_set_uint_option(section, "game_speed", gameSpeed);
 
