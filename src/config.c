@@ -149,6 +149,7 @@ JE_boolean youAreCheating;
 #ifdef DEBUG_OPTIONS
 bool debugGameInit = false;
 bool debugDamageViewer = false;
+int debugDifficulty = 0;
 int damagePerSecondTime;
 int damagePerSecondHist[3];
 float damagePerSecondAvg;

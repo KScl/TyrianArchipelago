@@ -116,6 +116,7 @@ extern JE_boolean youAreCheating; // invulnerability
 #ifdef DEBUG_OPTIONS
 extern bool debugGameInit; // Starts a debug game from apconnect.cpp on boot
 extern bool debugDamageViewer; // Runs the DPS viewer
+extern int debugDifficulty; // Difficulty of debug game
 extern int damagePerSecondTime;
 extern int damagePerSecondHist[3];
 extern float damagePerSecondAvg;

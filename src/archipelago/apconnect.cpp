@@ -1458,7 +1458,7 @@ std::string localErrorString;
 
 // Starts a game with a predefined "save" with all items and levels unlocked.
 // Returns NULL on success, or error string on failure.
-const char *Archipelago_StartDebugGame(void)
+const char *Archipelago_StartDebugGame(int difficulty)
 {
 	if (gameInProgress || ap)
 		return "Game already in progress.";
@@ -1470,7 +1470,7 @@ const char *Archipelago_StartDebugGame(void)
 	APSeedSettings.Tyrian2000Mode = tyrian2000detected;
 	APSeedSettings.PlayEpisodes = tyrian2000detected ? 0x1F : 0xF;
 	APSeedSettings.GoalEpisodes = tyrian2000detected ? 0x1F : 0xF;
-	APSeedSettings.Difficulty = 2;
+	APSeedSettings.Difficulty = (difficulty >= 1 && difficulty <= 8) ? difficulty : 2;
 	APSeedSettings.SpecialMenu = true;
 
 	APAll_FreshInit();

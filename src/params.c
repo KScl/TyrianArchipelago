@@ -50,6 +50,7 @@ void JE_paramCheck(int argc, char *argv[])
 		{ 256, 0, "no-custom-ship", false },
 		{ 257, 0, "damage-viewer",  false },
 		{ 258, 0, "debug-mode",     false },
+		{ 259, 0, "difficulty",      true },
 #endif
 
 		{ 0, 0, NULL, false}
@@ -105,6 +106,12 @@ void JE_paramCheck(int argc, char *argv[])
 #ifdef DEBUG_OPTIONS
 			skipToGameplay = true;
 			debugGameInit = true;
+#endif
+			break;
+
+		case 259:
+#ifdef DEBUG_OPTIONS
+			debugDifficulty = atoi(option.arg);
 #endif
 			break;
 

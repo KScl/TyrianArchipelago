@@ -67,7 +67,7 @@ void Archipelago_Save(void);
 // ----------------------------------------------------------------------------
 
 // These return NULL on success or error string on failure.
-const char *Archipelago_StartDebugGame(void);
+const char *Archipelago_StartDebugGame(int difficulty);
 const char *Archipelago_StartLocalGame(FILE *file);
 
 // ----------------------------------------------------------------------------
