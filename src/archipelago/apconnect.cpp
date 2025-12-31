@@ -120,9 +120,11 @@ static bool silentItemMode = true;
 #define ARCHIPELAGO_BASE_ID 20031000
 
 // Should match TyrianWorld.aptyrian_net_version
-#define APTYRIAN_NET_VERSION 6
+#define APTYRIAN_NET_VERSION        7
+#define APTYRIAN_COMPATIBLE_VERSION 6
+static int usingNetVersion = 0;
 
-static APClient::Version targetAPVersion = {0, 6, 1};
+static APClient::Version targetAPVersion = {0, 6, 5};
 
 static std::unique_ptr<APClient> ap;
 
@@ -1320,10 +1322,13 @@ aptwiddlelist_t APTwiddles; // Street Fighter-like codes, for Twiddle randomizer
 
 // ----------------------------------------------------------------------------
 
-static void APAll_ParseTwiddleData(json& j)
+static void APAll_ClearTwiddleData(void)
 {
 	memset(&APTwiddles, 0, sizeof(APTwiddles));
+}
 
+static void APAll_ParseTwiddleData(const json& j)
+{
 	for (auto &twiddle : j)
 	{
 		aptwiddle_t *ThisTwiddle = &APTwiddles.Code[APTwiddles.Count++];
@@ -1474,6 +1479,7 @@ const char *Archipelago_StartDebugGame(int difficulty)
 	APSeedSettings.SpecialMenu = true;
 
 	APAll_FreshInit();
+	APAll_ClearTwiddleData();
 
 	// Grant the player everything unconditionally.
 	APItems.FrontPorts = -1;
@@ -1515,7 +1521,8 @@ const char *Archipelago_StartLocalGame(FILE *file)
 	{
 		json aptyrianJSON = json::parse(file);
 
-		if (aptyrianJSON.at("NetVersion") != APTYRIAN_NET_VERSION)
+		usingNetVersion = aptyrianJSON.at("NetVersion").template get<int>();
+		if (usingNetVersion > APTYRIAN_NET_VERSION || usingNetVersion < APTYRIAN_COMPATIBLE_VERSION)
 			throw std::runtime_error("Version mismatch. You may need to update APTyrian.");
 
 		APSeedSettings.Tyrian2000Mode = aptyrianJSON.at("Settings").at("RequireT2K").template get<bool>();
@@ -1544,9 +1551,18 @@ const char *Archipelago_StartLocalGame(FILE *file)
 		std::string obfuscated;
 		json resultJSON;
 
-		obfuscated = aptyrianJSON.value<std::string>("TwiddleData", "?6"); // Optional
-		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-		APAll_ParseTwiddleData(resultJSON);
+		APAll_ClearTwiddleData();
+		if (aptyrianJSON.contains("TwiddleData"))
+		{
+			if (usingNetVersion == 6)
+			{
+				obfuscated = aptyrianJSON.at("TwiddleData").template get<std::string>();
+				resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+				APAll_ParseTwiddleData(resultJSON);
+			}
+			else
+				APAll_ParseTwiddleData(aptyrianJSON["TwiddleData"]);
+		}
 
 		obfuscated = aptyrianJSON.at("ShopData").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
@@ -1727,7 +1743,8 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 		APAll_InitMessageQueue();
 		try
 		{
-			if (slot_data.at("NetVersion") != APTYRIAN_NET_VERSION)
+			usingNetVersion = slot_data.at("NetVersion").template get<int>();
+			if (usingNetVersion > APTYRIAN_NET_VERSION || usingNetVersion < APTYRIAN_COMPATIBLE_VERSION)
 				throw std::runtime_error("Version mismatch. You may need to update APTyrian.");
 
 			APSeedSettings.Tyrian2000Mode = slot_data.at("Settings").at("RequireT2K").template get<bool>();
@@ -1758,9 +1775,18 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 			std::string obfuscated;
 			json resultJSON;
 
-			obfuscated = slot_data.value<std::string>("TwiddleData", "?6"); // Optional
-			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-			APAll_ParseTwiddleData(resultJSON);
+			APAll_ClearTwiddleData();
+			if (slot_data.contains("TwiddleData"))
+			{
+				if (usingNetVersion == 6)
+				{
+					obfuscated = slot_data.at("TwiddleData").template get<std::string>();
+					resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+					APAll_ParseTwiddleData(resultJSON);
+				}
+				else
+					APAll_ParseTwiddleData(slot_data["TwiddleData"]);
+			}
 
 			obfuscated = slot_data.at("ShopData").template get<std::string>();
 			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
