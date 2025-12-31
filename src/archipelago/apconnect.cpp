@@ -1359,7 +1359,7 @@ std::vector<std::string> death_messages[] = {
 	{}, // DAMAGE_DEATHLINK (unused)
 	{ // DAMAGE_BULLET
 		" went out in a blaze of glory.",
-		" took one bullet too many."
+		" took one bullet too many.",
 		" can confirm:  Sudden decompression sucks.",
 		" should've kept their shields up."
 	},
