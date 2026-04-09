@@ -236,7 +236,7 @@ static const char *const apitems_AllNames[1000] = {
 	"Plasma Storm",               // 808
 	"Mini-Missile",               // 809
 	"Buster Rocket",              // 810
-	"Zica Supercharger",          // 811
+	"Zica SuperCharger",          // 811
 	"MicroBomb",                  // 812
 	"8-Way MicroBomb",            // 813
 	"Post-It Mine",               // 814
@@ -647,7 +647,7 @@ static const Uint8 apitems_Sidekicks[36] = {
 	9, // Plasma Storm
 	10, // Mini-Missile
 	11, // Buster Rocket
-	12, // Zica Supercharger
+	12, // Zica SuperCharger
 	13, // MicroBomb
 	14, // 8-Way MicroBomb
 	15, // Post-It Mine
@@ -683,7 +683,7 @@ static const bool apitems_RightOnlySidekicks[36] = {
 	false, // Plasma Storm
 	false, // Mini-Missile
 	false, // Buster Rocket
-	false, // Zica Supercharger
+	false, // Zica SuperCharger
 	false, // MicroBomb
 	false, // 8-Way MicroBomb
 	false, // Post-It Mine
