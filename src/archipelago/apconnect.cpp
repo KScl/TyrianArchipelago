@@ -1564,9 +1564,14 @@ const char *Archipelago_StartLocalGame(FILE *file)
 				APAll_ParseTwiddleData(aptyrianJSON["TwiddleData"]);
 		}
 
-		obfuscated = aptyrianJSON.at("ShopData").template get<std::string>();
-		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-		APAll_ParseShopData(resultJSON);
+		if (APSeedSettings.ShopMode != SHOP_MODE_NONE)
+		{
+			obfuscated = aptyrianJSON.at("ShopData").template get<std::string>();
+			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+			APAll_ParseShopData(resultJSON);
+		}
+		else // This structure can be omitted if shops are disabled
+			shopPrices.clear();
 
 		obfuscated = aptyrianJSON.at("WeaponCost").template get<std::string>();
 		resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
@@ -1788,9 +1793,14 @@ static void APRemote_CB_SlotConnected(const json& slot_data)
 					APAll_ParseTwiddleData(slot_data["TwiddleData"]);
 			}
 
-			obfuscated = slot_data.at("ShopData").template get<std::string>();
-			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
-			APAll_ParseShopData(resultJSON);
+			if (APSeedSettings.ShopMode != SHOP_MODE_NONE)
+			{
+				obfuscated = slot_data.at("ShopData").template get<std::string>();
+				resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
+				APAll_ParseShopData(resultJSON);
+			}
+			else // This structure can be omitted if shops are disabled
+				shopPrices.clear();
 
 			obfuscated = slot_data.at("WeaponCost").template get<std::string>();
 			resultJSON = APAll_DeobfuscateJSONObject(obfuscated);
